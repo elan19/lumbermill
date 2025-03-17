@@ -1,0 +1,216 @@
+/* Base styles for the form container */
+.editOrderForm {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading styling */
+.editOrderForm h2 {
+  text-align: center;
+  color: #333;
+}
+
+/* Form styles */
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Input group styling */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label styling */
+.formGroup label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Input styling */
+.input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 97%;
+}
+
+.select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.textarea {
+  height: 75px;
+  font-size: 16px;
+}
+
+/* Prilista item styling */
+.prilistaItem {
+  background-color: #eaeaea;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.prilistaHeader {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggleButton {
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.details {
+  margin-top: 1rem;
+  border-top: 1px solid #ccc;
+  padding-top: 1rem;
+}
+
+.completedBadge {
+  display: inline-block;
+  background-color: #28a745; /* Green */
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  margin-left: 5px;
+}
+
+.prilistaItem.completed {
+  background-color: #d4edda; /* Light green for completed */
+  border-color: #c3e6cb; /* Green border */
+}
+
+.prilistaItem.completed h3 {
+  color: #155724; /* Dark green text for completed */
+}
+
+/* Error message styling */
+.error {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* Button styling */
+.submitButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #45a049;
+}
+
+/* Container for the kantlista list */
+.kantlistaList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between items */
+}
+
+/* Individual kantlista item styling */
+.kantListItem {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #eaeaea;
+}
+
+
+
+.kantListItem.completed {
+  background-color: #d4edda; /* Light green for completed */
+  border-color: #c3e6cb; /* Green border */
+}
+
+.kantListItem.completed h3 {
+  color: #155724; /* Dark green text for completed */
+}
+
+.deleteButton {
+  background-color: #ccc;
+  background-color: #ff4d4f;
+  padding: 8px 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background-color: #f51e22;
+  color: white;
+}
+
+.detailAndRemoveBtnDiv {
+  display: flex; /* Use flexbox to control alignment */
+  justify-content: space-between; /* Place buttons on opposite sides */
+  align-items: center; /* Vertically align buttons if needed */
+  width: 100%; /* Make sure the container takes the full width */
+}
+  
+/* Responsive design */
+@media (max-width: 768px) {
+  .editOrderForm {
+    padding: 15px;
+  }
+
+  .editOrderForm .input {
+    font-size: 16px;
+  }
+
+  .editOrderForm label {
+    font-size: 18px;
+  }
+
+  .submitButton {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editOrderForm {
+    padding: 10px;
+  }
+
+  .formGroup {
+    margin-bottom: 12px;
+  }
+
+  .input {
+    padding: 6px;
+    font-size: 16px;
+  }
+
+  .submitButton {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+  

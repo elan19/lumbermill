@@ -1,0 +1,179 @@
+.createOrder {
+    margin: 0 auto;
+    padding: 24px;
+    max-width: 1200px;
+    background-color: #eee;
+    border-radius: 12px;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    padding-top: 12px;
+    margin-bottom: 40px;
+  }
+  
+  h2 {
+    text-align: center;
+    font-size: 24px;
+    color: #333333;
+    margin-bottom: 20px;
+  }
+
+  .createOrder .form input,
+  .createOrder .form textarea
+  .createOrder .form select{
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formGroup {
+    margin-bottom: 50px;
+  }
+  
+  label {
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #555555;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+  }
+  
+  button {
+    padding: 12px 18px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+    transform: scale(1.02);
+  }
+  
+  button:active {
+    transform: scale(0.98);
+  }
+  
+  .errorMessage {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  .success {
+    color: green;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  .prilistaItem {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .addBtn {
+    padding: 10px 15px;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .addBtn:hover {
+    background-color: #0056b3;
+  }
+
+  .kantlistaItem {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .submitBtn {
+    background-color: #28a745;
+  }
+
+  .submitBtn:hover {
+    background-color: #218838;
+  }
+  
+  .kantListaCheckBtnDiv label {
+    display: flex;
+    gap: 5px; /* Adds space between the checkbox and the text */
+  }
+  
+  .removeBtn {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    max-height: 40px;
+  }
+  
+  .removeBtn:hover {
+    background-color: #c82333;
+  }
+
+  .removeBtnKantlista {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    max-height: 40px;
+    margin-top: 15px;
+  }
+
+  .removeBtnKantlista:hover {
+    background-color: #c82333;
+  }
+  
+  .optional {
+    font-size: 12px;
+    font-style: italic;
+    color: #888888;
+  }
+
+  .textareaTest {
+    max-width: 100%;
+  }
+  
+  .selectOrder {
+    height: 40px;
+    border-radius: 6px;
+  }
+
+/* Responsive Design */
+@media (max-width: 500px) {
+  .prilistaItem input {
+    width: 100%;
+  }
+
+  .kantlistaItem input {
+    width: 100%;
+  }
+}

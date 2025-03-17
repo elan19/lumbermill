@@ -1,0 +1,394 @@
+/* Container */
+.kantlistaContainer {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin: 0 auto;
+    padding-bottom: 15px;
+  }
+  
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .navButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .navButton:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Order List */
+  .title {
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .orderTable {
+    width: 98%;
+    margin-left: 1%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .orderTable th, .orderTable td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .orderTable td {
+    height: 40px;
+  }
+
+  .completeButton {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    margin: 0;
+  }
+  
+  .completeButton:hover {
+    background-color: #45a049;
+  }
+
+  .checkButton {
+    background-color: #eaeaea;
+    color: #333;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    margin: 0;
+    transition: 0.3s color, 0.3s background-color;
+  }
+  
+  .checkButton:hover {
+    background-color: #45a049;
+    color: white;
+  }
+
+  .greenButton {
+    background-color: green;
+    color: white;
+    cursor: not-allowed;
+  }
+
+  .greenButton:hover {
+    background-color: green;
+  }
+
+  .activeButton {
+    background-color: #ccc;
+    background-color: #007bff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .activeButton:hover {
+    background-color: #0056b3;
+    color: white;
+  }
+
+  .deactiveButton {
+    background-color: #ccc;
+    background-color: #ff4d4f;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .deactiveButton:hover {
+    background-color: #f51e22;
+    color: white;
+  }
+  
+  
+  
+  .orderTable th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .orderTable tr:nth-child(even) {
+    background-color: #e1e1e1; /* Light gray for even rows */
+  }
+  
+  .orderTable tr:nth-child(odd) {
+    background-color: #fff; /* White for odd rows */
+  }
+  
+  /* Hover effect (still works with alternating colors) */
+  .orderTable tr:hover {
+    background-color: #ccc;
+  }
+  
+  .selectedRow {
+    background-color: #d1ecf1;
+  }
+  
+  /* Order Details */
+  .orderDetails {
+    margin-top: 16px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .locationInput {
+    margin-top: 8px;
+    display: flex
+  }
+
+  /* Style for the dimensions section */
+ .dimensionItem {
+    margin-bottom: 20px;
+  }
+  
+.dimensionTitle {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.dimensionDetails {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.dimensionDetails li {
+    margin: 5px 0;
+    font-size: 1rem;
+}
+
+.dimensionDetails li strong {
+    color: #2c3e50;
+}
+
+/* Optional: Add some padding or border to make it look cleaner */
+.orderDetails {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.locationInput {
+    margin-top: 20px;
+}
+
+.saveButton {
+    margin-top: 10px;
+}
+  
+.dimensionItem {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd; /* Optional: adds separation between items */
+}
+
+.dimensionTitle {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.dimensionDetails {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.dimensionDetails li {
+    font-size: 0.9rem;
+    margin: 3px 0;
+}
+
+.dimensionDetails li strong {
+    color: #2c3e50;
+}
+
+/* Optional: Add a light border to each table row */
+.orderTable tr {
+    border-bottom: 1px solid #eee;
+}
+
+.orderLink {
+  text-decoration: none;
+  outline: 1px solid #007bff;
+  padding: 5px 5px;
+  border-radius: 3px;
+}
+
+.orderLink:hover {
+  background-color: #007bff;
+  color: #eee;
+}
+
+
+
+.clickable {
+  text-decoration: none;
+  outline: 1px solid #007bff;
+  padding: 5px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background-color: #007bff;
+  color: #eee;
+}
+
+.filteredList {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+}
+
+.filteredList h3 {
+  margin-bottom: 10px;
+}
+
+/* Prilista.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  max-width: 500px;
+  width: 90%;
+}
+
+.closeButton {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
+.closeButton:hover {
+  background-color: #f51e22;
+}
+
+.filteredTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.filteredTable th, .filteredTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.filteredTable th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.filteredTable tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.filteredTable tr:hover {
+  background-color: #f1f1f1;
+}
+
+
+
+@media (max-width: 1000px) {
+  .header {
+      flex-direction: column; /* Stack buttons vertically */
+      align-items: center;
+  }
+
+  .navButton {
+      width: 90%; /* Full width with some margin */
+      margin-bottom: 10px; /* Add spacing between buttons */
+  }
+
+  .orderTable {
+      width: 100%; /* Make the table fill the screen width */
+      font-size: 0.9rem; /* Reduce font size for smaller screens */
+      overflow-x: auto; /* Add horizontal scroll if content overflows */
+      margin-left: 0;
+  }
+
+  .orderTable th, .orderTable td {
+      padding: 8px; /* Reduce padding for smaller screen fit */
+      white-space: nowrap; /* Prevent text from wrapping awkwardly */
+  }
+
+  .orderTable tr {
+      display: block; /* Stack rows for readability on narrow screens */
+      margin-bottom: 10px; /* Add spacing between rows */
+  }
+
+  .orderTable th {
+      display: none; /* Hide headers for stacked layout */
+  }
+
+  .orderTable td {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border: 1px solid #ddd; /* Separate stacked rows visually */
+  }
+
+  .orderTable td:before {
+      content: attr(data-label); /* Display headers as labels on each row */
+      font-weight: bold;
+      color: #333;
+      margin-right: 10px;
+  }
+
+  .completeButton {
+      width: 25%; /* Full width for easier tap on mobile */
+  }
+
+  .orderList {
+    margin-bottom: 100px;
+  }
+}
+
+@media (max-width: 432px) {
+  .completeButton {
+      width: 50%; /* Full width for easier tap on mobile */
+  }
+}
+

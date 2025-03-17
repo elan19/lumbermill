@@ -1,0 +1,300 @@
+/* Container styles */
+.lagerplatsContainer {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Heading styles */
+.lagerplatsContainer h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Form styles */
+.lagerplatsContainer form {
+    display: block;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+    justify-content: center;
+    align-items: baseline;
+}
+
+.lagerplatsContainer form select {
+    margin-bottom: 25px;
+    margin-left: 3%;
+    font-size: 14px;
+    height: 40px;
+    display: block;
+}
+
+.lagerplatsContainer form label {
+    width: 10%;
+    display: inline-block;
+    margin-left: 3%;
+}
+
+.lagerplatsContainer form input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 30%;
+}
+
+.lagerplatsContainer form button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #4caf50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    min-width: 100px;
+    width: 20%;
+    margin-left: 40%;
+    background-color: green;
+}
+
+.lagerplatsContainer form button:hover {
+    background-color: #45a049;
+}
+  
+/* Table styles */
+.lagerplatsContainer table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    table-layout: fixed; /* Ensures all cells are the same size */
+}
+
+.lagerplatsContainer thead th, .lagerplatsContainer tbody td {
+    padding: 12px;
+    text-align: center;
+    border-right: 1px solid #ccc; /* Adjust as needed */
+    overflow: hidden;
+    white-space: nowrap; /* Prevent content from wrapping */
+    text-overflow: ellipsis; /* Add ellipsis if content overflows */
+}
+
+.lagerplatsContainer thead {
+    position: sticky;
+    top: 0;
+}
+
+.lagerplatsContainer thead th {
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+}
+
+.lagerplatsContainer thead th:hover > span {
+    color: #0056b3;
+}
+
+.lagerplatsContainer tbody tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+.lagerplatsContainer tbody tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.lagerplatsContainer tbody tr:hover {
+    background-color: #f0f8ff;
+}
+
+/* Ensuring cells are aligned */
+.lagerplatsContainer tbody td {
+    border-bottom: 1px solid #ddd;
+}
+
+.lagerplatsContainer .deleteButton {
+    background-color: #ccc;
+    background-color: #ff4d4f;
+    border: none;
+    cursor: pointer;
+}
+
+.lagerplatsContainer .deleteButton:hover {
+    background-color: #f51e22;
+    color: white;
+}
+
+/* New class for scrollable table */
+.lagerplatsContainer .tableContainer {
+    width: 100%;
+    overflow: auto; /* Enables horizontal scrolling */
+    white-space: nowrap; /* Prevents text wrapping inside cells */
+    padding-bottom: 10px; /* Space below for better UX */
+}
+
+/* Ensure table has a minimum width */
+.lagerplatsContainer table {
+    min-width: 800px; /* Adjust as needed */
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    table-layout: fixed;
+}
+
+.tableDeciderDiv {
+    display: flex;
+    justify-content: center;
+}
+
+.tableDeciderDiv button {
+    margin: 10px;
+}
+
+.tableDeciderDiv button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: 2px solid transparent;
+    background-color: #007bff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+  
+.tableDeciderDiv button:hover {
+    background-color: #0056b3;
+}
+
+.activeButton {
+    background-color: #007bff !important; /* Blue background */
+    color: white !important; /* White text */
+    font-weight: bold;
+    background-color: #0056b3 !important;
+    border: 2px solid #333 !important; /* Darker border */
+}
+
+.itemsPerPage {
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+}
+
+.itemsPerPage:hover {
+    border: 1px solid #555;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    font-size: 16px;
+  }
+  
+  .pagination button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+  }
+  
+  .pagination button:hover {
+    background-color: #0056b3;
+  }
+  
+  .pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .pagination span {
+    font-weight: bold;
+    color: #333;
+  }
+  
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .lagerplatsContainer {
+        padding: 5px;
+    }
+
+    .lagerplatsContainer table {
+        overflow-x: auto; /* Allow horizontal scrolling */
+    }
+
+    .lagerplatsContainer thead, .lagerplatsContainer tbody {
+        width: 100%;
+    }
+
+    .lagerplatsContainer tbody tr {
+        display: table-row; /* Keep rows as table rows */
+        width: 100%; /* Full width */
+    }
+
+    .lagerplatsContainer tbody td, .lagerplatsContainer thead th {
+        display: table-cell; /* Keep cells as table cells */
+        width: auto; /* Adjust width automatically */
+        text-overflow: clip; 
+    }
+
+    .lagerplatsContainer .tableContainer {
+        overflow-x: auto; /* Ensures scrolling on small screens */
+    }
+
+    .lagerplatsContainer table {
+        width: 100%;
+        padding: 0;
+        min-width: 1200px; /* Ensures the table does not shrink too much */
+    }
+
+    .lagerplatsContainer form {
+        display: block;
+    }
+
+    .lagerplatsContainer form select {
+        margin-left: 2%;
+        font-size: 16px;
+    }
+
+    .lagerplatsContainer form label {
+        width: 100%;
+        display: block;
+        margin-left: 1%;
+    }
+
+    .lagerplatsContainer form input {
+        width: 95%;
+        margin-left: 1%;
+    }
+
+    .lagerplatsContainer form button {
+        min-width: 100px;
+        width: 25%;
+        margin-left: 40%;
+        background-color: green;
+    }
+
+
+}
+
+  

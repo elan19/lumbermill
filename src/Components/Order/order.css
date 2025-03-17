@@ -1,0 +1,439 @@
+.orderDetail {
+    background-color: #dddddd;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 70%;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  
+  .orderDetail-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  .orderDetail-section {
+    margin-bottom: 20px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 10px;
+  }
+  
+  .orderDetail-section h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  
+  .orderDetail-notes {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    resize: vertical;
+  }
+
+  .createOrder input {
+    margin-left: 5px;
+  }
+
+  .createOrder textarea {
+    margin-left: 5px;
+    padding-top: 25px;
+  }
+
+  .addPrilistaBtn button {
+    font-size: 50px;
+  }
+
+  .orderActions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .orderDetail-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .orderDetail-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .orderDetail-update {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .orderDetail-update:hover {
+    background-color: #45a049;
+  }
+  
+  .orderDetail-delete {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .orderDetail-delete:hover {
+    background-color: #e53935;
+  }
+  
+
+
+/* Order List Styles */
+.orderList {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 20px auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orderList h2 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #333;
+}
+
+.orderItem {
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: space-between;
+  align-items: stretch;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orderDetails {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 6px;
+  animation: expand 0.3s ease;
+}
+
+
+.orderItem:hover {
+  transform: scale(1.02);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.orderSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+@keyframes expand {
+  from {
+    opacity: 0;
+    transform: scaleY(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.orderLeft {
+  flex: 1; /* Takes up twice as much space as the other sections */
+  text-align: left;
+  padding-right: 20px;
+}
+
+.orderMiddle {
+  flex: 1; /* Takes up default space */
+  text-align: center;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  padding: 0 20px;
+}
+
+.orderRight {
+  flex: 1;
+  text-align: right;
+  padding-left: 20px;
+}
+
+.orderItem h3 {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.orderItem p {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Error Styling */
+.orderList.error {
+  background-color: #ffe6e6;
+  color: #b30000;
+  border: 1px solid #b30000;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 800px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+
+.orderHeader, .vehicleDetails, .items, .location {
+  margin-bottom: 20px;
+}
+
+.vehicleDetails {
+  border-bottom: 1px solid #666;
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.orderHeader .orderInfo {
+  flex-grow: 1;
+}
+
+.orderHeader .markAsDelivered {
+  margin-left: auto;
+  margin-right: 25px;
+}
+
+.markAsDelivered button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.markAsDelivered button:hover {
+  background-color: #45a049;
+}
+
+.items .item {
+  border-top: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.items .item p {
+  margin: 5px 0;
+}
+
+/* Container for the prilista list */
+.prilistaList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between items */
+}
+
+/* Individual prilista item styling */
+.prilistaItem {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.finishedBtn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.finishedBtn:hover {
+  background-color: #45a049;
+}
+
+/* Button styling */
+.orderDetailButtons {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100px;
+}
+
+
+.completedItem {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.prilistaItem.completed .prilistaText {
+  text-decoration: line-through;
+  color: #808080; /* Optional: Change color to indicate completion */
+}
+
+
+.kantlistaList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between items */
+}
+
+/* Individual prilista item styling */
+.kantlistaItem {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+/* Button styling */
+.kantlistaItem button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.kantlistaItem button:hover {
+  background-color: #0056b3;
+}
+
+
+.completedItem {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.kantlistaItem.completed .kantlistaText {
+  text-decoration: line-through;
+  color: #808080; /* Optional: Change color to indicate completion */
+}
+
+
+.custom-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.custom-button:hover {
+  background-color: #0056b3;
+}
+
+.custom-button:active {
+  background-color: #004085;
+}
+
+.markAsDelivered .editBtn {
+  background-color: #007bff;
+  margin-left: 10px;
+}
+
+.markAsDelivered .editBtn:hover {
+  background-color: #004085;
+}
+
+.newOrderLink {
+  padding: 10px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-bottom: 25px;
+  text-decoration: none;
+  margin: 0 auto;
+}
+
+.newOrderLink:hover {
+  background-color: #0056b3;
+}
+
+.h2ToPdf {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  position: relative; /* Required for the button positioning */
+}
+
+.downloadBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #007bff; /* Adjust as needed */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.downloadBtn:hover {
+  background-color: #0056b3; /* Adjust hover color as needed */
+}
+
+.rightOrderText {
+  width: 100%;
+  text-align: right;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .orderDetail {
+    max-width: 90%;
+  }
+
+  .orderRight, .orderLeft {
+    text-align: center;
+  }
+
+  .downloadBtn {
+    top: 50px;
+  }
+
+  .orderHeader .markAsDelivered {
+    text-align: right;
+    margin-right: 0px;
+  }
+
+  .markAsDelivered .editBtn {
+    margin-top: 10px;
+  }
+}
