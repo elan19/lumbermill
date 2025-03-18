@@ -67,9 +67,8 @@ const CreateKantlista = () => {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
       });
-      console.log(response.data);
 
-      alert("KANTLISTA skapad!");
+      //alert("KANTLISTA skapad!");
       // Reset form fields
       setOrderNumber("");
       setCustomer("");

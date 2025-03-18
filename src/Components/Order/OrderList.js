@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import './order.css';
 
@@ -27,7 +27,7 @@ function OrderList() {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
         });
-        console.log('Fetched orders:', response.data);
+        //console.log('Fetched orders:', response.data);
         setOrders(response.data);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch orders');
@@ -57,7 +57,7 @@ function OrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        console.log('Fetched prilistor data:', response.data);
+        //console.log('Fetched prilistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch prilistor data:', err);
         setError('Failed to load prilistor data');
@@ -75,7 +75,7 @@ function OrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        console.log('Fetched kantlistor data:', response.data);
+        //console.log('Fetched kantlistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch kantlistor data:', err);
         setError('Failed to load kantlistor data');
@@ -95,6 +95,9 @@ function OrderList() {
 
   return (
     <div className="orderList">
+      <div className="linkDiv">
+        <Link to="/dashboard/new-order" className="newOrderLink">Skapa ny order</Link>
+      </div>
       <h2>Ordrar</h2>
       {orders.length === 0 ? (
         <p>Inga ordrar hittades.</p>

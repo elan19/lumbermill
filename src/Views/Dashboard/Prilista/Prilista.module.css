@@ -191,6 +191,7 @@
   outline: 1px solid #007bff;
   padding: 5px 5px;
   border-radius: 3px;
+  margin: 0 5px;
 }
 
 .orderLink:hover {

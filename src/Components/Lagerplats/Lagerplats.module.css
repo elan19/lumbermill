@@ -294,6 +294,14 @@
         background-color: green;
     }
 
+    .tableDeciderDiv {
+        flex-direction: column;
+    }
+
+    .itemsPerPage {
+        padding: 15px 5px;
+    }
+
 
 }
 

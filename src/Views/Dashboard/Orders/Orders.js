@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import OrderList from '../../../Components/Order/OrderList';
 import OrderDetail from '../../../Components/Order/OrderDetail';
@@ -55,10 +54,6 @@ const Orders = () => {
 
   return (
     <div>
-      <h2>Orders</h2>
-      <div className={styles.linkDiv}>
-        <Link to="/dashboard/new-order" className={styles.newOrderLink}>Skapa ny order</Link>
-      </div>
       <OrderList orders={orders} setSelectedOrder={setSelectedOrder} />
       {selectedOrder && <OrderDetail order={selectedOrder} />}
     </div>

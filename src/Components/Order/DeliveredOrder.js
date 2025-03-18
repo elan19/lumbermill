@@ -21,7 +21,7 @@ function DeliveredOrderList() {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
         });
-        console.log('Fetched orders:', response.data);
+        //console.log('Fetched orders:', response.data);
         
         // Filter orders with status = "Delivered"
         const deliveredOrders = response.data.filter(order => order.status === 'Delivered');
@@ -54,7 +54,7 @@ function DeliveredOrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        console.log('Fetched prilistor data:', response.data);
+        //console.log('Fetched prilistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch prilistor data:', err);
         setError('Failed to load prilistor data');
@@ -72,7 +72,7 @@ function DeliveredOrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        console.log('Fetched kantlistor data:', response.data);
+        //console.log('Fetched kantlistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch kantlistor data:', err);
         setError('Failed to load kantlistor data');

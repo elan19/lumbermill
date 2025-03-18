@@ -68,48 +68,48 @@ const LagerPlatsComp = () => {
   };
   
   const handleSave = async (rowIndex, columnKey) => {
-    const updatedLagerplatser = [...lagerplatser]; // Clone array to avoid state mutation issues
+    const updatedLagerplatser = [...lagerplatser]; // Klona för att undvika state-mutation
   
-    // Extract object path and field to update
-    const keys = columnKey.split('.'); // Handles nested keys like 'kantatData.bredd'
-    const lastKey = keys.pop(); // The actual field to update
-    let currentObj = updatedLagerplatser[rowIndex];
-  
-    // Navigate to the correct nested object
+    // Hitta objektet som redigeras i den filtrerade listan
+    const editedItem = filteredLagerplatser[rowIndex]; // Hämta objekt baserat på filtrerad lista
+    const originalIndex = updatedLagerplatser.findIndex(item => item._id === editedItem._id); // Hitta rätt objekt i hela listan
+
+    if (originalIndex === -1) {
+      console.error("Kunde inte hitta objektet i ofiltrerad lista.");
+      return;
+    }
+
+    // Hantera nested keys (t.ex. 'kantatData.bredd')
+    const keys = columnKey.split('.');
+    const lastKey = keys.pop();
+    let currentObj = updatedLagerplatser[originalIndex];
+
     keys.forEach((key) => {
-      if (!currentObj[key]) {
-        currentObj[key] = {}; // Ensure object exists to prevent errors
-      }
+      if (!currentObj[key]) currentObj[key] = {}; // Se till att objektet existerar
       currentObj = currentObj[key];
     });
-  
-    // Update the target field
+
+    // Uppdatera värdet
     currentObj[lastKey] = editedValue;
-  
-    const updatedField = {
-      [columnKey]: editedValue, // Send only the updated field
-    };
-  
+
+    const updatedField = { [columnKey]: editedValue };
+
     console.log("Updating field:", updatedField);
-  
+
     try {
-      // Send only the modified field to the server
       await axios.put(
-        `http://localhost:5000/api/lagerplats/${updatedLagerplatser[rowIndex]._id}`,
-        updatedField, // Send only the changed field
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `http://localhost:5000/api/lagerplats/${updatedLagerplatser[originalIndex]._id}`,
+        updatedField,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      setLagerplatser(updatedLagerplatser); // Update state
-      setEditing(null); // Exit editing mode
+
+      setLagerplatser(updatedLagerplatser); // Uppdatera hela listan korrekt
+      setEditing(null); // Avsluta redigeringsläge
     } catch (err) {
       console.error("Failed to save updated data:", err);
     }
-  };
+};
+
   
   
 
@@ -117,7 +117,7 @@ const LagerPlatsComp = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+    console.log("Edit");
     // If changing type, reset the specific fields
     if (name === "type") {
       setFormData({

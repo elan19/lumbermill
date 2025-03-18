@@ -19,7 +19,6 @@ const Prilista = () => {
   const [bsidanOrders, setBsidanOrders] = useState([]);
   const [asidanOrders, setAsidanOrders] = useState([]);
   const [emptyLocationOrders, setEmptyLocationOrders] = useState([]);
-  const [completeOrders, setCompletedOrders] = useState([]);
   const allOrders = [...ishallenOrders, ...bsidanOrders, ...asidanOrders, ...emptyLocationOrders];
   const [isTouchDevice, setIsTouchDevice] = useState(window.innerWidth < 1024);
   const [user, setUser] = useState(null); // State to store user data
@@ -42,7 +41,7 @@ const Prilista = () => {
     }
     }); // Adjust URL as needed
     socket.current.on('orderUpdated', (data) => {
-      console.log('Received order update:', data);
+      //console.log('Received order update:', data);
       // Fetch the updated list of orders from the backend
       fetchOrders();
     });
@@ -76,17 +75,12 @@ const Prilista = () => {
     // Add resize listener
     window.addEventListener('resize', updateDeviceType);
 
-    console.log(`Is touch device: ${isTouchDevice}`);
+    //console.log(`Is touch device: ${isTouchDevice}`);
 
     return () => {
       // Cleanup listener on unmount
       window.removeEventListener('resize', updateDeviceType);
     };
-  }, [isTouchDevice]);
-
-  // Log changes to `isTouchDevice`
-  useEffect(() => {
-    console.log(`Is touch device: ${isTouchDevice}`);
   }, [isTouchDevice]);
 
   const fetchUserData = async () => {
@@ -127,7 +121,7 @@ const Prilista = () => {
       const incompleteOrders = response.data.filter(order => !order.completed);
       const sortedOrders = incompleteOrders.sort((a, b) => a.position - b.position);
       setOrders(sortedOrders);
-      setCompletedOrders(completedOrders);
+      //setCompletedOrders(completedOrders);
 
       setIshallenOrders(
         sortedOrders.filter(order => order.measureLocation === 'Ishallen')
@@ -167,14 +161,14 @@ const Prilista = () => {
     if (!user) {
       fetchUserData();
     } else {
-      console.log(user); // This will log the user after it's available
+      //console.log(user); // This will log the user after it's available
       fetchOrders(); // Fetch orders after the user is fetched
     }
   
   }, [user]);
 
   const moveOrder = async (dragIndex, hoverIndex, list) => {
-    console.log('Drag Index:', dragIndex, 'Hover Index:', hoverIndex);
+    //console.log('Drag Index:', dragIndex, 'Hover Index:', hoverIndex);
   
     //const draggedOrder = list[dragIndex];
   
@@ -218,7 +212,7 @@ const Prilista = () => {
   
 
   const moveOrderUp = async (dragIndex, list) => {
-    console.log('Drag Index:', dragIndex, 'Orders:', orders);
+    //console.log('Drag Index:', dragIndex, 'Orders:', orders);
   
     // Filter out completed orders
     const updatedOrders = list.filter(order => !order.completed);
@@ -267,8 +261,8 @@ const Prilista = () => {
   
 
   const moveOrderDown = async (dragIndex, list) => {
-    console.log('Drag Index:', dragIndex, 'Orders:', orders);
-    console.log(token);
+    /*console.log('Drag Index:', dragIndex, 'Orders:', orders);
+    console.log(token);*/
   
     // Filter out completed orders
     const updatedOrders = list.filter(order => !order.completed);
@@ -367,8 +361,8 @@ const Prilista = () => {
   };
 
   const handleFilterClick = async (prilistaId, dimension, size) => {
-    console.log("Filterclick");
-    console.log(token);
+    /*console.log("Filterclick");
+    console.log(token);*/
     try {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append('tum', size);
@@ -411,7 +405,6 @@ const Prilista = () => {
     const [, drop] = useDrop({
       accept: ItemType.ORDER,
       drop: (draggedItem) => {
-        console.log('Dropped Item:', draggedItem); // Debug log
         if (draggedItem.index !== index) {
           moveOrder(draggedItem.index, index, list);
           draggedItem.index = index;

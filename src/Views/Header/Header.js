@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import './header.css';
-import logo from '../../images/logo.png';
+import logo from '../../images/ansvab_logo.png';
 
 function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

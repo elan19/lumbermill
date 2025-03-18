@@ -30,13 +30,13 @@ const KantListaManager = () => {
       }
     }); // Adjust URL as needed
     socket.current.on('kantListUpdate', (data) => {
-      console.log('Received order update:', data);
+      //console.log('Received order update:', data);
       // Fetch the updated list of orders from the backend
       fetchOrders();
     });
 
     socket.current.on('activeKantList', (data) => {
-      console.log('Received order update:', data);
+      //console.log('Received order update:', data);
       // Fetch the updated list of orders from the backend
       fetchOrders();
     });
@@ -75,7 +75,7 @@ const KantListaManager = () => {
   };
 
   const handleToggleActiveKantlista = async (kantlista) => {
-    console.log(kantlista);
+    //console.log(kantlista);
     try {
       // Use the new toggle-active endpoint
   
@@ -95,38 +95,7 @@ const KantListaManager = () => {
     }
   };
 
-  /*const moveOrder = async (dragIndex, hoverIndex) => {
-    const draggedOrder = orders[dragIndex];
-
-    const updatedOrders = [...orders];
-    const [movedOrder] = updatedOrders.splice(dragIndex, 1);
-    updatedOrders.splice(hoverIndex, 0, movedOrder);
-    setOrders(updatedOrders);
-
-    try {
-      await axios.put('http://localhost:5000/api/kantlista/reorder', {
-        draggedId: draggedOrder._id,
-        targetPosition: hoverIndex + 1,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
-      
-      fetchOrders();
-      /*const incompleteOrders = response.data.filter(order => !(order.status.kapad && order.status.klar));
-      const sortedOrders = incompleteOrders.sort((a, b) => a.position - b.position);
-      setOrders(sortedOrders);
-    } catch (error) {
-      console.error('Error updating order:', error);
-    }
-  };*/
-
   const moveOrder = async (dragIndex, hoverIndex) => {
-    console.log('Drag Index:', dragIndex, 'Hover Index:', hoverIndex);
-  
-    //const draggedOrder = list[dragIndex];
   
     // Step 1: Update the local UI to reflect the new order
     const updatedOrders = [...orders];
@@ -165,7 +134,7 @@ const KantListaManager = () => {
   };
 
   const handleFilterClick = async (kantlistId, dimension, size) => {
-    console.log(kantlistId);
+    //console.log(kantlistId);
     try {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append("tum", size);
@@ -200,8 +169,8 @@ const KantListaManager = () => {
 
   const handleUpdateLagerplats = async (kantlistId, newLocation) => {
     try {
-      console.log(kantlistId);
-      console.log(newLocation);
+      //console.log(kantlistId);
+      //console.log(newLocation);
       const response = await axios.put(`http://localhost:5000/api/kantlista/update-lagerplats`, {
         kantlistId,
         lagerplats: newLocation,
@@ -212,7 +181,7 @@ const KantListaManager = () => {
       });
 
       if (response.status === 200) {
-        alert(`Lagerplats updated to: ${newLocation}`);
+        //alert(`Lagerplats updated to: ${newLocation}`);
 
         fetchOrders();
         setFilterCriteria(null);
@@ -243,12 +212,12 @@ const KantListaManager = () => {
         return;
       }
 
-      console.log(endpoint);
-      console.log(currentOrder.customer);
+      //console.log(endpoint);
+      //console.log(currentOrder.customer);
   
       // If `ordernumber` is missing and `kund` is "lager", delete the kantlista when clicking "Klar"
       if (currentOrder.customer === "Lager" && endpoint === "completed") {
-        console.log(currentOrder);
+        //console.log(currentOrder);
         const deleteResponse = await axios.delete(
           `http://localhost:5000/api/kantlista/${id}`,
           {
@@ -257,6 +226,36 @@ const KantListaManager = () => {
             },
           }
         );
+
+        const newLagerplats = {
+          type: "Kantat",
+          tree: "f",
+          dim: currentOrder.tjocklek,
+          location: "-",
+          kantatData: {
+            bredd: currentOrder.bredd,
+            varv: currentOrder.varv,
+            max_langd: currentOrder.max_langd,
+            kvalite: "-"
+          },
+           // Du kan uppdatera detta om det finns en specifik plats
+      };
+
+      const addResponse = await axios.post(
+          `http://localhost:5000/api/lagerplats`,
+          newLagerplats,
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          }
+      );
+
+      if (addResponse.status === 201) {
+          setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
+          fetchOrders();
+          //alert("Kantlistan har lagts till i Lagerplats!");
+      }
   
         if (deleteResponse.status === 200) {
           setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
@@ -277,7 +276,7 @@ const KantListaManager = () => {
       );
   
       if (response.status === 200) {
-        alert(`Item marked as ${field}`);
+        //alert(`Item marked as ${field}`);
   
         // Update the state for the orders
         const updatedOrders = orders.map(order =>
@@ -383,11 +382,11 @@ const KantListaManager = () => {
                       {kantlista.orderNumber}
                     </Link>
                   </td>
-                  <td>{kantlista.customer}</td>
-                  <td>{kantlista.tjocklek} x {kantlista.bredd} - {kantlista.varv}varv - {kantlista.max_langd}m - {kantlista.stampel || '-'}</td>
-                  <td>{kantlista.lagerplats || '-'}</td>
-                  <td>{kantlista.information || '-'}</td>
-                  <td>
+                  <td data-label="Kund">{kantlista.customer}</td>
+                  <td data-label="Data">{kantlista.tjocklek} x {kantlista.bredd} - {kantlista.varv}varv - {kantlista.max_langd}m - {kantlista.stampel || '-'}</td>
+                  <td data-label="Lagerplats">{kantlista.lagerplats || '-'}</td>
+                  <td data-label="Information">{kantlista.information || '-'}</td>
+                  <td data-label="Kapad">
                     {!kantlista.status.kapad && (
                       <button
                         onClick={() => handleComplete(kantlista._id, 'kapad')}
@@ -402,7 +401,7 @@ const KantListaManager = () => {
                       </button>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Klar">
                     {!kantlista.status.klar && (
                       <button
                         onClick={() => handleComplete(kantlista._id, 'klar')}
@@ -417,7 +416,7 @@ const KantListaManager = () => {
                       </button>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Aktivera">
                     <button
                       className={`${styles.activeButton} ${kantlista.active ? styles.deactiveButton : ''}`}
                       onClick={() => handleToggleActiveKantlista(kantlista)}
@@ -544,7 +543,7 @@ const DraggableRow = ({ order, index, moveOrder, onComplete, onFilter, activeKan
           </button>
         )}
       </td>
-      <td>
+      <td data-label="Aktivera">
         <button
           className={`${styles.activeButton} ${isActive ? styles.deactiveButton : ''}`}
           onClick={() => handleToggleActiveKantlista(order)}

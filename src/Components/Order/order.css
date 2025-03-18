@@ -412,6 +412,11 @@
   text-align: right;
 }
 
+.linkDiv {
+  width: 100%;
+  text-align: center;
+}
+
 
 
 /* Responsive Design */

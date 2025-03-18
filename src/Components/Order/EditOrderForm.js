@@ -32,7 +32,7 @@ const EditOrderForm = () => {
       setOrderDetails(data);
       setPrilistaDetails(data.prilista);
       setKantListaDetails(data.kantlista || []);
-      console.log(data.kantlista);
+      //console.log(data.kantlista);
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch order details:', err);
@@ -57,7 +57,7 @@ const EditOrderForm = () => {
       [name]: value, // Convert the string 'true' to the Boolean true
     };
     setPrilistaDetails(updatedPrilista);
-    console.log(prilistaDetails);
+    //console.log(prilistaDetails);
   };
 
   const handleKantListaChange = (index, e, field = null) => {
@@ -120,7 +120,7 @@ const EditOrderForm = () => {
         )
       );
 
-      alert('Order and PriLista and Kantlista details updated successfully');
+      //alert('Order and PriLista and Kantlista details updated successfully');
       navigate(`/dashboard/order-detail/${orderNumber}`);
     } catch (err) {
       console.error('Failed to update order and PriLista details:', err);
@@ -136,8 +136,8 @@ const EditOrderForm = () => {
   };*/
 
   const toggleExpanded = (listType, index) => {
-    console.log(listType);
-    console.log(index);
+    //console.log(listType);
+    //console.log(index);
     setExpandedItems((prev) => ({
       ...prev,
       [listType]: {
@@ -185,18 +185,6 @@ const EditOrderForm = () => {
     <div className={styles.editOrderForm}>
       <h2>Redigera Order</h2>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label htmlFor="title">Titel:</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={orderDetails.title || ''}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
         <div className={styles.formGroup}>
           <label htmlFor="orderNumber">Ordernummer:</label>
           <input
