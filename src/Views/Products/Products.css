@@ -1,0 +1,185 @@
+/* ./Views/Products/Products.css */
+
+.products-page {
+    /* Inherit general page styles or define specific ones */
+    background-color: #fff; /* Match home page background */
+}
+  
+.page-header {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #e9e7e1; /* Slightly different background for header */
+    margin-bottom: 40px;
+}
+  
+.page-header h1 {
+    font-family: 'SerifFontName', serif; /* Use your serif font */
+    color: #384a3f; /* Dark green/black */
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+}
+  
+.page-header p {
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto;
+}
+  
+.product-category {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    align-items: center;
+    gap: 30px;
+    max-width: 1100px;
+    margin: 0 auto 60px auto; /* Center and add bottom margin */
+    padding: 30px 20px;
+    background-color: #f4f2ed; /* White cards for products */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+  
+.product-category.alt-layout {
+    flex-direction: row-reverse; /* Reverse order for alternating layout */
+}
+  
+.product-image {
+    flex: 1 1 45%; /* Takes up slightly less than half */
+    min-width: 280px; /* Ensure image doesn't get too small */
+}
+  
+.product-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+  
+.product-details {
+    flex: 1 1 50%; /* Takes up slightly more than half */
+    text-align: left;
+}
+  
+.product-details h2 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+  
+.product-details p {
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #444;
+}
+  
+.product-details ul {
+    list-style: disc;
+    margin-left: 20px;
+    margin-bottom: 25px;
+    color: #555;
+}
+.product-details li {
+    margin-bottom: 8px;
+}
+  
+  /* Re-use button styles or define new ones */
+.product-details .details-button {
+    background-color: #c87e5a; /* Example: Use the accent color */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+}
+  
+.product-details .details-button:hover {
+    background-color: #b06d4a;
+}
+
+
+
+.product-list-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.product-list-item {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.product-list-item h3 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.product-list-item .details-button { /* Style Link like a button */
+    display: inline-block;
+    background-color: #c87e5a;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+.product-list-item .details-button:hover {
+    background-color: #b06d4a;
+}
+
+.product-span {
+    font-style: italic;
+}
+
+
+
+/* Style for the inline links within the list */
+.details-link-inline {
+  color: #c87e5a; /* Example accent color */
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.9em; /* Slightly smaller */
+}
+
+.details-link-inline:hover {
+  text-decoration: underline;
+}
+
+/* Ensure the main button Link is styled correctly */
+.details-button { /* This might already exist, ensure it targets 'a' or is general */
+  display: inline-block; /* Important for Link */
+  /* Add other button styles: background, padding, border, color, etc. */
+  text-decoration: none; /* Remove underline from link */
+}
+
+
+  
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .product-category,
+    .product-category.alt-layout {
+        flex-direction: column; /* Stack elements vertically */
+        text-align: center;
+    }
+    .product-details {
+        text-align: center;
+    }
+    .product-details ul {
+        display: inline-block; /* Center list items */
+        text-align: left;
+        margin-left: 0; /* Remove margin when centered */
+        padding-left: 20px; /* Use padding for indentation */
+    }
+}

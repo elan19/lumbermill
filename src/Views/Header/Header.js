@@ -13,7 +13,7 @@ function Header() {
   };
 
   const handleLogoClick = () => {
-    navigate('/dashboard'); // Redirect to /home when logo is clicked
+    navigate('/'); // Redirect to /home when logo is clicked
   };
 
   return (

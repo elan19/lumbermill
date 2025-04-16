@@ -1,0 +1,87 @@
+/* ./Views/Footer/Footer.css */
+
+.main-footer {
+    background-color: #384a3f; /* Dark green */
+    color: #e0e0e0; /* Light text color */
+    padding: 40px 20px 20px 20px; /* Top, sides, bottom */
+    margin-top: 0px; /* Space above footer */
+  }
+  
+  .footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Distribute sections */
+    max-width: 1200px;
+    margin: 0 auto 30px auto; /* Center content, space before bottom */
+    gap: 30px; /* Space between sections */
+  }
+  
+  .footer-section {
+    flex: 1; /* Allow sections to grow */
+    min-width: 250px; /* Minimum width before wrapping */
+  }
+  
+  .footer-section h3 {
+    color: #ffffff; /* White heading */
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #5a6e60; /* Subtle underline */
+    padding-bottom: 8px;
+    display: inline-block;
+  }
+  
+  .footer-section p {
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  
+  .footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-section li {
+    margin-bottom: 8px;
+  }
+  
+  .footer-section a {
+    color: #c8d5c9; /* Lighter green/grey for links */
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section a:hover {
+    color: #ffffff; /* White on hover */
+    text-decoration: underline;
+  }
+  
+  a.map-link { /* Specific style for the maps text link */
+      display: inline-block;
+      margin-top: 10px;
+      font-weight: bold;
+  }
+  
+  .footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #5a6e60; /* Separator line */
+    font-size: 0.9rem;
+    color: #a0b0a8; /* Muted color for copyright */
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+      .footer-content {
+          flex-direction: column;
+          text-align: center; /* Center text in columns on mobile */
+      }
+       .footer-section h3 {
+          display: block; /* Make heading take full width */
+          border-bottom: none;
+      }
+      .footer-section ul {
+          padding: 0;
+      }
+  }

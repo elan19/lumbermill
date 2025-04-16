@@ -1,0 +1,190 @@
+/* ./Views/Contact/CustomerFormModal.css */
+
+.modal-overlay {
+    position: fixed; /* Stay in place */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it's on top */
+    animation: fadeIn 0.3s ease-out; /* Simple fade-in */
+  }
+  
+  .modal-content {
+    background-color: #f4f2ed; /* Match page background */
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    position: relative;
+    width: 90%;
+    max-width: 700px; /* Max width */
+    max-height: 90vh; /* Max height */
+    overflow-y: auto; /* Allow scrolling if content is too tall */
+    animation: slideDown 0.4s ease-out; /* Simple slide-down */
+  }
+  
+  .modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close-btn:hover {
+    background-color: #384a3f;
+    transform: none;
+  }
+  
+  .modal-content h2 {
+    font-family: 'SerifFontName', serif; /* Match theme */
+    color: #384a3f; /* Match theme */
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+  
+  /* Form specific styles */
+  .customer-form fieldset {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+  }
+  
+  .customer-form legend {
+    font-weight: bold;
+    color: #384a3f;
+    padding: 0 10px;
+    font-size: 1.1em;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #444;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="tel"],
+  .form-group input[type="email"],
+  .form-group input[type="url"],
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding in width */
+  }
+  .form-group input:focus,
+  .form-group textarea:focus {
+      border-color: #384a3f;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(56, 74, 63, 0.2);
+  }
+  
+  .form-group textarea {
+    resize: vertical; /* Allow vertical resize */
+  }
+  
+  .form-group.inline {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end; /* Align items at bottom */
+  }
+  .form-group.inline > div {
+      flex: 1; /* Make items share space */
+  }
+  
+  .form-group.checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px; /* Extra space after checkbox */
+  }
+  .form-group.checkbox-group input[type="checkbox"] {
+      width: auto; /* Don't make checkbox full width */
+      margin-top: 2px;
+  }
+  .form-group.checkbox-group label {
+      margin-bottom: 0;
+      font-weight: normal; /* Normal weight for checkbox label */
+  }
+  
+  .form-actions {
+    text-align: center;
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .form-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .form-button.submit {
+    background-color: #384a3f; /* Theme dark green */
+    color: white;
+  }
+  .form-button.submit:hover {
+    background-color: #2a382f;
+    transform: translateY(-2px);
+  }
+  
+  .form-button.reset {
+    background-color: #e0e0e0; /* Light grey */
+    color: #333;
+  }
+  .form-button.reset:hover {
+    background-color: #ccc;
+  }
+  
+  
+  /* Simple Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0.6; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+      .modal-content {
+          padding: 20px;
+      }
+      .form-group.inline {
+          flex-direction: column;
+          gap: 15px;
+          align-items: stretch;
+      }
+      .form-actions {
+          flex-direction: column;
+          gap: 10px;
+      }
+  }

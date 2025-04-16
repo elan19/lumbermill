@@ -17,3 +17,32 @@ img {
   margin: 0;
   padding: 0;
 }
+
+/* In index.css or App.css */
+
+/* Ensure html, body, and the root element take up full height */
+html, body, #root { /* Adjust #root if your root div has a different ID */
+  height: 100%;
+  margin: 0;
+}
+
+/* The main application wrapper */
+.app-container {
+  display: flex;           /* Enable Flexbox */
+  flex-direction: column;  /* Stack children vertically (Header, Main, Footer) */
+  min-height: 100vh;       /* Set minimum height to 100% of viewport height */
+                           /* Use 100% if html/body/root height: 100% is set */
+}
+
+/* The main content area */
+.mainContent {
+  flex-grow: 1;            /* Allow this element to grow and fill available space */
+                           /* This pushes the footer down */
+  /* Keep any existing padding or max-width styles you have for .mainContent */
+}
+
+/* Optional but good practice: Prevent header/footer from shrinking */
+.main-header, /* Use the actual class/element selector for your header */
+.main-footer { /* Use the actual class/element selector for your footer */
+  flex-shrink: 0;
+}

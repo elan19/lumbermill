@@ -1,0 +1,181 @@
+/* ./Views/Products/ProductDetail.css */
+
+.product-detail-page {
+    background-color: #f4f2ed;
+    padding-bottom: 40px;
+  }
+  
+  /* Reuse page header styles or define */
+  .page-header {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #e9e7e1;
+    margin-bottom: 40px;
+  }
+  .page-header h1 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    font-size: 2.8rem;
+    margin-bottom: 5px;
+  }
+  .page-header .quality-descriptor {
+    font-size: 1.1rem;
+    color: #555;
+    font-style: italic;
+    margin-top: 0;
+  }
+  
+  /* Main content layout */
+  .detail-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .detail-specs {
+    flex: 2 1 60%; /* Specs take more space */
+    min-width: 300px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .detail-visuals {
+    flex: 1 1 35%; /* Visuals take less space */
+    min-width: 250px;
+    display: flex;
+    flex-direction: column; /* Stack visuals vertically */
+    gap: 30px;
+  }
+  
+  .detail-specs h2 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  /* Definition List for Specs */
+  .spec-list {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .spec-list dt { /* Definition Term (Label) */
+    font-weight: bold;
+    color: #333;
+    margin-top: 15px;
+    font-size: 1rem;
+  }
+  .spec-list dt:first-of-type {
+      margin-top: 0;
+  }
+  
+  .spec-list dd { /* Definition Description (Value) */
+    margin-left: 0; /* Reset browser default */
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  /* Visuals column styling */
+  .visual-item {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  
+  .visual-item h3 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+  
+  .visual-item img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+  }
+  .visual-item.certification img {
+      max-height: 60px; /* Control logo size */
+      width: auto;
+  }
+  
+  
+  .pdf-button {
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    gap: 8px;
+    background-color: #c87e5a; /* Accent color */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  .pdf-button:hover {
+    background-color: #b06d4a;
+  }
+  .pdf-icon {
+      font-size: 1.2rem;
+  }
+  
+  /* Back Link */
+  .back-link-container {
+      text-align: center;
+      margin-top: 40px;
+  }
+  .back-link {
+      color: #384a3f;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 8px 15px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+  }
+  .back-link:hover {
+      background-color: #e0e0e0;
+      text-decoration: none;
+  }
+  
+  
+  /* Not Found Styling */
+  .not-found {
+      text-align: center;
+      padding: 50px 20px;
+  }
+  
+  /* Responsive */
+  @media (max-width: 800px) {
+    .detail-content {
+      flex-direction: column;
+    }
+    .detail-specs, .detail-visuals {
+      flex: 1 1 100%; /* Full width on mobile */
+    }
+    .detail-specs h2 {
+      font-size: 1.5rem;
+    }
+    .pdf-button {
+      width: 100%;
+      text-align: center;
+    }
+    .back-link-container {
+      margin-top: 20px;
+    }
+  }

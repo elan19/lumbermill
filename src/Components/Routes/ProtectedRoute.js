@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    // Add more robust checks if needed (e.g., token expiry validation)
+    return !!token; // Returns true if token exists, false otherwise
+  };
+
+  const location = useLocation(); // Get the current location
+  const isAuth = checkAuth();
 
   // Check if the token exists in localStorage or cookies
   const token = localStorage.getItem('token'); // or from cookies if that's where you store it
@@ -39,8 +48,9 @@ const ProtectedRoute = ({ children }) => {
     return <div>Loading...</div>; // Display loading state while checking authentication
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />; // Redirect to login page if not authenticated
+
+  if (!isAuth) {
+    return <Navigate to="/login" state={{ from: location }} replace />; // Redirect to login page if not authenticated
   }
 
   return children; // If authenticated, render the children (protected content)

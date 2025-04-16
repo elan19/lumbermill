@@ -1,6 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './Views/Home/Home';
+import About from './Views/About/About';
+import Products from './Views/Products/Products';
+import ProductDetail from './Views/Products/ProductDetail';
+import Contact from './Views/Contact/Contact';
+import Policy from './Views/Policy/Policy';
+import Information from './Views/Information/Information'; // <-- Import Information
+
 import Login from './Views/Login/Login';
 import Header from './Views/Header/Header';
 import Footer from './Views/Footer/Footer';
@@ -21,30 +28,52 @@ import ProtectedRoute from './Components/Routes/ProtectedRoute'; // Import the P
 function App() {
   return (
     <Router>
-      <Header />
-      <div className="mainContent">
-        <Routes>
-          {/* Redirect from '/' to '/login' */}
-          <Route path="/" element={<Navigate to="/login" />} />
+      {/* Add the main wrapper div */}
+      <div className="app-container">
+        <Header />
 
-          <Route path="/login" element={<Login />} />
+        {/* This existing div remains for content styling */}
+        <div className="mainContent">
+          <Routes>
+            {/* --- Public Routes --- */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:productId" element={<ProductDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/policy" element={<Policy />} />
+            <Route path="/information" element={<Information />} />
 
-          {/* Protect dashboard routes */}
-          <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
-            <Route path="orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-            <Route path="prilista" element={<ProtectedRoute><Prilista /></ProtectedRoute>} />
-            <Route path="new-prilista" element={<ProtectedRoute><NewPrilista /></ProtectedRoute>} />
-            <Route path="new-order" element={<ProtectedRoute><NewOrder /></ProtectedRoute>} />
-            <Route path="order-detail/:orderNumber" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-            <Route path="edit-order/:orderNumber" element={<ProtectedRoute><EditOrder /></ProtectedRoute>} />
-            <Route path="lagerplats" element={<ProtectedRoute><Lagerplats /></ProtectedRoute>} />
-            <Route path="kantlista" element={<ProtectedRoute><KantList /></ProtectedRoute>} />
-            <Route path="new-kantlista" element={<ProtectedRoute><NewKantList /></ProtectedRoute>} />
-            <Route path="delivered" element={<ProtectedRoute><DeliveredOrderList /></ProtectedRoute>} />
-            <Route path="delivered/order-detail/:orderNumber" element={<ProtectedRoute><DeliveredOrderDetails /></ProtectedRoute>} />
-          </Route>
-        </Routes>
-      </div>
+            {/* --- Protected "Platform" Routes --- */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            >
+               <Route index element={<Navigate to="orders" replace />} />
+               <Route path="orders" element={<Orders />} />
+               <Route path="prilista" element={<Prilista />} />
+               <Route path="new-prilista" element={<NewPrilista />} />
+               <Route path="new-order" element={<NewOrder />} />
+               <Route path="order-detail/:orderNumber" element={<OrderDetail />} />
+               <Route path="edit-order/:orderNumber" element={<EditOrder />} />
+               <Route path="lagerplats" element={<Lagerplats />} />
+               <Route path="kantlista" element={<KantList />} />
+               <Route path="new-kantlista" element={<NewKantList />} />
+               <Route path="delivered" element={<DeliveredOrderList />} />
+               <Route path="delivered/order-detail/:orderNumber" element={<DeliveredOrderDetails />} />
+            </Route>
+
+            <Route path="*" element={<div>Page Not Found (404)</div>} />
+          </Routes>
+        </div> {/* End mainContent */}
+
+        <Footer />
+      </div> {/* Close app-container */}
     </Router>
   );
 }

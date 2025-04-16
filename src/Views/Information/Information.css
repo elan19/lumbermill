@@ -1,0 +1,240 @@
+/* ./Views/Information/Information.css */
+
+.information-page {
+    background-color: #f4f2ed;
+    padding-bottom: 40px;
+  }
+  
+  /* Re-use page header styles */
+  .page-header {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #e9e7e1;
+    margin-bottom: 40px;
+  }
+  .page-header h1 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+  }
+  .page-header p {
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Section Styling */
+  .info-section {
+    display: flex;
+    flex-wrap: wrap; /* Wrap on smaller screens */
+    align-items: center; /* Vertically align items */
+    gap: 40px;
+    max-width: 1100px;
+    margin: 0 auto 60px auto; /* Center sections, add bottom margin */
+    padding: 30px 20px; /* Padding inside section */
+    background-color: #fff; /* White background for content sections */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    overflow: hidden; /* Contain potential animation overflows */
+  }
+  
+  /* Alternating Layout */
+  .info-section.alt-layout {
+    flex-direction: row-reverse; /* Image on the left */
+  }
+  
+  .info-content {
+    flex: 1 1 55%; /* Content takes slightly more space */
+    min-width: 300px; /* Minimum width before wrapping */
+    text-align: left;
+    /* Optional: Add animation */
+    /* animation: fadeInUp 0.6s ease-out 0.2s forwards; */
+    /* opacity: 0; */
+  }
+  
+  .info-image {
+    flex: 1 1 40%; /* Image takes slightly less space */
+    min-width: 300px;
+    /* Optional: Add animation */
+    /* animation: fadeInUp 0.6s ease-out 0.4s forwards; */
+    /* opacity: 0; */
+  }
+  
+  .info-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+  }
+  
+  .info-content h2 {
+    font-family: 'SerifFontName', serif;
+    color: #384a3f;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  .info-content p {
+    line-height: 1.7;
+    margin-bottom: 15px;
+    color: #444;
+  }
+  
+  .info-content ul {
+    list-style: disc;
+    margin-left: 20px;
+    margin-bottom: 15px;
+    padding-left: 5px;
+    color: #555;
+  }
+  
+  .info-content li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+
+  .information-italic {
+    font-style: italic;
+  }
+
+
+  /* --- Styles for Expandable Sections --- */
+.expandable-section {
+  margin-bottom: 15px; /* Space between expandable items */
+  border: 1px solid #e0e0e0; /* Optional border */
+  border-radius: 4px;
+  background-color: #fdfdfd; /* Slightly different background */
+}
+
+.expandable-header {
+  display: flex;
+  justify-content: space-between; /* Pushes icon to the right */
+  align-items: center;
+  width: 100%;
+  padding: 12px 15px;
+  background-color: transparent; /* Or a subtle background */
+  border: none;
+  /* border-bottom: 1px solid #eee; */ /* Add bottom border if section border is removed */
+  text-align: left;
+  font-weight: bold;
+  font-size: 1.05rem; /* Slightly larger than paragraph */
+  color: #384a3f; /* Theme color */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.expandable-header:hover {
+  background-color: #f0f0f0; /* Subtle hover */
+}
+
+.expandable-icon {
+  font-size: 0.9em; /* Adjust icon size */
+  margin-left: 10px;
+  transition: transform 0.3s ease-out; /* Animate rotation */
+  color: #777; /* Icon color */
+}
+
+.expandable-icon.open {
+  transform: rotate(180deg); /* Rotate arrow when open */
+}
+
+.expandable-content {
+  /* Smooth transition for height and visibility */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0 15px; /* Only horizontal padding when closed */
+  transition: max-height 0.4s ease-out, opacity 0.3s ease-in, padding 0.3s ease-out;
+  background-color: #fff; /* Ensure background when open */
+  border-top: 1px solid #eee; /* Separator line */
+}
+
+.expandable-content.open {
+  max-height: 1000px; /* Set high enough to fit content */
+  opacity: 1;
+  padding: 15px 15px; /* Add vertical padding when open */
+  transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in 0.1s, padding 0.3s ease-in; /* Adjust timing */
+}
+
+.expandable-content p {
+  margin: 0 0 10px 0; /* Adjust paragraph margins inside */
+  line-height: 1.6;
+  color: #444;
+}
+.expandable-content p:last-child {
+  margin-bottom: 0;
+}
+
+
+/* --- Styles for PDF Link/Button --- */
+.pdf-link-container {
+  margin-top: 30px; /* Adjust spacing as needed */
+  text-align: left; /* Default alignment, change to 'center' if preferred */
+}
+
+.pdf-download-button {
+  /* Copy styles from .details-button or .cta-button for consistency */
+  display: inline-flex; /* Aligns icon and text */
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+
+  background-color: #384a3f; /* Example: Match details-button */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none; /* Remove underline */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-download-button:hover {
+  background-color: #2a382f; /* Darker shade */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pdf-icon {
+    font-size: 1.2rem; /* Adjust icon size */
+    line-height: 1; /* Prevents icon affecting line height */
+}
+  
+  /* Responsive */
+  @media (max-width: 800px) {
+    .info-section,
+    .info-section.alt-layout {
+      flex-direction: column; /* Stack image and text */
+       gap: 20px;
+    }
+     .info-section.alt-layout .info-image {
+         order: -1; /* Display image first when stacked in alt layout */
+     }
+    .info-content {
+      text-align: center; /* Center text on mobile */
+    }
+     .info-content h2 {
+         text-align: center;
+     }
+    .info-content ul {
+        display: inline-block; /* Allow centering list */
+        text-align: left; /* Keep list items left-aligned */
+        margin-left: 0;
+        padding-left: 20px;
+    }
+
+    .expandable-header {
+      font-size: 1rem; /* Slightly smaller header on mobile */
+  }
+
+    .pdf-link-container {
+      text-align: center; /* Center button on mobile */
+      margin-top: 25px;
+    }
+  }

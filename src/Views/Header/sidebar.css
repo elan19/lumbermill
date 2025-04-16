@@ -4,7 +4,8 @@
     position: fixed;
     top: 0;
     right: -400px; /* Hidden by default */
-    background-color: #111;
+    background-color: #2A382F; /* Darker shade */
+    color: #F4F2ED;
     overflow-x: hidden;
     transition: 0.3s;
     padding-top: 20px;
@@ -24,6 +25,12 @@
     background: none;
     border: none;
     cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .sidebar .close-btn:hover {
+    transform: none;
+    color: rgba(255, 255, 255, 0.1);
   }
   
   .sidebar h2 {
@@ -43,7 +50,7 @@
   }
   
   .sidebar ul li a {
-    color: white;
+    color: #E0E5E0;
     height: 50px;
     line-height: 50px;
     text-decoration: none;
@@ -51,5 +58,8 @@
   }
   
   .sidebar ul li a:hover {
-    background-color: #575757;
+    color: #FFFFFF; /* Brighter white on hover/active */
+    background-color: rgba(255, 255, 255, 0.1);
   }
+  
+  
