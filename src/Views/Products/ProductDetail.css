@@ -42,6 +42,7 @@
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    position: relative;
   }
   
   .detail-visuals {
@@ -140,6 +141,13 @@
       text-align: center;
       margin-top: 40px;
   }
+
+  /* Top back link styled to be in the upper-right corner */
+  .back-link-container-top {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+  }
   .back-link {
       color: #384a3f;
       text-decoration: none;
@@ -167,6 +175,7 @@
     }
     .detail-specs, .detail-visuals {
       flex: 1 1 100%; /* Full width on mobile */
+      padding-top: 3rem;
     }
     .detail-specs h2 {
       font-size: 1.5rem;
@@ -174,6 +183,10 @@
     .pdf-button {
       width: 100%;
       text-align: center;
+    }
+    .back-link-container-top {
+      top: 0.5rem;
+      right: 0.5rem;
     }
     .back-link-container {
       margin-top: 20px;

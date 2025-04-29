@@ -72,6 +72,11 @@ function Sidebar({ isOpen, toggleSidebar }) {
           <>
             <li className="sidebar-divider"><hr/></li> {/* Optional Separator */}
             <li>
+              <NavLink to="/dashboard" onClick={handleLinkClick} className={getNavLinkClass}>
+                Dashboard
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/dashboard/orders" onClick={handleLinkClick} className={getNavLinkClass}>
                 Ordrar
               </NavLink>

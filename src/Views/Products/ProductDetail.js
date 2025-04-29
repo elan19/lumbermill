@@ -29,6 +29,9 @@ const ProductDetail = () => {
       <section className="detail-content">
         {/* Column for Specifications */}
         <div className="detail-specs">
+          <div className="back-link-container-top">
+            <Link to="/products" className="back-link">← Tillbaka</Link>
+          </div>
           <h2>Specifikationer</h2>
           <dl className="spec-list">
             {product.specs.map((spec, index) => (

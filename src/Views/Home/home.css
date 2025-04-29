@@ -144,11 +144,12 @@ section h2 {
 }
 
 .expertise-icon {
-  width: 150px; /* Adjust icon size */
+  width: 225px; /* Adjust icon size */
   height: 150px;
   margin-bottom: 15px;
   /* Add transition for hover effect */
   transition: transform 0.3s ease;
+  object-fit: contain;
 }
 
 .expertise-icon:hover {
@@ -205,6 +206,7 @@ section h2 {
   display: block;
   /* Could add a subtle zoom on image hover within the card */
   transition: transform 0.4s ease;
+  object-fit: cover;
 }
 
 .product-card:hover img {
@@ -414,6 +416,12 @@ section h2 {
 
 .hero-content a {
   text-decoration: none;
+}
+
+@media (min-width: 992px) and (max-width: 1099px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* For Tablets and smaller - Force 2 columns */

@@ -215,6 +215,15 @@
   .map-iframe-container {
     padding-bottom: 60%; /* Adjust aspect ratio for wider mobile if needed */
   }
+
+  .map-link-button {
+    margin-bottom: 300px; /* Space above button */
+  }
+}
+@media (max-width: 600px) { /* Adjust breakpoint if needed */
+  .map-link-button {
+    margin-bottom: 150px; /* Space above button */
+  }
 }
 @media (max-width: 500px) {
     .main-contact-grid, .person-details-grid {
@@ -227,6 +236,10 @@
 
     .contact-details {
       min-width: 0px;
+    }
+
+    .map-link-button {
+      margin-bottom: 100px; /* Space above button */
     }
 }
 

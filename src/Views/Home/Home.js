@@ -41,7 +41,7 @@ const Home = () => {
               Vi strävar efter avverkning med minsta påverkan på miljön och vi skall uppfylla lagstifning samt följa  PEFC´s™ och FSC®’s krav och intentioner.</p>
           </div>
           <div className="expertise-item">
-            <img src={trad_ringar} alt="Kvalitetskontroll" className="expertise-icon" />
+            <img src={close_shot} alt="Kvalitetskontroll" className="expertise-icon" />
             <h3>Kvalitetskontroll</h3>
             <p>För att nå bästa resultat synas, mäts och kvalitetsbedöms varje planka/bräda (efter torkning) manuellt av våra mätare. Uppfylls inte kraven läggs plankan/brädan i andrahandssortiment.</p>
           </div>

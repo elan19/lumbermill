@@ -238,7 +238,7 @@ const LagerPlatsComp = () => {
         <select name="type" value={formData.type} onChange={handleInputChange}>
           <option value="Sågat">Sågat</option>
           <option value="Kantat">Kantat</option>
-          <option value="Okantat">Okantat</option>
+          <option value="Okantat">Okantat / EJ FIXAD</option>
         </select>
 
         <label>Trädslag:</label>
@@ -303,7 +303,7 @@ const LagerPlatsComp = () => {
           className={selectedCategory === 'Okantat' ? styles.activeButton : ''} 
           onClick={() => setSelectedCategory('Okantat')}
         >
-          Okantat
+          Okantat / EJ FIXAD
         </button>
         
         <button 

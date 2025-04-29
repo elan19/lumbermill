@@ -75,9 +75,10 @@
   }
   
   .value-item img {
-    width: 150px;
+    width: 225px;
     height: 150px;
     margin-bottom: 15px;
+    object-fit: contain;
   }
   
   .value-item h3 {
