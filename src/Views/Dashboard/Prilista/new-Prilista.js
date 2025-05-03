@@ -22,7 +22,7 @@ const CreatePrilista = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/orders", {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -57,14 +57,14 @@ const CreatePrilista = () => {
     };
 
     try {
-      const response = await axios.post("http://localhost:3000/api/prilista/create", newPrilista, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/prilista/create`, newPrilista, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
       });
       const createdPrilistaId = response.data.prilistaId;
 
-      await axios.put(`http://localhost:3000/api/orders/${orderNumber}/add-prilista`, {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}/add-prilista`, {
         prilistaId: createdPrilistaId,
       }, {
         headers: {

@@ -34,7 +34,7 @@ const Prilista = () => {
   useEffect(() => {
     // Connect to the WebSocket server
     fetchUserData();
-    socket.current = io('http://localhost:5000', {
+    socket.current = io(`${process.env.REACT_APP_API_URL}`, {
     transports: ['websocket'], // Optional, but ensures you're using WebSocket for communication
     auth: {
       token: localStorage.getItem('token') // Send token as part of the connection
@@ -88,7 +88,7 @@ const Prilista = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('User not authenticated');
   
-      const response = await axios.get('http://localhost:5000/api/auth', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -111,7 +111,7 @@ const Prilista = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('User not authenticated');
 
-      const response = await axios.get('http://localhost:5000/api/prilista', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/prilista`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -142,7 +142,7 @@ const Prilista = () => {
 
       if (user) {
         const refreshToken = user.refreshToken;
-        const refreshResponse = await axios.post('http://localhost:5000/api/auth/refresh-token', { refreshToken });
+        const refreshResponse = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/refresh-token`, { refreshToken });
         const newToken = refreshResponse.data.token;
         
         // Store the new token in localStorage
@@ -189,7 +189,7 @@ const Prilista = () => {
     // Step 3: Send the updated positions to the backend
     try {
       await axios.put(
-        'http://localhost:5000/api/prilista/reorder',
+        `${process.env.REACT_APP_API_URL}/api/prilista/reorder`,
         { updatedOrders: reorderedOrders }, // Send the entire reordered list to the backend
         {
           headers: {
@@ -233,7 +233,7 @@ const Prilista = () => {
   
     try {
       // Send the new positions to the backend
-      await axios.put('http://localhost:5000/api/prilista/reorder/up', {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/reorder/up`, {
         updates: [
           { id: draggedOrder._id, position: hoverIndex + 1 },
           { id: targetOrder._id, position: dragIndex + 1 },
@@ -283,7 +283,7 @@ const Prilista = () => {
   
     try {
       // Send the new positions to the backend
-      await axios.put('http://localhost:5000/api/prilista/reorder/up', {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/reorder/up`, {
         updates: [
           { id: draggedOrder._id, position: hoverIndex + 1 },
           { id: targetOrder._id, position: dragIndex + 1 },
@@ -313,7 +313,7 @@ const Prilista = () => {
 
   const handleUpdateLagerplats = async (prilistaId, newLocation) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/prilista/update-lagerplats`, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/update-lagerplats`, {
         prilistaId,
         location: newLocation,
       }, {
@@ -340,7 +340,7 @@ const Prilista = () => {
 
   const handleComplete = async (id) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/prilista/complete/${id}`, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/complete/${id}`, {
         
       }, {
         headers: {
@@ -367,7 +367,7 @@ const Prilista = () => {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append('tum', size);
 
-      const response = await axios.get(`http://localhost:5000/api/lagerplats/filter?${params}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/lagerplats/filter?${params}`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
