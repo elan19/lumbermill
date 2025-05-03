@@ -18,12 +18,18 @@ const authenticateToken = require('./routes/authMiddleware'); // Import the midd
 dotenv.config();
 connectDB();
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  process.env.FRONTEND_URL,
+];
+
 // Create the Express app
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Update this to match your frontend URL
+    origin: allowedOrigins, // Update this to match your frontend URL
     methods: ["GET", "POST", "PUT"],
   },
 });
@@ -31,7 +37,7 @@ const io = new Server(server, {
 app.set('io', io);
 
 const corsOptions = {
-  origin: 'http://localhost:3000', // Your frontend URL
+  origin: allowedOrigins, // Your frontend URL
   credentials: true, // Allow cookies to be sent
 };
 
