@@ -16,7 +16,7 @@ const DeliveredOrderDetails = () => {
     const fetchOrderDetails = async () => {
       try {
         // Fetch the order details
-        const orderResponse = await fetch(`http://localhost:5000/api/orders/${orderNumber}`, {
+        const orderResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -28,7 +28,7 @@ const DeliveredOrderDetails = () => {
         setOrderDetails(orderData);
 
         // Fetch all related prilista details using the orderNumber
-        const prilistaResponse = await fetch(`http://localhost:5000/api/prilista/order/${orderNumber}`, {
+        const prilistaResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/prilista/order/${orderNumber}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -40,7 +40,7 @@ const DeliveredOrderDetails = () => {
         setPrilistaDetails(prilistaData);
 
         // Fetch all related kantlista details using the orderNumber
-        const kantlistaResponse = await fetch(`http://localhost:5000/api/kantlista/order/${orderNumber}`, {
+        const kantlistaResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/kantlista/order/${orderNumber}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -65,8 +65,8 @@ const DeliveredOrderDetails = () => {
   const handleComplete = async (id, type) => {
     try {
       const endpoint = type === 'prilista' 
-        ? `http://localhost:5000/api/prilista/complete/${id}`
-        : `http://localhost:5000/api/kantlista/complete/${id}`;
+        ? `${process.env.REACT_APP_API_URL}/api/prilista/complete/${id}`
+        : `${process.env.REACT_APP_API_URL}/api/kantlista/complete/${id}`;
       const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
@@ -102,7 +102,7 @@ const DeliveredOrderDetails = () => {
 
   const handleMarkAsDelivered = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderNumber}/delivered`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}/delivered`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

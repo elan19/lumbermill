@@ -22,7 +22,7 @@ function OrderList() {
 
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/orders', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -48,7 +48,7 @@ function OrderList() {
     // Check if the prilistor data for this order is already fetched
     if (!prilistorData[orderId]) {
       try {
-        const response = await axios.get(`http://localhost:5000/api/prilista/order/${orderId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/prilista/order/${orderId}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -66,7 +66,7 @@ function OrderList() {
 
     if (!kantlistorData[orderId]) {
       try {
-        const response = await axios.get(`http://localhost:5000/api/kantlista/order/${orderId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/kantlista/order/${orderId}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },

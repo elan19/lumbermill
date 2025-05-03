@@ -23,7 +23,7 @@ const CreateKantlista = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/orders", {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
@@ -62,7 +62,7 @@ const CreateKantlista = () => {
 
     try {
       // Create the new KANTLISTA
-      const response = await axios.post("http://localhost:3000/api/kantlista/create", newKantlista, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/kantlista/create`, newKantlista, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },

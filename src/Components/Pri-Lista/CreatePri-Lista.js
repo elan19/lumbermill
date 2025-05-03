@@ -31,7 +31,7 @@ const CreatePrilista = () => {
     const newPrilista = { orderNumber, customer, location, dimensions };
 
     try {
-      const response = await axios.post("/api/prilista/create", newPrilista);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/prilista/create`, newPrilista);
       alert("PRILISTA created successfully!");
       setOrderNumber("");
       setCustomer("");

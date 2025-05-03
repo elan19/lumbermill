@@ -82,7 +82,7 @@ const CreateOrder = ({ }) => {
     setSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/orders/create', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/orders/create`, {
         orderNumber,
         customer,
         delivery,

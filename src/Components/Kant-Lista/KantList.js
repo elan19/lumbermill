@@ -24,7 +24,7 @@ const KantListaManager = () => {
 
   useEffect(() => {
     // Connect to the WebSocket server
-    socket.current = io('http://localhost:5000', {
+    socket.current = io(`${process.env.REACT_APP_API_URL}`, {
       auth: {
         token: localStorage.getItem('token') // Send the token as part of the connection
       }
@@ -50,7 +50,7 @@ const KantListaManager = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/kantlista', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/kantlista`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -79,7 +79,7 @@ const KantListaManager = () => {
     try {
       // Use the new toggle-active endpoint
   
-      const response = await axios.put(`http://localhost:5000/api/kantlista/toggle-active/${kantlista._id}`, 
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/kantlista/toggle-active/${kantlista._id}`, 
       {},
       {
         headers: {
@@ -114,7 +114,7 @@ const KantListaManager = () => {
     // Step 3: Send the updated positions to the backend
     try {
       await axios.put(
-        'http://localhost:5000/api/kantlista/reorder',
+        `${process.env.REACT_APP_API_URL}/api/kantlista/reorder`,
         { updatedOrders: reorderedOrders }, // Send the entire reordered list to the backend
         {
           headers: {
@@ -139,7 +139,7 @@ const KantListaManager = () => {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append("tum", size);
   
-      const response = await axios.get(`http://localhost:5000/api/lagerplats/filter?${params}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/lagerplats/filter?${params}`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -171,7 +171,7 @@ const KantListaManager = () => {
     try {
       //console.log(kantlistId);
       //console.log(newLocation);
-      const response = await axios.put(`http://localhost:5000/api/kantlista/update-lagerplats`, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/kantlista/update-lagerplats`, {
         kantlistId,
         lagerplats: newLocation,
       }, {
@@ -219,7 +219,7 @@ const KantListaManager = () => {
       if (currentOrder.customer === "Lager" && endpoint === "completed") {
         //console.log(currentOrder);
         const deleteResponse = await axios.delete(
-          `http://localhost:5000/api/kantlista/${id}`,
+          `${process.env.REACT_APP_API_URL}/api/kantlista/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -242,7 +242,7 @@ const KantListaManager = () => {
       };
 
       const addResponse = await axios.post(
-          `http://localhost:5000/api/lagerplats`,
+          `${process.env.REACT_APP_API_URL}/api/lagerplats`,
           newLagerplats,
           {
               headers: {
@@ -266,7 +266,7 @@ const KantListaManager = () => {
   
       // Make the API request to update the order
       const response = await axios.put(
-        `http://localhost:5000/api/kantlista/${endpoint}/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/kantlista/${endpoint}/${id}`,
         {},
         {
           headers: {

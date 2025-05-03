@@ -34,7 +34,7 @@ const LagerPlatsComp = () => {
 
   const fetchLagerplatser = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/lagerplats', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/lagerplats`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -98,7 +98,7 @@ const LagerPlatsComp = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/lagerplats/${updatedLagerplatser[originalIndex]._id}`,
+        `${process.env.REACT_APP_API_URL}/api/lagerplats/${updatedLagerplatser[originalIndex]._id}`,
         updatedField,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -145,7 +145,7 @@ const LagerPlatsComp = () => {
     e.preventDefault();
     console.log(formData);
     try {
-      await axios.post('http://localhost:5000/api/lagerplats', formData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/lagerplats`, formData, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -205,7 +205,7 @@ const LagerPlatsComp = () => {
 
   const deleteLagerPlats = async (lagerPlatsId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/lagerplats/${lagerPlatsId}`,{
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/lagerplats/${lagerPlatsId}`,{
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },

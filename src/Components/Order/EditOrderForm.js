@@ -20,7 +20,7 @@ const EditOrderForm = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderNumber}?expandPrilista=true`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}?expandPrilista=true`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -82,7 +82,7 @@ const EditOrderForm = () => {
     e.preventDefault();
 
     try {
-      const orderResponse = await fetch(`http://localhost:5000/api/orders/${orderNumber}`, {
+      const orderResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const EditOrderForm = () => {
 
       await Promise.all(
         prilistaDetails.map((item) =>
-          fetch(`http://localhost:5000/api/prilista/edit/${item._id}`, {
+          fetch(`${process.env.REACT_APP_API_URL}/api/prilista/edit/${item._id}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ const EditOrderForm = () => {
 
       await Promise.all(
         kantListaDetails.map((item) =>
-          fetch(`http://localhost:5000/api/kantlista/edit/${item._id}`, {
+          fetch(`${process.env.REACT_APP_API_URL}/api/kantlista/edit/${item._id}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ const EditOrderForm = () => {
 
   const deletePrilista = async (prilistaId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/prilista/${prilistaId}`,{
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/prilista/${prilistaId}`,{
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
@@ -162,7 +162,7 @@ const EditOrderForm = () => {
 
   const deleteKantlista = async (kantlistaId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/kantlista/${kantlistaId}`,{
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/kantlista/${kantlistaId}`,{
         headers: {
           Authorization: `Bearer ${token}`, // Add token to Authorization header
         },
