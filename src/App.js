@@ -6,7 +6,8 @@ import Products from './Views/Products/Products';
 import ProductDetail from './Views/Products/ProductDetail';
 import Contact from './Views/Contact/Contact';
 import Policy from './Views/Policy/Policy';
-import Information from './Views/Information/Information'; // <-- Import Information
+import Information from './Views/Information/Information';
+import Settings from './Views/Dashboard/Settings/Settings';
 
 import Login from './Views/Login/Login';
 import Header from './Views/Header/Header';
@@ -66,6 +67,7 @@ function App() {
                <Route path="new-kantlista" element={<NewKantList />} />
                <Route path="delivered" element={<DeliveredOrderList />} />
                <Route path="delivered/order-detail/:orderNumber" element={<DeliveredOrderDetails />} />
+               <Route path="settings" element={<Settings />} />
             </Route>
 
             <Route path="*" element={<div>Page Not Found (404)</div>} />

@@ -1,0 +1,96 @@
+.settings-page-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .settings-page-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  
+  .settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between elements */
+  }
+  
+  .settings-fieldset {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 15px;
+  }
+  
+  .settings-fieldset legend {
+    font-weight: bold;
+    padding: 0 10px;
+    color: #555;
+  }
+  
+  .radio-group {
+    display: flex;
+    flex-direction: column; /* Stack radios vertically */
+    gap: 10px; /* Space between radio buttons */
+  }
+  
+  .radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .radio-label input[type="radio"] {
+    margin-right: 8px;
+    cursor: pointer;
+  }
+  
+  .save-settings-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    align-self: center; /* Center button */
+  }
+  
+  .save-settings-button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  
+  .save-settings-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .settings-loading,
+  .settings-error,
+  .settings-success {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+  
+  .settings-loading {
+    color: #555;
+  }
+  
+  .settings-error {
+    color: #d8000c;
+    background-color: #ffdddd;
+    border: 1px solid #d8000c;
+  }
+  
+  .settings-success {
+    color: #270;
+    background-color: #dff2bf;
+    border: 1px solid #4f8a10;
+  }

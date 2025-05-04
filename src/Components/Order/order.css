@@ -418,6 +418,18 @@
 }
 
 
+@media (max-width: 1099px) {
+  .markAsDelivered {
+      text-align: right;
+      margin-right: 0px;
+  }
+
+  .markAsDelivered .editBtn {
+      margin-top: 10px;
+  }
+}
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

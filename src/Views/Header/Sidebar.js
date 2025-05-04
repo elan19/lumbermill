@@ -60,7 +60,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
             Kontakta oss
           </NavLink>
         </li>
-         <li>
+        <li>
           <NavLink to="/policy" onClick={handleLinkClick} className={getNavLinkClass}>
             Våra policier
           </NavLink>
@@ -96,6 +96,11 @@ function Sidebar({ isOpen, toggleSidebar }) {
                  Kantlista
                </NavLink>
              </li>
+             <li>
+              <NavLink to="/dashboard/settings" onClick={handleLinkClick} className={getNavLinkClass}>
+                Settings
+              </NavLink>
+            </li>
              {/* Add other key dashboard links here if needed */}
              <li className="sidebar-divider"><hr/></li> {/* Optional Separator */}
              <li>

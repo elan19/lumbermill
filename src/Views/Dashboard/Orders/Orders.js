@@ -25,7 +25,7 @@ const Orders = () => {
         }
 
         // Make the GET request with the token in Authorization header
-        const response = await axios.get(`https://ansvab.osc-fr1.scalingo.io/api/orders`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
           headers: {
             Authorization: `Bearer ${token}`, // Add the token in the header
           },

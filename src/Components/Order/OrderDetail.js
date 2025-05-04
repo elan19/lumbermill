@@ -27,157 +27,204 @@ const OrderDetailComp = () => {
   const handleDownloadPDF = () => {
     const element = document.getElementById('orderDetailPDF');
     if (!element) {
-      console.error('Element with ID orderDetailPDF not found');
-      return;
+        console.error('Element with ID orderDetailPDF not found');
+        return;
     }
-  
+
     // Store the original styles to restore them later
     const originalStyles = {
-      buttons: [],
-      prilistaItems: [],
-      kantlistaItems: [],
-      prilistaH3: '',
-      vehicleBorder: ''
+        buttons: [],
+        prilistaItems: [],
+        kantlistaItems: [],
+        // Specific styles we will change for PDF
+        prilistaH3_marginTop: '',
+        // ** Store original styles for vehicleBorder **
+        vehicleBorder_borderBottom: '', // ADDED: To store original border
+        vehicleBorder_marginBottom: '',
+        notesSection_marginTop: '',
+        // Container styles
+        elementBorder: element.style.border,
+        elementBoxShadow: element.style.boxShadow,
+        elementBgColor: element.style.backgroundColor,
+        elementPadding: element.style.padding
     };
-  
-    // Create and add an h2 dynamically for the PDF
+
+    // --- Prepare HTML for Canvas ---
+
+    // 1. Add main title (centered)
     const tempH2 = document.createElement('h2');
     tempH2.innerText = 'UTLASTNINGSORDER';
     tempH2.style.textAlign = 'center';
-    tempH2.style.marginBottom = '80px';
+    tempH2.style.marginBottom = '0px'; // Adjusted for tighter layout
+    tempH2.style.marginTop = '10px';  // Added some top margin
     tempH2.style.fontSize = '24px';
     tempH2.id = 'tempH2PDF';
     element.prepend(tempH2);
-  
-    // Hide buttons or any elements you want to exclude
+
+    // 2. Hide buttons/elements
     const buttons = document.querySelectorAll('.exclude-from-pdf');
     buttons.forEach((button) => {
-      // Store original display style before hiding
-      originalStyles.buttons.push(button.style.display);
-      button.style.display = 'none';
+        originalStyles.buttons.push(button.style.display);
+        button.style.display = 'none';
     });
-  
+
+    // 3. Simplify list item styling
     const prilistor = document.querySelectorAll('.prilistaItem');
     prilistor.forEach((prilistor) => {
-      // Store original styles before modifying
-      originalStyles.prilistaItems.push({
-        border: prilistor.style.border,
-        padding: prilistor.style.padding
-      });
-      prilistor.style.border = 'none';
-      prilistor.style.padding = "0px";
+        originalStyles.prilistaItems.push({
+            border: prilistor.style.border,
+            padding: prilistor.style.padding,
+            marginBottom: prilistor.style.marginBottom,
+            marginTop: prilistor.style.marginTop // Store original marginTop too
+        });
+        prilistor.style.border = 'none';
+        prilistor.style.padding = "0px";
+        prilistor.style.marginBottom = "5px";
+        prilistor.style.marginTop = "0px";
     });
 
     const kantlistor = document.querySelectorAll('.kantlistaItem');
     kantlistor.forEach((kantlistor) => {
-      // Store original styles before modifying
-      originalStyles.kantlistaItems.push({
-        border: kantlistor.style.border,
-        padding: kantlistor.style.padding
-      });
-      kantlistor.style.border = 'none';
-      kantlistor.style.padding = "0px";
+        originalStyles.kantlistaItems.push({
+            border: kantlistor.style.border,
+            padding: kantlistor.style.padding,
+            marginBottom: kantlistor.style.marginBottom
+        });
+        kantlistor.style.border = 'none';
+        kantlistor.style.padding = "0px";
+        kantlistor.style.marginBottom = "5px";
     });
-  
+
+    // 4. Adjust overall container and specific element styles
+
+    // Container styles
     element.style.backgroundColor = '#fff';
     element.style.border = "none";
     element.style.boxShadow = "none";
-  
-    const prilistaH3 = document.getElementById('prilistaH3');
-    // Store original marginTop before changing
-    originalStyles.prilistaH3 = prilistaH3.style.marginTop;
-    prilistaH3.style.marginTop = "60px";
-  
+    element.style.padding = "5px";
+
+    // ** Vehicle details div - EXPLICITLY REMOVE border-bottom for PDF **
     const vehicleBorder = document.getElementById('vehicleBorder');
-    // Store original border before changing
-    originalStyles.vehicleBorder = vehicleBorder.style.borderBottom;
-    vehicleBorder.style.borderBottom = "none";
-  
-    // Generate the PDF
+    if (vehicleBorder) {
+        originalStyles.vehicleBorder_borderBottom = vehicleBorder.style.borderBottom; // Store original CSS border
+        originalStyles.vehicleBorder_marginBottom = vehicleBorder.style.marginBottom;
+
+        vehicleBorder.style.borderBottom = "none"; // <-- REMOVE BORDER FOR PDF
+        vehicleBorder.style.marginBottom = "20px"; // Ensure adequate space below (adjust as needed)
+    }
+
+    // Prilista heading - Adjust top margin if needed
+    const prilistaH3 = document.getElementById('prilistaH3');
+    if (prilistaH3) {
+        originalStyles.prilistaH3_marginTop = prilistaH3.style.marginTop;
+        prilistaH3.style.marginTop = "40px"; // Start right after the vehicle section's margin
+    }
+
+    // Notes section margin
+    const notesSection = element.querySelector('.orderNotesSection');
+    if (notesSection) {
+        originalStyles.notesSection_marginTop = notesSection.style.marginTop;
+        notesSection.style.marginTop = '30px';
+    }
+
+    // --- Generate PDF ---
     html2canvas(element, {
-      scale: 2,
-      backgroundColor: null,
-      useCORS: false,
-      allowTaint: true,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
     }).then((canvas) => {
-      element.style.backgroundColor = '';
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-  
-      let position = 0;
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
 
-      pdf.setFontSize(22);
-      pdf.text('UTLASTNINGSORDER', 105, 20, { align: 'center' });
-  
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-  
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-  
-      pdf.save(`Order-${orderNumber}-${orderDetails.customer}.pdf`);
-  
-      // Restore visibility of buttons
-      buttons.forEach((button, index) => {
-        button.style.display = originalStyles.buttons[index];
-      });
-  
-      // Restore original styles for prilistaItems
-      prilistor.forEach((prilistor, index) => {
-        const styles = originalStyles.prilistaItems[index];
-        prilistor.style.border = styles.border;
-        prilistor.style.padding = styles.padding;
-      });
-      
-      // Restore original styles for prilistaItems
-      kantlistor.forEach((kantlistor, index) => {
-        const styles = originalStyles.kantlistaItems[index];
-        kantlistor.style.border = styles.border;
-        kantlistor.style.padding = styles.padding;
-      });
-  
-      // Restore original styles for prilistaH3 and vehicleBorder
-      prilistaH3.style.marginTop = originalStyles.prilistaH3;
-      vehicleBorder.style.borderBottom = originalStyles.vehicleBorder;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+
+        const imgWidth = pdfWidth - margin * 2;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = margin;
+
+        // Add image captured by html2canvas
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pdfHeight - margin * 2);
+
+        // Add Order Number using pdf.text() at top right
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+        const orderNumberText = `Nr. ${orderNumber}`;
+        const textX = pdfWidth - margin;
+        const textY = margin + 5;
+        pdf.text(orderNumberText, textX, textY, { align: 'right' });
+
+        // Add subsequent pages if needed
+        while (heightLeft > 0) {
+            position = margin - heightLeft;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+            // pdf.text(orderNumberText, textX, textY, { align: 'right' }); // Optional: add number to other pages
+            heightLeft -= (pdfHeight - margin * 2);
+        }
+
+        pdf.save(`Order-${orderNumber}-${orderDetails?.customer || 'details'}.pdf`);
+
     }).catch((error) => {
-      console.error('Error generating PDF:', error);
-  
-      // Restore visibility of buttons in case of an error
-      buttons.forEach((button, index) => {
-        button.style.display = originalStyles.buttons[index];
-      });
-  
-      // Restore original styles for prilistaItems
-      prilistor.forEach((prilistor, index) => {
-        const styles = originalStyles.prilistaItems[index];
-        prilistor.style.border = styles.border;
-        prilistor.style.padding = styles.padding;
-      });
+        console.error('Error generating PDF:', error);
+    }).finally(() => {
+        // --- Restore ALL original styles ---
+        if (tempH2) {
+            tempH2.remove();
+        }
 
-      // Restore original styles for prilistaItems
-      kantlistor.forEach((kantlistor, index) => {
-        const styles = originalStyles.kantlistaItems[index];
-        kantlistor.style.border = styles.border;
-        kantlistor.style.padding = styles.padding;
-      });
-  
-      // Restore original styles for prilistaH3 and vehicleBorder
-      prilistaH3.style.marginTop = originalStyles.prilistaH3;
-      vehicleBorder.style.borderBottom = originalStyles.vehicleBorder;
-    })
-    .finally(() => {
-      // Remove the temporary h2
-      tempH2.remove();
+        buttons.forEach((button, index) => {
+            button.style.display = originalStyles.buttons[index] || '';
+        });
+
+        prilistor.forEach((prilistor, index) => {
+            const styles = originalStyles.prilistaItems[index];
+            if (styles) {
+                prilistor.style.border = styles.border;
+                prilistor.style.padding = styles.padding;
+                prilistor.style.marginBottom = styles.marginBottom || '';
+                prilistor.style.marginTop = styles.marginTop || ''; // Restore marginTop
+            }
+        });
+
+        kantlistor.forEach((kantlistor, index) => {
+            const styles = originalStyles.kantlistaItems[index];
+            if (styles) {
+                kantlistor.style.border = styles.border;
+                kantlistor.style.padding = styles.padding;
+                kantlistor.style.marginBottom = styles.marginBottom || '';
+            }
+        });
+
+        // Restore specific elements
+         if (prilistaH3) {
+             prilistaH3.style.marginTop = originalStyles.prilistaH3_marginTop || '';
+         }
+         // ** Restore vehicleBorder **
+         if (vehicleBorder) {
+             vehicleBorder.style.borderBottom = originalStyles.vehicleBorder_borderBottom || ''; // Restore original border
+             vehicleBorder.style.marginBottom = originalStyles.vehicleBorder_marginBottom || '';
+         }
+        if (notesSection) {
+            notesSection.style.marginTop = originalStyles.notesSection_marginTop || '';
+        }
+
+        // Restore container styles
+        element.style.border = originalStyles.elementBorder || '';
+        element.style.boxShadow = originalStyles.elementBoxShadow || '';
+        element.style.backgroundColor = originalStyles.elementBgColor || '';
+        element.style.padding = originalStyles.elementPadding || '';
     });
-  };
+};
 
   const fetchOrderDetails = async () => {
     try {
@@ -407,9 +454,15 @@ const OrderDetailComp = () => {
             <p></p> // Optionally add this for when there are no items
         )}
       </div>
+      {orderDetails && orderDetails.notes && (
+        <div className="orderNotesSection">
+            <h4>Anteckningar</h4> {/* Heading for the notes */}
+            <p>{orderDetails.notes}</p> {/* Display the notes */}
+        </div>
+      )}
       <div className="rightOrderText">
         <p>Ansgarius Svensson AB</p>
-        <p>{formattedDate}</p>
+        <p>Södra Vi den {formattedDate}</p>
       </div>
     </div>
   );  
