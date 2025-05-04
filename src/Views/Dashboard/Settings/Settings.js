@@ -26,7 +26,7 @@ function SettingsPage() {
         }
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/settings`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -82,7 +82,7 @@ function SettingsPage() {
         }
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/settings`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
                 method: 'PUT', // Use PUT or PATCH to update
                 headers: {
                     'Content-Type': 'application/json',

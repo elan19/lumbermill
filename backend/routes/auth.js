@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const authMiddleware = require('./authMiddleware');
+const authenticateToken = require('./authMiddleware');
 const router = express.Router();
 
 // Generate JWT
@@ -86,7 +87,7 @@ router.post('/login', async (req, res) => {
 
 // --- GET User Settings ---
 // Apply authentication middleware FIRST
-router.get('/settings', authMiddleware, async (req, res) => {
+router.get('/settings', authenticateToken, async (req, res) => {
   try {
       // req.user should be populated by your authMiddleware, containing at least the user's ID
       if (!req.user || !req.user._id) {
@@ -120,7 +121,7 @@ router.get('/settings', authMiddleware, async (req, res) => {
 
 // --- PUT/PATCH User Settings ---
 // (You'll need this counterpart to save settings)
-router.put('/settings', authMiddleware, async (req, res) => {
+router.put('/settings', authenticateToken, async (req, res) => {
   try {
       if (!req.user || !req.user._id) {
            console.error("Authentication middleware failed to attach user ID to request.");
