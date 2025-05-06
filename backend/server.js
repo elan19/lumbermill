@@ -22,7 +22,7 @@ connectDB();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
-  'https://elan19.github.io',
+  '/^https:\/\/[a-zA-Z0-9-]+\.ansvabsagverk\.pages\.dev$/', // Allow all subdomains of ansvabsagverk.pages.dev
   process.env.FRONTEND_URL,
 ];
 
