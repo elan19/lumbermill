@@ -22,7 +22,7 @@ connectDB();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
-  'https://elan19.github.io/',
+  'https://elan19.github.io',
   process.env.FRONTEND_URL,
 ];
 
