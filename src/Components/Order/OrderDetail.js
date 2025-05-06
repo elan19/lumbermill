@@ -10,6 +10,7 @@ const OrderDetailComp = () => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [prilistaDetails, setPrilistaDetails] = useState([]);
   const [kantlistaDetails, setKantlistaDetails] = useState([]);
+  const [klupplistaDetails, setKlupplistaDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem('token');
@@ -36,6 +37,7 @@ const OrderDetailComp = () => {
         buttons: [],
         prilistaItems: [],
         kantlistaItems: [],
+        klupplistaItems: [],
         // Specific styles we will change for PDF
         prilistaH3_marginTop: '',
         // ** Store original styles for vehicleBorder **
@@ -93,6 +95,20 @@ const OrderDetailComp = () => {
         kantlistor.style.border = 'none';
         kantlistor.style.padding = "0px";
         kantlistor.style.marginBottom = "5px";
+    });
+
+    const klupplistor = document.querySelectorAll('.klupplistItem'); // Select klupplist items
+    klupplistor.forEach((kluppItem) => {
+        originalStyles.klupplistaItems.push({ // Store original styles
+            border: kluppItem.style.border,
+            padding: kluppItem.style.padding,
+            marginBottom: kluppItem.style.marginBottom, // Store margins if needed
+            marginTop: kluppItem.style.marginTop
+        });
+        kluppItem.style.border = 'none'; // Remove border for PDF
+        kluppItem.style.padding = "0px"; // Remove padding for PDF
+        kluppItem.style.marginBottom = "5px"; // Add consistent spacing
+        kluppItem.style.marginTop = "0px";
     });
 
     // 4. Adjust overall container and specific element styles
@@ -205,6 +221,17 @@ const OrderDetailComp = () => {
             }
         });
 
+         // --- RESTORE KLUPPLISTA STYLES ---
+        klupplistor.forEach((kluppItem, index) => {
+          const styles = originalStyles.klupplistaItems[index];
+          if (styles) {
+              kluppItem.style.border = styles.border;
+              kluppItem.style.padding = styles.padding;
+              kluppItem.style.marginBottom = styles.marginBottom || '';
+              kluppItem.style.marginTop = styles.marginTop || '';
+          }
+      });
+
         // Restore specific elements
          if (prilistaH3) {
              prilistaH3.style.marginTop = originalStyles.prilistaH3_marginTop || '';
@@ -263,6 +290,17 @@ const OrderDetailComp = () => {
       }
       const kantlistaData = await kantlistaResponse.json();
       setKantlistaDetails(kantlistaData);
+
+      const klupplistaResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/klupplista/order/${orderNumber}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Add token to Authorization header
+        },
+      });
+      if (!klupplistaResponse.ok) {
+        throw new Error(`Error: ${klupplistaResponse.status} - ${klupplistaResponse.statusText}`);
+      }
+      const klupplistaData = await klupplistaResponse.json();
+      setKlupplistaDetails(klupplistaData);
 
       setLoading(false);
     } catch (err) {
@@ -367,7 +405,7 @@ const OrderDetailComp = () => {
   };
 
   const totalPackets = prilistaDetails.reduce((sum, item) => sum + item.quantity, 0) +
-  kantlistaDetails.reduce((sum, item) => sum + item.antal, 0);
+  kantlistaDetails.reduce((sum, item) => sum + item.antal, 0) + klupplistaDetails.reduce((sum, item) => sum + item.antal, 0);
 
   if (loading) {
     return <p>Loading order details...</p>;
@@ -411,15 +449,16 @@ const OrderDetailComp = () => {
         </div>
       </div>
       <div id="vehicleBorder" className="vehicleDetails">
-        <p>Speditör: BIL {totalPackets} PKT</p>
+        <p>Speditör: BIL {totalPackets} PKT {orderDetails.speditor}</p>
       </div>
       <div className="prilistaDetails">
+      {prilistaDetails.length > 0 ? (
+        <>
         <h3 id="prilistaH3">Lista mätning</h3>
-        {prilistaDetails.length > 0 ? (
           <div className="prilistaList">
             {prilistaDetails.map((item, index) => (
               <div key={index} className="prilistaItem">
-                <p>{item.quantity} pkt {item.dimension} MM {item.size}</p>
+                <p>{item.quantity}PKT {item.dimension}MM {item.size} {item.type}</p>
                 <p>{item.description}</p>
                 {!item.completed && (
                   <button className="finishedBtn exclude-from-pdf" onClick={() => handleComplete(item._id, 'prilista')}>Markera som avklarad</button>
@@ -427,8 +466,9 @@ const OrderDetailComp = () => {
               </div>
             ))}
           </div>
+        </>
         ) : (
-          <p>Inga listor för mätning funna.</p>
+          <p></p>
         )}
       </div>
       <div className="kantlistaDetails">
@@ -438,7 +478,7 @@ const OrderDetailComp = () => {
           <div className="kantlistaList">
             {kantlistaDetails.map((item, index) => (
               <div key={index} className="kantlistaItem">
-                <p>{item.antal} pkt {item.tjocklek} x {item.bredd}</p>
+                <p>{item.antal}PKT {item.tjocklek}x{item.bredd}MM {item.max_langd}M</p>
                 <p>{item.information}</p>
                 {!item.status.klar && (
                   <button className="finishedBtn exclude-from-pdf" onClick={() => handleComplete(item._id, 'kantlista')}>Markera som mätt</button>
@@ -454,15 +494,40 @@ const OrderDetailComp = () => {
             <p></p> // Optionally add this for when there are no items
         )}
       </div>
-      {orderDetails && orderDetails.notes && (
+      <div className="klupplistaDetails">
+        {/* Only render the section if there are klupplista items */}
+        {klupplistaDetails.length > 0 && (
+          <>
+            <h3 id="klupplistaH3">Klupplista</h3>
+            <div className="klupplistaList">
+              {klupplistaDetails.map((item, index) => (
+                <div key={item._id || index} className="klupplistItem">
+                  {/* Display relevant Klupplista fields */}
+                  <p>
+                    {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort}
+                  </p>
+                  {/* Add other fields like special, magasin, leveransDatum if needed */}
+                  {item.information && <p>Info: {item.information}</p>}
+                  {/* Optionally display status if needed */}
+                  {/* <p>Status: {item.status?.klar ? 'Klar' : (item.status?.ej_Klar ? 'Ej Klar' : 'Okänd')}</p> */}
+                   {/* Add complete/action buttons if required for Klupplista later */}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {/* Optional: Message if klupplista is empty but was expected */}
+        {/* {klupplistaDetails.length === 0 && <p>Inga klupplistor funna för denna order.</p>} */}
+      </div>
+      {orderDetails && orderDetails.notes.length > 0 && (
         <div className="orderNotesSection">
             <h4>Anteckningar</h4> {/* Heading for the notes */}
             <p>{orderDetails.notes}</p> {/* Display the notes */}
         </div>
       )}
       <div className="rightOrderText">
-        <p>Ansgarius Svensson AB</p>
         <p>Södra Vi den {formattedDate}</p>
+        <p>Ansgarius Svensson AB</p>
       </div>
     </div>
   );  

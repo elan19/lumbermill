@@ -1,0 +1,169 @@
+/* KlupplistaManager.module.css */
+
+.klupplistaContainer {
+    padding: 1rem;
+    max-width: 95%; /* Adjust as needed */
+    margin: 1rem auto;
+  }
+  
+  .klupplistaContainer h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #333;
+  }
+  
+  .header {
+      display: flex;
+      justify-content: flex-end; /* Align button to the right */
+      margin-bottom: 1rem;
+  }
+  
+  .createButton {
+      background-color: #28a745;
+      color: white;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+  }
+  .createButton:hover {
+      background-color: #218838;
+  }
+  
+  .tableContainer {
+    overflow-x: auto; /* Allow horizontal scrolling on small screens */
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    cursor: pointer; /* If adding sorting later */
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .draggableRow {
+    cursor: grab; /* Indicate draggable */
+  }
+  .draggableRow:active {
+      cursor: grabbing;
+  }
+  
+  .positionCell {
+      width: 80px; /* Fixed width for position column */
+      text-align: center;
+  }
+  
+  .moveButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 5px;
+    color: #007bff;
+    vertical-align: middle; /* Align arrows with number */
+  }
+  .moveButton:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+  }
+  .moveButton:hover:not(:disabled) {
+      color: #0056b3;
+  }
+  
+  /* Loading and Error Styles */
+  .loading, .error, .noItems {
+      text-align: center;
+      padding: 1rem;
+      margin: 1rem auto;
+      border-radius: 4px;
+      max-width: 600px;
+  }
+  .loading { color: #555; }
+  .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  .noItems { color: #777; font-style: italic; }
+  
+  
+  /* Basic Responsive Table (Stacking) - Adjust as needed */
+  @media screen and (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+          display: block;
+      }
+  
+      thead tr {
+          position: absolute;
+          top: -9999px;
+          left: -9999px;
+      }
+  
+      tr {
+          border: 1px solid #ccc;
+          margin-bottom: 0.5rem;
+       }
+  
+      td {
+          border: none;
+          border-bottom: 1px solid #eee;
+          position: relative;
+          padding-left: 50%; /* Space for label */
+          text-align: right; /* Align content to the right */
+      }
+  
+      td:before {
+          /* Use the data-label attribute for labels */
+          content: attr(data-label);
+          position: absolute;
+          left: 6px;
+          width: 45%; /* Width of the label */
+          padding-right: 10px;
+          white-space: nowrap;
+          text-align: left; /* Align label text left */
+          font-weight: bold;
+      }
+  
+       /* Hide Pos column label on mobile? */
+      .positionCell:before {
+          content: "Position";
+      }
+  
+       /* Adjust move buttons for mobile */
+       .positionCell {
+           padding-left: 0; /* Override padding */
+           text-align: center;
+       }
+       .positionCell span {
+           display: inline-block;
+           margin: 0 0.5rem;
+       }
+       .positionCell:before {
+           /* Hide default label or adjust */
+           content: "Flytta";
+           width: auto; /* Let it size naturally */
+           position: static; /* Default positioning */
+           padding-right: 5px;
+           font-weight: bold;
+       }
+  }

@@ -1,488 +1,211 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './EditFormOrder.module.css';
+// Import the new layout components we will create
+import EditOrderFormNewLayout from './EditOrderFormNewLayout';
+import EditOrderFormOldLayout from './EditOrderFormOldLayout';
 
 const EditOrderForm = () => {
-  const { orderNumber } = useParams();
-  const navigate = useNavigate();
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [prilistaDetails, setPrilistaDetails] = useState([]);
-  const [kantListaDetails, setKantListaDetails] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [expandedItems, setExpandedItems] = useState({ prilista: {}, kantlista: {} });
-  const token = localStorage.getItem('token');
+    const { orderNumber } = useParams();
+    const navigate = useNavigate();
+    const [orderDetails, setOrderDetails] = useState(null);
+    const [prilistaDetails, setPrilistaDetails] = useState([]);
+    const [kantListaDetails, setKantListaDetails] = useState([]);
+    const [klupplistaDetails, setKlupplistaDetails] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [expandedItems, setExpandedItems] = useState({ prilista: {}, kantlista: {}, klupplista: {} });
+    // State for the GENERAL website design (might not be needed here anymore, but keep for now)
+    // const [designSetting, setDesignSetting] = useState('new');
+    // State specifically for the ORDER FORM design <-- ADD THIS
+    const [orderDesignSetting, setOrderDesignSetting] = useState('new'); // Default to 'new'
+    const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    fetchOrderDetails();
-  }, [orderNumber]);
+    // Fetch BOTH order details and user settings
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        if (!token) {
+            setError("Authentication token not found. Please log in.");
+            setLoading(false);
+            navigate('/login');
+            return;
+        }
 
-  const fetchOrderDetails = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}?expandPrilista=true`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      const data = await response.json();
-      setOrderDetails(data);
-      setPrilistaDetails(data.prilista);
-      setKantListaDetails(data.kantlista || []);
-      //console.log(data.kantlista);
-      setLoading(false);
-    } catch (err) {
-      console.error('Failed to fetch order details:', err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+        try {
+            // Use Promise.all to fetch concurrently
+            const [orderRes, settingsRes] = await Promise.all([
+                 axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                 axios.get(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
+                     headers: { Authorization: `Bearer ${token}` }
+                 })
+            ]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setOrderDetails((prevDetails) => ({
-      ...prevDetails,
-      [name]: value,
-    }));
-  };
+            const orderData = orderRes.data;
 
-  const handlePrilistaChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedPrilista = [...prilistaDetails];
-    updatedPrilista[index] = {
-      ...updatedPrilista[index],
-      [name]: value, // Convert the string 'true' to the Boolean true
+            // Fetch related lists separately
+             const [prilistaRes, kantlistaRes, klupplistaRes] = await Promise.all([
+                 axios.get(`${process.env.REACT_APP_API_URL}/api/prilista/order/${orderData.orderNumber}`, {
+                     headers: { Authorization: `Bearer ${token}` }
+                 }),
+                 axios.get(`${process.env.REACT_APP_API_URL}/api/kantlista/order/${orderData.orderNumber}`, {
+                     headers: { Authorization: `Bearer ${token}` }
+                 }),
+                 axios.get(`${process.env.REACT_APP_API_URL}/api/klupplista/order/${orderData.orderNumber}`, 
+                    { headers: { Authorization: `Bearer ${token}` } 
+                }),
+             ]);
+
+            setOrderDetails(orderData);
+            setPrilistaDetails(prilistaRes.data || []);
+            setKantListaDetails(kantlistaRes.data || []);
+            setKlupplistaDetails(klupplistaRes.data || []);
+
+            // Set the ORDER design setting from fetched data <-- UPDATE THIS
+            setOrderDesignSetting(settingsRes.data?.orderDesign || 'new'); // Use orderDesign field
+            // Optionally set the general design setting if needed elsewhere
+            // setDesignSetting(settingsRes.data?.design || 'new');
+
+        } catch (err) {
+            console.error('Failed to fetch data:', err);
+            let errorMessage = 'Failed to fetch data.';
+            if (err.response) {
+                errorMessage = `Error ${err.response.status}: ${err.response.data.message || err.message}`;
+                if (err.response.status === 401 || err.response.status === 403) {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                    setLoading(false);
+                    return;
+                }
+            } else if (err.request) {
+                errorMessage = 'Network error or server did not respond.';
+            } else {
+                errorMessage = err.message;
+            }
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orderNumber, token, navigate]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // --- Handlers remain the same ---
+     const handleChange = (e) => {
+        const { name, value } = e.target;
+        setOrderDetails((prevDetails) => ({ ...prevDetails, [name]: value, }));
     };
-    setPrilistaDetails(updatedPrilista);
-    //console.log(prilistaDetails);
-  };
+    const handlePrilistaChange = (index, e) => {
+        const { name, value, type, checked } = e.target;
+        setPrilistaDetails((prev) => {
+             const updatedPrilista = [...prev];
+             const currentItem = updatedPrilista[index];
+             let newValue = type === 'checkbox' ? checked : (name === 'completed' && (value === 'true' || value === 'false')) ? value === 'true' : value;
+             updatedPrilista[index] = { ...currentItem, [name]: newValue };
+             return updatedPrilista;
+        });
+    };
+    const handleKantListaChange = (index, e) => {
+        const { name, value, type, checked } = e.target;
+         setKantListaDetails((prev) => {
+            const updatedKantLista = [...prev];
+            const currentItem = updatedKantLista[index];
+            if (name.startsWith('status.')) {
+                const statusField = name.split('.')[1];
+                let newValue = type === 'checkbox' ? checked : (value === 'true' || value === 'false') ? value === 'true' : value;
+                updatedKantLista[index] = { ...currentItem, status: { ...currentItem.status, [statusField]: newValue } };
+            } else {
+                updatedKantLista[index] = { ...currentItem, [name]: value };
+            }
+            return updatedKantLista;
+         });
+    };
+    // --- ADD HANDLER FOR KLUPPLISTA ---
+    const handleKlupplistaChange = (index, e) => {
+        const { name, value, type, checked } = e.target;
+        setKlupplistaDetails((prev) => {
+             const updatedKlupplista = [...prev];
+             const currentItem = updatedKlupplista[index];
+             const newValue = type === 'checkbox' ? checked : value;
 
-  const handleKantListaChange = (index, e, field = null) => {
-    const { name, value } = e.target;
-  
-    setKantListaDetails((prevData) => {
-      const newData = [...prevData];
-  
-      if (field) {
-        // If 'field' is passed, update a nested 'status' field (kapad, klar)
-        newData[index].status[field] = value === "true"; // Convert string to boolean
-      } else {
-        // Otherwise, update a top-level field
-        newData[index][name] = value; // Dynamically update by input 'name' attribute
-      }
-  
-      return newData;
-    });
-  };
+             // Handle status object if it exists in the input name
+             if (name.startsWith('status.')) {
+                 const statusField = name.split('.')[1];
+                 updatedKlupplista[index] = {
+                     ...currentItem,
+                     status: { ...currentItem.status, [statusField]: newValue }
+                 };
+             } else {
+                 updatedKlupplista[index] = { ...currentItem, [name]: newValue };
+             }
+             return updatedKlupplista;
+        });
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault(); setError(null); setLoading(true);
+        try {
+            const orderPayload = { ...orderDetails };
+            await axios.put(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, orderPayload, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
+            await Promise.all(prilistaDetails.map((item) => axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/edit/${item._id}`, item, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } })));
+            await Promise.all(kantListaDetails.map((item) => axios.put(`${process.env.REACT_APP_API_URL}/api/kantlista/edit/${item._id}`, item, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } })));
+            await Promise.all(klupplistaDetails.map((item) => axios.put(`${process.env.REACT_APP_API_URL}/api/klupplista/${item._id}`, item, // Assuming PUT /api/klupplista/:id exists
+                { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } })));
+            navigate(`/dashboard/order-detail/${orderNumber}`);
+        } catch (err) {
+            console.error('Failed to update:', err);
+             let errorMessage = 'Failed to update order.';
+             if (err.response) { errorMessage = `Error ${err.response.status}: ${err.response.data.message || err.message}`; if (err.response.status === 401 || err.response.status === 403) { localStorage.removeItem('token'); navigate('/login'); }}
+             else if (err.request) { errorMessage = 'Network error.'; } else { errorMessage = err.message; }
+             setError(errorMessage);
+        } finally { setLoading(false); }
+    };
+     const toggleExpanded = (listType, index) => { setExpandedItems((prev) => ({ ...prev, [listType]: { ...prev[listType], [index]: !prev[listType]?.[index], }, })); };
+    const deletePrilista = async (prilistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/prilista/${prilistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove prilista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort okantad artikel.'); }};
+    const deleteKantlista = async (kantlistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/kantlista/${kantlistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove kantlista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort kantad artikel.'); }};
+    // --- ADD DELETE HANDLER FOR KLUPPLISTA ---
+    const deleteKlupplista = async (klupplistaId) => {
+        if (!window.confirm("Är du säker?")) return;
+        try {
+            // Assumes DELETE /api/klupplista/:id exists
+            await axios.delete(`${process.env.REACT_APP_API_URL}/api/klupplista/${klupplistaId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            await fetchData(); // Re-fetch data after delete
+        } catch (err) {
+            console.error('Failed to remove klupplista:', err);
+             setError(err.response?.data?.message || 'Kunde inte ta bort klupplista-artikel.');
+        }
+    };
 
-    try {
-      const orderResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-         },
-        body: JSON.stringify(orderDetails),
-      });
+    // --- Conditional Rendering Logic ---
+    if (loading) { return <p className={styles.loading}>Laddar...</p>; }
+    if (error) { return <p className={styles.error}>Fel: {error}</p>; }
+    if (!orderDetails) { return <p className={styles.error}>Kunde inte ladda orderdetaljer.</p>; }
 
-      if (!orderResponse.ok) {
-        throw new Error(`Error: ${orderResponse.status} - ${orderResponse.statusText}`);
-      }
+    // Prepare props to pass down
+    const layoutProps = {
+        orderDetails, prilistaDetails, kantListaDetails, klupplistaDetails, expandedItems, styles,
+        handleChange, handlePrilistaChange, handleKantListaChange, handleKlupplistaChange, handleSubmit,
+        toggleExpanded, deletePrilista, deleteKantlista, deleteKlupplista, error,
+    };
 
-      await Promise.all(
-        prilistaDetails.map((item) =>
-          fetch(`${process.env.REACT_APP_API_URL}/api/prilista/edit/${item._id}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-             },
-            body: JSON.stringify(item),
-          })
-        )
-      );
-
-      await Promise.all(
-        kantListaDetails.map((item) =>
-          fetch(`${process.env.REACT_APP_API_URL}/api/kantlista/edit/${item._id}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`, },
-            body: JSON.stringify(item),
-          })
-        )
-      );
-
-      //alert('Order and PriLista and Kantlista details updated successfully');
-      navigate(`/dashboard/order-detail/${orderNumber}`);
-    } catch (err) {
-      console.error('Failed to update order and PriLista details:', err);
-      setError(err.message);
-    }
-  };
-
-  /*const toggleExpanded = (index) => {
-    setExpandedItems((prev) => ({
-      ...prev,
-      [index]: !prev[index], // Toggle the specific item's expanded state
-    }));
-  };*/
-
-  const toggleExpanded = (listType, index) => {
-    //console.log(listType);
-    //console.log(index);
-    setExpandedItems((prev) => ({
-      ...prev,
-      [listType]: {
-        ...prev[listType],
-        [index]: !prev[listType]?.[index], // Safely access the expanded state
-      },
-    }));
-  };
-
-  const deletePrilista = async (prilistaId) => {
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/prilista/${prilistaId}`,{
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
-      fetchOrderDetails();
-    } catch (err) {
-      console.error('Failed to remove prilista:', err);
-    }
-  }
-
-  const deleteKantlista = async (kantlistaId) => {
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/kantlista/${kantlistaId}`,{
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
-      fetchOrderDetails();
-    } catch (err) {
-      console.error('Failed to remove kantlista:', err);
-    }
-  }
-
-  if (loading) {
-    return <p className={styles.loading}>Loading order details...</p>;
-  }
-
-  if (error) {
-    return <p className={styles.error}>Error: {error}</p>;
-  }
-
-  return (
-    <div className={styles.editOrderForm}>
-      <h2>Redigera Order</h2>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label htmlFor="orderNumber">Ordernummer:</label>
-          <input
-            type="text"
-            id="orderNumber"
-            name="orderNumber"
-            value={orderDetails.orderNumber || ''}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="customer">Köpare:</label>
-          <input
-            type="text"
-            id="customer"
-            name="customer"
-            value={orderDetails.customer || ''}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="delivery">Avrop:</label>
-          <input
-            type="text"
-            id="delivery"
-            name="delivery"
-            value={orderDetails.delivery || ''}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="status">Status:</label>
-          <select
-            id="status"
-            name="status"
-            value={orderDetails.status || ''}
-            onChange={handleChange}
-            required
-            className={styles.select}
-          >
-            {['In Progress', 'Completed'].map((statusOption) => (
-              <option key={statusOption} value={statusOption}>
-                {statusOption}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="notes">Info om order:</label>
-          <textarea
-            id="notes"
-            name="notes"
-            value={orderDetails.notes || ''}
-            onChange={handleChange}
-            className={styles.textarea}
-          />
-        </div>
-
-        <h3>Prilistor</h3>
-        {prilistaDetails.map((prilistaItem, index) => (
-        <div
-          key={index}
-          className={`${styles.prilistaItem} ${prilistaItem.completed ? styles.completed : ''}`}
-        >
-          <h3>
-            Prilista {index + 1} - 
-            {prilistaItem.completed && (
-              <span className={styles.completedBadge}>Avklarad</span>
+    // Render the correct layout based on the ORDER design setting <-- UPDATE THIS CONDITION
+    return (
+        <div className={styles.editOrderFormContainer}>
+            {orderDesignSetting === 'old' ? (
+                <EditOrderFormOldLayout {...layoutProps} />
+            ) : (
+                <EditOrderFormNewLayout {...layoutProps} /> // Default to new layout
             )}
-          </h3>
-          <div className={styles.detailAndRemoveBtnDiv}>
-            <button
-              type="button"
-              onClick={() => toggleExpanded('prilista', index)}
-              className={styles.toggleButton}
-            >
-              {expandedItems.prilista && expandedItems.prilista[index] ? 'Dölj detaljer' : 'Visa detaljer'}
-            </button>
-            <button onClick={() => deletePrilista(prilistaItem._id)}
-              className={styles.deleteButton}>
-              X
-            </button>
-          </div>
-          {expandedItems.prilista && expandedItems.prilista[index] && (
-            <div className={styles.details}>
-              <label htmlFor={`prilista-${index}-quantity`}>Antal:</label>
-              <input
-                type="number"
-                id={`prilista-${index}-quantity`}
-                name="quantity"
-                value={prilistaItem.quantity || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-dimension`}>Dimension (mm):</label>
-              <input
-                type="text"
-                id={`prilista-${index}-dimension`}
-                name="dimension"
-                value={prilistaItem.dimension || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-size`}>Storlek:</label>
-              <input
-                type="text"
-                id={`prilista-${index}-size`}
-                name="size"
-                value={prilistaItem.size || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-type`}>Träslag:</label>
-              <input
-                type="text"
-                id={`prilista-${index}-type`}
-                name="type"
-                value={prilistaItem.type || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-description`}>Information:</label>
-              <input
-                type="text"
-                id={`prilista-${index}-description`}
-                name="description"
-                value={prilistaItem.description || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-location`}>Lagerplats:</label>
-              <input
-                type="text"
-                id={`prilista-${index}-location`}
-                name="location"
-                value={prilistaItem.location || ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.input}
-              />
-              <label htmlFor={`prilista-${index}-completed`}>Avklarad:</label>
-              <select
-                id={`prilista-${index}-completed`}
-                name="completed"
-                value={prilistaItem.completed !== undefined ? prilistaItem.completed : ''}
-                onChange={(e) => handlePrilistaChange(index, e)}
-                className={styles.select}
-              >
-                {[
-                  { value: true, displayText: 'Sant' },
-                  { value: false, displayText: 'Falskt' },
-                ].map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.displayText}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
-        ))}
-        {/* KantLista Details */}
-        <h3>Kantlista</h3>
-        {kantListaDetails.map((kantListaItem, index) => (
-        <div
-          className={`${styles.kantListItem} ${kantListaItem.status.klar && kantListaItem.status.kapad ? styles.completed : ''}`}
-          key={index}
-        >
-          <h3>
-            Kantlista {index + 1} -
-            {kantListaItem.status.klar && kantListaItem.status.kapad && (
-              <span className={styles.completedBadge}>Avklarad</span>
-            )}
-          </h3>
-          <div className={styles.detailAndRemoveBtnDiv}>
-            <button
-              type="button"
-              onClick={() => toggleExpanded('kantlista', index)}
-              className={styles.toggleButton}
-            >
-              {expandedItems.kantlista && expandedItems.kantlista[index] ? 'Dölj detaljer' : 'Visa detaljer'}
-            </button>
-            <button onClick={() => deleteKantlista(kantListaItem._id)}
-              className={styles.deleteButton}>
-              X
-            </button>
-          </div>
-          {expandedItems.kantlista && expandedItems.kantlista[index] && (
-          <div className={styles.details}>
-            <label htmlFor={`kantlista-${index}-antal`}>Antal:</label>
-            <input
-              type="number"
-              id={`kantlista-${index}-antal`}
-              name="antal"
-              value={kantListaItem.antal || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-tjocklek`}>Dimension (mm):</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-tjocklek`}
-              name="tjocklek"
-              value={kantListaItem.tjocklek || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-bredd`}>Bredd:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-bredd`}
-              name="bredd"
-              value={kantListaItem.bredd || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-varv`}>Varv:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-varv`}
-              name="varv"
-              value={kantListaItem.varv || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-max_langd`}>Max längd:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-max_langd`}
-              name="max_langd"
-              value={kantListaItem.max_langd || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-stampel`}>Stämpel:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-stampel`}
-              name="stampel"
-              value={kantListaItem.stampel || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-lagerplats`}>Lagerplats:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-lagerplats`}
-              name="lagerplats"
-              value={kantListaItem.lagerplats || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-information`}>Information:</label>
-            <input
-              type="text"
-              id={`kantlista-${index}-information`}
-              name="information"
-              value={kantListaItem.information || ''}
-              onChange={(e) => handleKantListaChange(index, e)}
-              className={styles.input}
-            />
-            <label htmlFor={`kantlista-${index}-status-kapad`}>Kapad:</label>
-            <select
-              id={`kantlista-${index}-status-kapad`}
-              name="status-kapad"
-              value={kantListaItem.status.kapad ? "true" : "false"}
-              onChange={(e) => handleKantListaChange(index, e, 'kapad')}
-              className={styles.select}
-            >
-              <option value="true">Sant</option>
-              <option value="false">Falskt</option>
-            </select>
-
-            <label htmlFor={`kantlista-${index}-status-klar`}>Klar:</label>
-            <select
-              id={`kantlista-${index}-status-klar`}
-              name="status-klar"
-              value={kantListaItem.status.klar ? "true" : "false"}
-              onChange={(e) => handleKantListaChange(index, e, 'klar')}
-              className={styles.select}
-            >
-              <option value="true">Sant</option>
-              <option value="false">Falskt</option>
-            </select>
-          </div>
-          )}
-        </div>
-        ))}
-
-        <button type="submit" className={styles.submitButton}>Spara Ändringar</button>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default EditOrderForm;

@@ -11,6 +11,7 @@ function OrderList() {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [prilistorData, setPrilistorData] = useState({});
   const [kantlistorData, setKantlistorData] = useState({});
+  const [klupplistorData, setKlupplistorData] = useState({});
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -82,6 +83,23 @@ function OrderList() {
       }
     }
 
+    if (!klupplistorData[orderId]) {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/klupplista/order/${orderId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Add token to Authorization header
+          },
+        });
+        setKlupplistorData(prevData => ({
+          ...prevData,
+          [orderId]: response.data,
+        }));
+      } catch (err) {
+        console.error('Failed to fetch klupplistor data:', err);
+        setError('Failed to load klupplistor data');
+      }
+    }
+
     setExpandedOrderId(orderId);
   };
 
@@ -134,7 +152,7 @@ function OrderList() {
                             color: prilist.completed ? 'gray' : 'black',
                           }}
                         >
-                          {`${prilist.quantity} PKT, ${prilist.dimension} MM, ${prilist.description}`}
+                          {`${prilist.quantity}PKT - ${prilist.dimension}MM - ${prilist.size} - ${prilist.type} - ${prilist.description}`}
                         </li>
                       ))
                     ) : (
@@ -153,7 +171,26 @@ function OrderList() {
                             color: kantlista.status.klar && kantlista.status.kapad ? 'gray' : 'black',
                           }}
                         >
-                          {`${kantlista.antal} PKT - ${kantlista.tjocklek} X ${kantlista.bredd} - ${kantlista.varv}v - ${kantlista.max_langd}m - ${kantlista.stampel} ${kantlista.information}`}
+                          {`${kantlista.antal}PKT - ${kantlista.tjocklek}X${kantlista.bredd} - ${kantlista.varv}v - ${kantlista.max_langd}m - ${kantlista.stampel} ${kantlista.information}`}
+                        </li>
+                      ))
+                    ) : (
+                      <li>---</li>
+                    )}
+                  </ul>
+
+                  <h4>Klupplistor:</h4>
+                  <ul>
+                    {klupplistorData[order.orderNumber] && klupplistorData[order.orderNumber].length > 0 ? (
+                      klupplistorData[order.orderNumber].map((klupplista, index) => (
+                        <li
+                          key={index}
+                          style={{
+                            textDecoration: klupplista.status.klar && klupplista.status.kapad ? 'line-through' : 'none',
+                            color: klupplista.status.klar && klupplista.status.kapad ? 'gray' : 'black',
+                          }}
+                        >
+                          {`${klupplista.antal}PKT ${klupplista.dimension}MM ${klupplista.sagverk} ${klupplista.pktNumber} ${klupplista.max_langd} ${klupplista.sort}`}
                         </li>
                       ))
                     ) : (

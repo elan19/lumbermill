@@ -167,6 +167,253 @@
     border-radius: 6px;
   }
 
+
+
+
+  .createOrderContainer {
+    max-width: 900px; /* Adjust max width */
+    margin: 2rem auto;
+    padding: 1.5rem 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .createOrderContainer h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Space between sections/fieldsets */
+  }
+  
+  .requiredNote {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: left;
+    margin-bottom: 1rem; /* Add some space below the note */
+  }
+  
+  /* Styling for Fieldsets */
+  .formSection {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.5rem;
+    background-color: #fff; /* Optional: background for sections */
+  }
+  
+  .formSection legend {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0056b3; /* Example color */
+    padding: 0 0.5rem;
+    margin-left: 0.5rem; /* Adjust alignment */
+  }
+  
+  /* Input Grouping (Label + Input) */
+  .inputGroup {
+    display: flex;
+    flex-direction: column; /* Stack label above input */
+    margin-bottom: 1rem; /* Space below each group */
+  }
+  
+  .inputGroup label {
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #555;
+  }
+  
+  /* Basic Input/Textarea/Select Styling */
+  .form input[type="text"],
+  .form input[type="number"],
+  .form textarea,
+  .form select {
+    padding: 0.7rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%; /* Make inputs fill container */
+    box-sizing: border-box; /* Include padding and border in width */
+    margin-bottom: 0px;
+  }
+  
+  .form input:focus,
+  .form textarea:focus,
+  .form select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
+  }
+  
+  .textareaNotes {
+    resize: vertical; /* Allow vertical resize */
+    min-height: 80px;
+  }
+  
+  /* Styling for List Items (Prilista/Kantlista) */
+  .listItem {
+    border: 1px dashed #eee; /* Lighter border for items */
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #fdfdfd;
+    position: relative; /* For remove button positioning if needed */
+  }
+  
+  .listItem h4 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: #444;
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+  }
+  
+  /* Arrange inputs within an item */
+  .itemInputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
+      gap: 0.5rem; /* Space between inputs in the grid */
+      margin-bottom: 1rem; /* Space before remove button */
+  }
+  
+  /* Make specific inputs wider */
+  .inputGroup.fullWidth {
+      grid-column: 1 / -1; /* Span full width in the grid */
+  }
+  
+  .selectField {
+      cursor: pointer;
+  }
+  
+  /* Checkbox styling */
+  .checkboxGroup {
+      display: flex;
+  }
+  .checkboxGroup label {
+      align-items: center;
+      margin-bottom: 0; /* Override default inputGroup margin */
+      font-weight: normal;
+      cursor: pointer;
+      width: 100px;
+  }
+  .checkboxGroup input[type="checkbox"] {
+      width: auto; /* Don't make checkboxes full width */
+      margin-right: 0.5rem;
+      cursor: pointer;
+  }
+  
+  /* Button Styles */
+  .addBtn, .removeBtn, .submitBtn {
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .addBtn {
+    background-color: #28a745; /* Green */
+    color: white;
+    align-self: flex-start; /* Align button to the start within its container */
+    margin-top: 0.5rem; /* Space above add button */
+  }
+  
+  .addBtn:hover {
+    background-color: #218838;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .removeBtn {
+    background-color: #dc3545; /* Red */
+    color: white;
+    font-size: 0.9rem; /* Slightly smaller remove button */
+    padding: 0.4rem 0.8rem;
+  }
+  .removeBtnItem {
+      /* Optional: Position remove button if needed, e.g., top right */
+      /* position: absolute; */
+      /* top: 0.5rem; */
+      /* right: 0.5rem; */
+      display: block; /* Make it block to appear below inputs */
+      margin-top: 0.5rem; /* Add space above */
+      width: fit-content; /* Adjust width */
+      margin-bottom: 0px;
+  }
+  
+  .removeBtn:hover {
+    background-color: #c82333;
+  }
+  
+  .submitBtn {
+    background-color: #007bff; /* Blue */
+    color: white;
+    width: 100%; /* Make submit button full width */
+    margin-top: 1rem; /* Space above submit button */
+  }
+  
+  .submitBtn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Separator within list items */
+  .itemSeparator {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 1rem;
+  }
+  
+  
+  /* Error/Success Messages */
+  .errorMessage, .successMessage {
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    text-align: center;
+  }
+  
+  .errorMessage {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .successMessage {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .checkboxGroupKlupplager {
+    display: flex;
+    align-items: center; /* Align label and checkbox */
+  }
+  
+  .checkboxGroupKlupplager label {
+    align-items: center;
+    margin-bottom: 0; /* Override default inputGroup margin */
+    font-weight: normal; /* Make label less bold if desired */
+    cursor: pointer;
+    margin-top: auto;
+    margin-bottom: 20px;
+  }
+  
+  .checkboxGroupKlupplager input[type="checkbox"] {
+    width: auto; /* Checkboxes shouldn't be full width */
+    margin-right: 0.5rem;
+    cursor: pointer;
+  }
+  
+
 /* Responsive Design */
 @media (max-width: 500px) {
   .prilistaItem input {

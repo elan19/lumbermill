@@ -1,130 +1,117 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Settings.css'; // Create this CSS file for styling
+import './Settings.css'; // Make sure this CSS exists
 
 function SettingsPage() {
-    const [currentDesign, setCurrentDesign] = useState(''); // Store the fetched setting
-    const [selectedDesign, setSelectedDesign] = useState(''); // Store the user's selection
+    // Website design state
+    const [currentDesign, setCurrentDesign] = useState('');
+    const [selectedDesign, setSelectedDesign] = useState('');
+    // Order design state <-- ADDED
+    const [currentOrderDesign, setCurrentOrderDesign] = useState('');
+    const [selectedOrderDesign, setSelectedOrderDesign] = useState('');
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
-    const [isSaving, setIsSaving] = useState(false); // For disabling button during save
+    const [isSaving, setIsSaving] = useState(false);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
-    // Fetch current settings
     const fetchSettings = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        setSuccessMessage(''); // Clear previous success message
+        setSuccessMessage('');
 
-        if (!token) {
-            setError('Authentication required. Please log in.');
-            setIsLoading(false);
-            navigate('/login'); // Redirect if no token
-            return;
-        }
+        if (!token) { /* ... no change ... */ }
 
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
 
-            if (!response.ok) {
-                if (response.status === 401 || response.status === 403) {
-                    throw new Error('Authentication failed. Please log in again.');
-                }
-                throw new Error(`Failed to fetch settings (${response.status})`);
-            }
+            if (!response.ok) { /* ... no change ... */ }
 
             const data = await response.json();
-            setCurrentDesign(data.design || 'new'); // Default to 'new' if missing
-            setSelectedDesign(data.design || 'new'); // Initialize selection
+            console.log("Fetched settings:", data); // Log fetched data
 
-        } catch (err) {
-            console.error("Error fetching settings:", err);
-            setError(err.message);
-            if (err.message.includes('Authentication failed')) {
-                localStorage.removeItem('token'); // Clear bad token
-                navigate('/login');
-            }
-        } finally {
+            // Set Website Design
+            setCurrentDesign(data.design || 'new');
+            setSelectedDesign(data.design || 'new');
+
+            // Set Order Design <-- ADDED
+            setCurrentOrderDesign(data.orderDesign || 'new');
+            setSelectedOrderDesign(data.orderDesign || 'new');
+
+        } catch (err) { /* ... no change ... */ }
+        finally {
             setIsLoading(false);
         }
     }, [token, navigate]);
 
     useEffect(() => {
         fetchSettings();
-    }, [fetchSettings]); // Depend on the memoized fetch function
+    }, [fetchSettings]);
 
-    // Handle selection change
+    // Handle selection changes
     const handleDesignChange = (event) => {
         setSelectedDesign(event.target.value);
-        setSuccessMessage(''); // Clear success message on change
-        setError(null); // Clear error on change
+        setSuccessMessage(''); setError(null);
+    };
+    // <-- ADDED handler for order design -->
+    const handleOrderDesignChange = (event) => {
+        setSelectedOrderDesign(event.target.value);
+        setSuccessMessage(''); setError(null);
     };
 
     // Handle saving settings
     const handleSaveSettings = async (event) => {
-        event.preventDefault(); // Prevent default form submission if wrapped in form
+        event.preventDefault();
         setIsSaving(true);
         setError(null);
         setSuccessMessage('');
 
-        if (!token) {
-            setError('Authentication required. Please log in.');
-            setIsSaving(false);
-            navigate('/login');
-            return;
-        }
+        if (!token) { /* ... no change ... */ }
 
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
-                method: 'PUT', // Use PUT or PATCH to update
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ design: selectedDesign }), // Send selected design
+                // Send BOTH settings in the body <-- MODIFIED
+                body: JSON.stringify({
+                    design: selectedDesign,
+                    orderDesign: selectedOrderDesign
+                }),
             });
 
-            if (!response.ok) {
-                 if (response.status === 401 || response.status === 403) {
-                    throw new Error('Authentication failed. Please log in again.');
-                }
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Failed to save settings (${response.status})`);
-            }
+            if (!response.ok) { /* ... no change ... */ }
 
             const updatedSettings = await response.json();
-            setCurrentDesign(updatedSettings.design); // Update current state from response
-            setSelectedDesign(updatedSettings.design); // Sync selection
+
+            // Update local state for both settings <-- MODIFIED
+            setCurrentDesign(updatedSettings.design);
+            setSelectedDesign(updatedSettings.design);
+            setCurrentOrderDesign(updatedSettings.orderDesign);
+            setSelectedOrderDesign(updatedSettings.orderDesign);
+
             setSuccessMessage('Inställningar sparade!');
 
-            // Optional: Reload the page or trigger a state update elsewhere
-            // if the design change affects the current layout immediately.
-            // window.location.reload(); // Force reload (simple approach)
-            // Or better: use Context API or Zustand to update global state
+            // Optional: Trigger global state update or reload if needed
+            // window.location.reload();
 
-        } catch (err) {
-            console.error("Error saving settings:", err);
-            setError(err.message);
-             if (err.message.includes('Authentication failed')) {
-                localStorage.removeItem('token');
-                navigate('/login');
-            }
-        } finally {
+        } catch (err) { /* ... no change ... */ }
+        finally {
             setIsSaving(false);
         }
     };
 
-    // Conditional Rendering
-    if (isLoading) {
-        return <p className="settings-loading">Laddar inställningar...</p>;
-    }
+    if (isLoading) { /* ... no change ... */ }
+
+    // Check if anything actually changed before enabling save
+    const hasChanges = selectedDesign !== currentDesign || selectedOrderDesign !== currentOrderDesign;
 
     return (
         <div className="settings-page-container">
@@ -134,30 +121,46 @@ function SettingsPage() {
             {successMessage && <p className="settings-success">{successMessage}</p>}
 
             <form onSubmit={handleSaveSettings} className="settings-form">
+                {/* Website Design Fieldset */}
                 <fieldset className="settings-fieldset">
                     <legend>Webbplatsdesign</legend>
                     <div className="radio-group">
                         <label className="radio-label">
+                            <input type="radio" name="design" value="new" checked={selectedDesign === 'new'} onChange={handleDesignChange} disabled={isSaving}/>
+                            Nytt utseende
+                        </label>
+                        <label className="radio-label">
+                            <input type="radio" name="design" value="old" checked={selectedDesign === 'old'} onChange={handleDesignChange} disabled={isSaving}/>
+                            Gammalt utseende
+                        </label>
+                    </div>
+                </fieldset>
+
+                {/* Order Design Fieldset <-- ADDED --> */}
+                <fieldset className="settings-fieldset">
+                    <legend>Orderformulär Design</legend>
+                    <div className="radio-group">
+                        <label className="radio-label">
                             <input
                                 type="radio"
-                                name="design"
+                                name="orderDesign" // Use different name attribute
                                 value="new"
-                                checked={selectedDesign === 'new'}
-                                onChange={handleDesignChange}
+                                checked={selectedOrderDesign === 'new'}
+                                onChange={handleOrderDesignChange} // Use specific handler
                                 disabled={isSaving}
                             />
-                            Nytt utseende
+                            Nytt utseende (Fieldset)
                         </label>
                         <label className="radio-label">
                             <input
                                 type="radio"
-                                name="design"
+                                name="orderDesign"
                                 value="old"
-                                checked={selectedDesign === 'old'}
-                                onChange={handleDesignChange}
+                                checked={selectedOrderDesign === 'old'}
+                                onChange={handleOrderDesignChange}
                                 disabled={isSaving}
                             />
-                            Gammalt utseende
+                            Gammalt utseende (Enkel)
                         </label>
                     </div>
                 </fieldset>
@@ -167,7 +170,8 @@ function SettingsPage() {
                 <button
                     type="submit"
                     className="save-settings-button"
-                    disabled={isSaving || selectedDesign === currentDesign} // Disable if saving or no change
+                    // Disable if saving OR if nothing has changed
+                    disabled={isSaving || !hasChanges}
                 >
                     {isSaving ? 'Sparar...' : 'Spara ändringar'}
                 </button>

@@ -2,6 +2,7 @@ const express = require('express');
 const Order = require('../models/Order');
 const PriLista = require('../models/Prilista');
 const KantLista = require('../models/Kantlista');
+const KluppLista = require('../models/Klupplista');
 const router = express.Router();
 
 // Get all orders
@@ -32,7 +33,9 @@ router.get('/:orderNumber', async (req, res) => {
 
     const kantlista = await KantLista.find({ orderNumber: order.orderNumber });
 
-    res.json({ ...order.toObject(), kantlista });
+    const klupplista = await KluppLista.find({ orderNumber: order.orderNumber });
+
+    res.json({ ...order.toObject(), kantlista, klupplista });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error });
   }
@@ -41,64 +44,100 @@ router.get('/:orderNumber', async (req, res) => {
 
 // Add a new order
 router.post('/create', async (req, res) => {
-  const { orderNumber, customer, delivery, notes, prilistas, kantlistas } = req.body;
+  // Destructure all expected fields, including klupplager from the list items
+  const { orderNumber, customer, delivery, notes, speditor, prilistas, kantlistas, klupplistas } = req.body;
 
+  console.log(req.body); // Log the request body for debugging
+
+  // Basic validation
   if (!orderNumber || !customer) {
-    return res.status(400).json({ message: 'Title, orderNumber, and customer are required.' });
+    return res.status(400).json({ message: 'Ordernummer och kund är obligatoriska.' });
   }
 
   try {
+    // --- Create Prilista items with klupplager logic ---
     const createdPrilistas = prilistas && prilistas.length > 0
       ? await Promise.all(
           prilistas.map(async (prilistaData) => {
             const latestPrilista = await PriLista.findOne().sort({ position: -1 });
-            const newPosition = (latestPrilista && latestPrilista.position) ? latestPrilista.position + 1 : 1;
+            const newPosition = (latestPrilista && typeof latestPrilista.position === 'number') ? latestPrilista.position + 1 : 1;
 
+            // Determine completion status based on klupplager
+            // Create the new PriLista instance
             const newPriLista = new PriLista({
-              ...prilistaData,
+              ...prilistaData, // Spread the rest of the data (quantity, size, etc.)
               orderNumber,
-              customer,
+              customer,      // Set completed status based on the flag
               position: newPosition,
             });
 
             await newPriLista.save();
-            return newPriLista._id;
+            return newPriLista._id; // Return the ID to link to the Order
           })
         )
       : []; // Empty array if no PriLista provided
 
+    // --- Create Kantlista items with klupplager logic ---
     const createdKantlistas = kantlistas && kantlistas.length > 0
       ? await Promise.all(
           kantlistas.map(async (kantlistaData) => {
             const latestKantlista = await KantLista.findOne().sort({ position: -1 });
-            const newPosition = (latestKantlista && latestKantlista.position) ? latestKantlista.position + 1 : 1;
+            const newPosition = (latestKantlista && typeof latestKantlista.position === 'number') ? latestKantlista.position + 1 : 1;
 
+            // Create the new KantLista instance
             const newKantLista = new KantLista({
-              ...kantlistaData,
+              ...kantlistaData, // Spread the rest of the data (antal, bredd, etc.)
               orderNumber,
-              customer,
+              customer,         // Set status based on the flag/default
               position: newPosition,
             });
 
             await newKantLista.save();
-            return newKantLista._id;
+            return newKantLista._id; // Return the ID to link to the Order
           })
         )
       : []; // Empty array if no KantLista provided
 
+    
+    const createdKlupplistas = klupplistas && klupplistas.length > 0
+      ? await Promise.all(
+          klupplistas.map(async (klupplistaData) => {
+            const latestKlupplista = await KluppLista.findOne().sort({ position: -1 });
+            const newPosition = (latestKlupplista && typeof latestKlupplista.position === 'number') ? latestKlupplista.position + 1 : 1;
+            // Create the new Klupplista instance
+            // Add orderNumber and kund for context, even if not strictly required by klupp schema
+            const newKlupp = new KluppLista({
+              ...klupplistaData, // Spread the data from the request (dimension, max_langd, etc.)
+              orderNumber: orderNumber, // Associate with the order
+              kund: customer,
+              position: newPosition,
+              // status: kluppData.status || { klar: false, ej_Klar: false } // Default status if needed
+            });
+            await newKlupp.save();
+            return newKlupp._id; // Return the ID to link to the Order
+          })
+        ) : [];
+    // --- Create the Order document ---
     const order = await Order.create({
       orderNumber,
       customer,
       delivery,
       notes,
-      prilista: createdPrilistas,
+      speditor,
+      prilista: createdPrilistas,   // Link the IDs of the created Prilista items
       kantlista: createdKantlistas,
+      klupplista: createdKlupplistas, // Link the IDs of the created Kantlista items
+      // updatedBy: req.user ? req.user.id : null // Uncomment if using auth middleware
     });
 
     res.status(201).json({ message: 'Order created successfully!', order });
   } catch (error) {
     console.error('Error during order creation:', error);
-    res.status(500).json({ message: 'Failed to create order', error });
+    // Handle potential duplicate order number error specifically
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.orderNumber) {
+         return res.status(409).json({ message: `Ordernummer ${orderNumber} finns redan.` });
+     }
+    res.status(500).json({ message: 'Failed to create order', error: error.message });
   }
 });
 
@@ -111,7 +150,8 @@ router.put('/:orderNumber/complete', async (req, res) => {
     // Find the order by orderNumber and populate both prilista and kantlista details
     const order = await Order.findOne({ orderNumber })
       .populate('prilista')
-      .populate('kantlista'); // Ensure kantlista is included in the schema and correctly populated
+      .populate('kantlista')
+      .populate('klupplista'); // Ensure kantlista is included in the schema and correctly populated
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });

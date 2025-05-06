@@ -12,7 +12,7 @@ const priListaSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   completed: { type: Boolean, default: false }, // New field for completion status
   position: { type: Number},
-  measureLocation: {type: String}
+  measureLocation: {type: String},
 });
 
 // No unique constraint on `orderNumber` to allow multiple PriLista with the same `orderNumber`

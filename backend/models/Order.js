@@ -6,9 +6,11 @@ const orderSchema = new mongoose.Schema({
   delivery: { type: String },
   status: { type: String, enum: ['In Progress', 'Completed', "Delivered"], default: 'In Progress' },
   notes: [{ type: String }],
+  speditor: { type: String },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   prilista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PriLista' }], // Array of PriLista references
   kantlista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'KantLista' }],
+  kantlista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'KluppLista' }],
   createdAt: { type: Date, default: Date.now },
 });
 

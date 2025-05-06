@@ -21,6 +21,7 @@ import OrderDetail from './Views/Dashboard/Orders/Order-detail';
 import EditOrder from './Views/Dashboard/Orders/EditOrder';
 import Lagerplats from './Views/Dashboard/Lagerplats/LagerplatsView';
 import KantList from './Views/Dashboard/Kantlista/Kantlista';
+import KluppLista from './Views/Dashboard/Klupplista/Klupplista';
 import NewKantList from './Views/Dashboard/Kantlista/new-Kantlista';
 import DeliveredOrderList from './Views/Dashboard/Orders/DeliveredOrder';
 import DeliveredOrderDetails from './Views/Dashboard/Orders/DeliveredOrderDetails';
@@ -64,6 +65,7 @@ function App() {
                <Route path="edit-order/:orderNumber" element={<EditOrder />} />
                <Route path="lagerplats" element={<Lagerplats />} />
                <Route path="kantlista" element={<KantList />} />
+               <Route path="klupplista" element={<KluppLista />} />
                <Route path="new-kantlista" element={<NewKantList />} />
                <Route path="delivered" element={<DeliveredOrderList />} />
                <Route path="delivered/order-detail/:orderNumber" element={<DeliveredOrderDetails />} />

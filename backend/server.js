@@ -12,6 +12,7 @@ const ordersRoutes = require('./routes/orders');
 const priListaRoutes = require('./routes/pri-lista');
 const lagerplatsRoute = require('./routes/lagerplats');
 const kantListaRoutes = require('./routes/kant-lista');
+const kluppListaRoutes = require('./routes/klupp-lista');
 const logRoutes = require('./routes/log'); // Import the log routes
 const authenticateToken = require('./routes/authMiddleware'); // Import the middleware
 
@@ -99,8 +100,9 @@ app.use('/api/orders', authenticateToken, ordersRoutes);
 app.use('/api/prilista', authenticateToken, priListaRoutes);
 app.use('/api/lagerplats', authenticateToken, lagerplatsRoute);
 app.use('/api/kantlista', authenticateToken, kantListaRoutes);
+app.use('/api/klupplista', authenticateToken, kluppListaRoutes);
 app.use('/api/log', authenticateToken, logRoutes); // Add authentication here as well
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -19,6 +19,10 @@ const Dashboard = () => {
                 KANTLISTA
               </Link>
 
+              <Link to="/dashboard/klupplista" className={styles.navLink}>
+                KLUPPLISTA
+              </Link>
+
               <Link to="/dashboard/lagerplats" className={styles.navLink}>
                 LAGERPLATS
               </Link>

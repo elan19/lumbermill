@@ -97,6 +97,11 @@ function Sidebar({ isOpen, toggleSidebar }) {
                </NavLink>
              </li>
              <li>
+               <NavLink to="/dashboard/klupplista" onClick={handleLinkClick} className={getNavLinkClass}>
+                 Klupplista
+               </NavLink>
+             </li>
+             <li>
               <NavLink to="/dashboard/settings" onClick={handleLinkClick} className={getNavLinkClass}>
                 Settings
               </NavLink>

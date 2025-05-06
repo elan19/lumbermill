@@ -5,7 +5,7 @@ const Prilista = require('../models/Prilista');
 const Order = require('../models/Order');
 
 // Create a new Kantlista
-router.post('/create', async (req, res) => {
+/*router.post('/create', async (req, res) => {
   try {
     const newOrder = new Kantlista(req.body);
     console.log(req.body);
@@ -14,7 +14,7 @@ router.post('/create', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Misslyckades att skapa en ny kantlista', details: error.message });
   }
-});
+});*/
 
 // Create a new Kantlista
 router.post('/create', async (req, res) => {
@@ -29,23 +29,28 @@ router.post('/create', async (req, res) => {
     stampel,
     lagerplats,
     information,
-    status,
+    status, // Receive potential status object
     position,
     active,
-    isLager, // Assuming you pass this from the frontend to indicate if it's a "Lager" entry
+    isLager,    // Receive isLager flag
   } = req.body;
 
+  console.log("Received data:", req.body);
+
   try {
-    // Validate required fields for non-"Lager" entries
-    if (!isLager && (!orderNumber || !customer || !antal)) {
-      return res.status(400).json({ message: 'Order number and customer are required for non-Lager entries.' });
+    // Basic validation (adjust as needed)
+    if (!isLager && (!orderNumber || !customer )) { // Antal might not be required if it's klupplager? Adjust validation.
+      return res.status(400).json({ message: 'Ordernummer och kund är obligatoriska för vanliga ordrar.' });
+    }
+    if (!bredd || !tjocklek || !varv || !max_langd) {
+        return res.status(400).json({ message: 'Bredd, Tjocklek, Varv, och Max Längd är obligatoriska fält.' });
     }
 
-    // Create the new Kantlista
-    const newKantlista = new Kantlista({
-      orderNumber: isLager ? null : orderNumber, // Set orderNumber to null for "Lager"
-      customer: isLager ? 'Lager' : customer, // Set customer to "Lager" for "Lager"
-      antal: isLager ? null : antal,
+    // Create the new Kantlista object
+    const newKantlistaData = {
+      orderNumber: isLager ? null : orderNumber,
+      customer: isLager ? 'Lager' : customer,
+      antal: isLager ? null : antal, // Consider if antal is needed for klupplager
       bredd,
       tjocklek,
       varv,
@@ -53,19 +58,27 @@ router.post('/create', async (req, res) => {
       stampel,
       lagerplats,
       information,
-      status: status || { kapad: false, klar: false }, // Default status if not provided
-      position: position || 0, // Default position if not provided
-      active: active || false, // Default active status if not provided
-    });
+      status,           // Use the determined status
+      position: position,              // Add position if you handle it during creation
+      active: active || false,         // Default active
+    };
+
+     // Add position logic if needed (find highest + 1)
+     const latestKantlista = await Kantlista.findOne().sort({ position: -1 });
+     newKantlistaData.position = (latestKantlista && typeof latestKantlista.position === 'number') ? latestKantlista.position + 1 : 1;
+
+
+    const newKantlista = new Kantlista(newKantlistaData);
 
     // Save the new Kantlista to the database
     const savedKantlista = await newKantlista.save();
 
     // Respond with the saved Kantlista
     res.status(201).json(savedKantlista);
+
   } catch (err) {
     console.error('Error creating Kantlista:', err);
-    res.status(500).json({ message: 'Failed to create Kantlista. Please try again.' });
+    res.status(500).json({ message: 'Failed to create Kantlista. Please try again.', details: err.message });
   }
 });
 

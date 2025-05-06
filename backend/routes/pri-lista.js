@@ -6,21 +6,21 @@ const Order = require('../models/Order'); // Import the Order model
 const Log = require('../models/Log'); // Import the Order model
 
 router.post('/create', async (req, res) => {
+  // Destructure klupplager from the body
   const { orderNumber, customer, quantity, size, type, dimension, location, description, measureLocation } = req.body;
 
-  // Validate input
-  if (!orderNumber || !customer || !quantity || !size || !dimension || !location) {
-    return res.status(400).json({ message: 'All required fields must be provided.' });
+  // Validate input (adjust if klupplager changes requirements)
+  // Example: Maybe location isn't required for klupplager?
+  if (!orderNumber || !customer || !quantity || !size || !dimension /*|| !location*/) { // Temporarily commented out location validation for example
+    return res.status(400).json({ message: 'Ordernummer, Kund, Antal, Storlek, och Dimension är obligatoriska.' });
   }
 
   try {
     // Find the highest position in the collection
     const latestPrilista = await PriLista.findOne().sort({ position: -1 });
-
-    // Check if the position is valid
     const newPosition = (latestPrilista && typeof latestPrilista.position === 'number') ? latestPrilista.position + 1 : 1;
-    
-    // Now create the new PriLista instance with the validated position
+
+    // Create the new PriLista instance
     const newPriLista = new PriLista({
       orderNumber,
       customer,
@@ -30,19 +30,21 @@ router.post('/create', async (req, res) => {
       dimension,
       location,
       description,
+      measureLocation,
       position: newPosition,
-      measureLocation, // Set position explicitly
     });
 
     // Save the new document to the database
     const savedPriLista = await newPriLista.save();
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'New PriLista object created successfully!',
-      prilistaId: savedPriLista._id
+      prilistaId: savedPriLista._id // Send back ID if useful for frontend
      });
+
   } catch (error) {
-    console.error("Error saving to DB:", error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Error saving PriLista to DB:", error);
+    res.status(500).json({ message: 'Internal Server Error', details: error.message });
   }
 });
 

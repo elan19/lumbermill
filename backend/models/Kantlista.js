@@ -17,7 +17,7 @@ const kantListaSchema = new mongoose.Schema({
     klar: { type: Boolean, default: false }
   }, // New field for completion status
   position: { type: Number},
-  active: { type: Boolean, default: false }
+  active: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('Kantlista', kantListaSchema);

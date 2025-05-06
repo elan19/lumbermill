@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema({
       enum: ['old', 'new'], // Specify allowed values for design
       default: 'new'       // Keep 'new' as the default
     },
+    orderDesign: {
+      type: String,
+      enum: ['old', 'new'], // Specify allowed values for orderStyle
+      default: 'new'        // Keep 'new' as the default
+    },
     // You could add other settings fields here later if needed
   },
   refreshToken: { type: String }
