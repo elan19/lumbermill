@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/lumbermill/static/css/main.3b775401.css",
-    "main.js": "/lumbermill/static/js/main.8c96dfc7.js",
+    "main.js": "/lumbermill/static/js/main.9602409b.js",
     "static/js/213.03ed06a6.chunk.js": "/lumbermill/static/js/213.03ed06a6.chunk.js",
     "static/js/732.a1e6e011.chunk.js": "/lumbermill/static/js/732.a1e6e011.chunk.js",
     "static/js/453.ed3810f9.chunk.js": "/lumbermill/static/js/453.ed3810f9.chunk.js",
@@ -20,13 +20,13 @@
     "static/media/ansvab_logo.png": "/lumbermill/static/media/ansvab_logo.335dc982f7db9d9cd641.png",
     "index.html": "/lumbermill/index.html",
     "main.3b775401.css.map": "/lumbermill/static/css/main.3b775401.css.map",
-    "main.8c96dfc7.js.map": "/lumbermill/static/js/main.8c96dfc7.js.map",
+    "main.9602409b.js.map": "/lumbermill/static/js/main.9602409b.js.map",
     "213.03ed06a6.chunk.js.map": "/lumbermill/static/js/213.03ed06a6.chunk.js.map",
     "732.a1e6e011.chunk.js.map": "/lumbermill/static/js/732.a1e6e011.chunk.js.map",
     "453.ed3810f9.chunk.js.map": "/lumbermill/static/js/453.ed3810f9.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3b775401.css",
-    "static/js/main.8c96dfc7.js"
+    "static/js/main.9602409b.js"
   ]
 }
