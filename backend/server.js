@@ -19,31 +19,43 @@ const authenticateToken = require('./routes/authMiddleware'); // Import the midd
 dotenv.config();
 connectDB();
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5000',
-  '/^https:\/\/[a-zA-Z0-9-]+\.ansvabsagverk\.pages\.dev$/', // Allow all subdomains of ansvabsagverk.pages.dev
-  process.env.FRONTEND_URL,
-];
+const devOrigins = ['http://localhost:3000', 'http://localhost:5000'];
+const productionRegex = /^https:\/\/[a-zA-Z0-9-]+\.ansvabsagverk\.pages\.dev$/;
+const frontendUrlFromEnv = process.env.FRONTEND_URL;
+
+const allowedOrigins = [...devOrigins];
+if (frontendUrlFromEnv) {
+    allowedOrigins.push(frontendUrlFromEnv);
+}
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || productionRegex.test(origin)) {
+      callback(null, true); // Origin is allowed
+    } else {
+      console.warn(`CORS: Origin ${origin} not allowed.`);
+      callback(new Error('Not allowed by CORS')); // Origin is not allowed
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Explicitly allow OPTIONS
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"], // Ensure Authorization is allowed
+};
 
 // Create the Express app
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins, // Update this to match your frontend URL
-    methods: ["GET", "POST", "PUT"],
-  },
+  cors: corsOptions
 });
 
 app.set('io', io);
 
-const corsOptions = {
-  origin: allowedOrigins, // Your frontend URL
-  credentials: true, // Allow cookies to be sent
-};
-
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json()); // Middleware to parse JSON
 
