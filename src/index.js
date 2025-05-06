@@ -2,15 +2,17 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import Home from './Views/Home/Home';
+
 import reportWebVitals from './reportWebVitals';
-import Header from './Views/Header/Header';
-import Footer from './Views/Footer/Footer';
+
+import { HashRouter } from 'react-router-dom'; // Import HashRouter
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <HashRouter basename={process.env.PUBLIC_URL}>  {/* Using HashRouter with PUBLIC_URL */}
+      <App />
+    </HashRouter>
   </React.StrictMode>
 );
 
