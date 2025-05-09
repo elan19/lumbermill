@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Modal from 'react-modal';
 import axios from 'axios';
 import styles from './EditFormOrder.module.css';
 // Import the new layout components we will create
@@ -21,6 +22,11 @@ const EditOrderForm = () => {
     // State specifically for the ORDER FORM design <-- ADD THIS
     const [orderDesignSetting, setOrderDesignSetting] = useState('new'); // Default to 'new'
     const token = localStorage.getItem('token');
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for modal visibility
+    const [modalMessage, setModalMessage] = useState(''); // Message for the modal
+    const [isDeleting, setIsDeleting] = useState(false); 
+    const [isDeleteError, setIsDeleteError] = useState(false);
 
     // Fetch BOTH order details and user settings
     const fetchData = useCallback(async () => {
@@ -166,7 +172,14 @@ const EditOrderForm = () => {
              setError(errorMessage);
         } finally { setLoading(false); }
     };
-     const toggleExpanded = (listType, index) => { setExpandedItems((prev) => ({ ...prev, [listType]: { ...prev[listType], [index]: !prev[listType]?.[index], }, })); };
+    const toggleExpanded = (listType, index) => { setExpandedItems((prev) => ({ ...prev, [listType]: { ...prev[listType], [index]: !prev[listType]?.[index], }, })); };
+    const handleDeleteOrder = async () => {
+        // --- Step 1: Open Confirmation Modal ---
+        setModalMessage(`Är du säker på att du vill radera Order ${orderNumber} och ALLA medföljande artiklar permanent? Detta kan inte ångras.`);
+        setIsDeleteError(false); // It's a confirmation, not an error yet
+        setIsDeleteModalOpen(true);
+        // The actual deletion logic will be called from the modal's confirmation button
+    };
     const deletePrilista = async (prilistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/prilista/${prilistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove prilista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort okantad artikel.'); }};
     const deleteKantlista = async (kantlistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/kantlista/${kantlistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove kantlista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort kantad artikel.'); }};
     // --- ADD DELETE HANDLER FOR KLUPPLISTA ---
@@ -184,6 +197,52 @@ const EditOrderForm = () => {
         }
     };
 
+    const confirmDeletion = async () => {
+        // Don't close modal immediately, close on success or explicit cancel
+        // setIsDeleteModalOpen(false);
+        setError(null);
+        setIsDeleting(true); // Start deleting indicator
+
+        try {
+            // --- PUT BACK THE CORRECT AXIOS CALL ---
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, // The correct URL
+                { headers: { Authorization: `Bearer ${token}` } } // The headers
+            );
+            // --- END OF FIX ---
+
+            // Now handle success
+            setIsDeleting(false); // Stop indicator
+            setModalMessage(`Order ${orderNumber} har raderats.`); // Success message
+            setIsDeleteError(false);
+            // Keep modal open briefly to show success, then navigate
+            // Or close modal immediately and show toast before navigating
+            setTimeout(() => {
+                setIsDeleteModalOpen(false);
+                navigate('/dashboard/orders');
+            }, 1500); // Adjust timing
+
+        } catch (err) {
+            console.error('Failed to delete order:', err);
+            const errorMsg = err.response?.data?.message || 'Kunde inte radera ordern.';
+            setError(errorMsg); // Set main error state if desired
+            setModalMessage(`Fel vid radering: ${errorMsg}`); // Show error in modal
+            setIsDeleteError(true);
+            setIsDeleting(false); // Stop indicator on error
+            // Keep modal open to show error
+        }
+        // No finally needed for setIsDeleting as it's handled in try/catch
+    };
+
+    const closeModal = () => {
+        setIsDeleteModalOpen(false);
+        // Reset modal state if needed
+        setTimeout(() => { // Delay reset to avoid flash of content change
+            setModalMessage('');
+            setIsDeleteError(false);
+        }, 300); // Match modal close transition time if any
+    };
+
     // --- Conditional Rendering Logic ---
     if (loading) { return <p className={styles.loading}>Laddar...</p>; }
     if (error) { return <p className={styles.error}>Fel: {error}</p>; }
@@ -193,12 +252,45 @@ const EditOrderForm = () => {
     const layoutProps = {
         orderDetails, prilistaDetails, kantListaDetails, klupplistaDetails, expandedItems, styles,
         handleChange, handlePrilistaChange, handleKantListaChange, handleKlupplistaChange, handleSubmit,
-        toggleExpanded, deletePrilista, deleteKantlista, deleteKlupplista, error,
+        toggleExpanded, handleDeleteOrder, deletePrilista, deleteKantlista, deleteKlupplista, error,
     };
 
     // Render the correct layout based on the ORDER design setting <-- UPDATE THIS CONDITION
     return (
         <div className={styles.editOrderFormContainer}>
+            <Modal
+               isOpen={isDeleteModalOpen}
+               onRequestClose={closeModal}
+               contentLabel="Order Radering Bekräftelse"
+               ariaHideApp={false}
+               // --- Apply classes from CSS Module ---
+               className={styles.modalContent}
+               overlayClassName={styles.modalOverlay}
+               // --- Optionally add closeTimeoutMS for animations ---
+               // closeTimeoutMS={300}
+            >
+              <h2 className={isDeleteError ? styles.modalErrorTitle : styles.modalConfirmTitle}>
+                  {isDeleteError ? "Fel vid Radering" : "Bekräfta Radering"}
+              </h2>
+              <p className={styles.modalMessage}>{modalMessage}</p>
+              <div className={styles.modalActions}>
+                {!isDeleteError ? (
+                    <>
+                        <button onClick={confirmDeletion} className={styles.confirmButton} disabled={isDeleting}>
+                            {isDeleting && <span className={styles.spinner}></span>} {/* Optional Spinner */}
+                            {isDeleting ? 'Raderar...' : 'Ja, Radera Order'}
+                        </button>
+                        <button onClick={closeModal} className={styles.cancelButton} disabled={isDeleting}>
+                            Avbryt
+                        </button>
+                    </>
+                ) : (
+                    <button onClick={closeModal} className={styles.cancelButton}>
+                        Stäng
+                    </button>
+                )}
+              </div>
+            </Modal>
             {orderDesignSetting === 'old' ? (
                 <EditOrderFormOldLayout {...layoutProps} />
             ) : (

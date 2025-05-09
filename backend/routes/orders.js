@@ -262,4 +262,59 @@ router.put('/:orderNumber', async (req, res) => {
   }
 });
 
+
+router.delete('/:orderNumber', async (req, res) => {
+  const { orderNumber } = req.params;
+
+  // Validate if orderNumber is provided and perhaps is a number
+  if (!orderNumber) {
+    return res.status(400).json({ message: 'Order number is required.' });
+  }
+  const orderNum = parseInt(orderNumber, 10); // Ensure it's treated as a number for queries
+  if (isNaN(orderNum)) {
+      return res.status(400).json({ message: 'Invalid order number format.' });
+  }
+
+
+  try {
+    // 1. Find the order to ensure it exists before deleting associated items
+    const orderToDelete = await Order.findOne({ orderNumber: orderNum });
+
+    if (!orderToDelete) {
+      return res.status(404).json({ message: `Order with number ${orderNum} not found.` });
+    }
+
+    // 2. Delete all associated PriLista items
+    const priDeleteResult = await PriLista.deleteMany({ orderNumber: orderNum });
+    console.log(`Deleted ${priDeleteResult.deletedCount} PriLista items for order ${orderNum}`);
+
+    // 3. Delete all associated KantLista items
+    const kantDeleteResult = await KantLista.deleteMany({ orderNumber: orderNum });
+    console.log(`Deleted ${kantDeleteResult.deletedCount} KantLista items for order ${orderNum}`);
+
+    // 4. Delete all associated KluppLista items
+    const kluppDeleteResult = await KluppLista.deleteMany({ orderNumber: orderNum });
+    console.log(`Deleted ${kluppDeleteResult.deletedCount} KluppLista items for order ${orderNum}`);
+
+    // 5. Delete the Order document itself
+    await Order.deleteOne({ _id: orderToDelete._id }); // Delete by ID for certainty
+    console.log(`Deleted Order ${orderNum}`);
+
+    res.status(200).json({
+      message: `Order ${orderNum} and all associated list items deleted successfully.`,
+      deletedCounts: {
+          prilista: priDeleteResult.deletedCount,
+          kantlista: kantDeleteResult.deletedCount,
+          klupplista: kluppDeleteResult.deletedCount,
+          order: 1 // Since we deleted one order
+      }
+    });
+
+  } catch (error) {
+    console.error(`Error deleting order ${orderNumber} and associated items:`, error);
+    res.status(500).json({ message: 'Failed to delete order and associated items', error: error.message });
+  }
+});
+
+
 module.exports = router;

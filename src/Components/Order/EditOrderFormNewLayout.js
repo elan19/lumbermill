@@ -15,6 +15,7 @@ const EditOrderFormNewLayout = ({
     handleKlupplistaChange,
     handleSubmit,
     toggleExpanded,
+    handleDeleteOrder,
     deletePrilista,
     deleteKantlista,
     deleteKlupplista,
@@ -24,6 +25,13 @@ const EditOrderFormNewLayout = ({
         // This is essentially the JSX return block from your previous 'new design' version
         <div className={styles.editOrderFormFieldset}>
             <h2>Redigera Order #{orderDetails.orderNumber}</h2>
+            <button
+                type="button" // IMPORTANT: Prevent form submission
+                className={styles.deleteOrderButton} // Use a distinct class
+                onClick={handleDeleteOrder} // Call the delete handler
+            >
+                Radera Hela Ordern
+            </button>
             {error && <p className={styles.errorFieldset}>Fel: {error}</p>} {/* Display error here */}
             <form className={styles.formFieldset} onSubmit={handleSubmit}>
                 <fieldset className={styles.formSectionFieldset}>

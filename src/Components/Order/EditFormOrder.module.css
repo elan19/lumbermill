@@ -7,6 +7,7 @@
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 /* Heading styling */
@@ -409,6 +410,199 @@
     border: 1px solid #f5c6cb;
 }
 
+
+
+.deleteOrderButton {
+  padding: 0.7rem 1.2rem; /* Match other buttons or adjust */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: #dc3545; /* Red */
+  color: white;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  /* Add margin if not using .formActions container */
+  /* margin-top: 1rem; */
+}
+
+.deleteOrderButton:hover {
+  background-color: #c82333; /* Darker red */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Adjust submit button width if using .formActions */
+.formActions .submitButtonFieldset,
+.formActions .submitButton {
+     width: auto; /* Allow button to size naturally */
+     margin-top: 0; /* Remove margin if using flex gap */
+}
+
+.formHeaderActions {
+  display: flex;
+  justify-content: space-between; /* Pushes items to ends */
+  align-items: center; /* Align items vertically */
+  margin-bottom: 1.5rem; /* Space below the header */
+  padding-bottom: 0.5rem; /* Optional padding below */
+  /* border-bottom: 1px solid #ddd; Optional separator */
+}
+
+/* NEW: Back Button Style */
+.backButton {
+  display: inline-flex; /* Align icon and text */
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #6c757d; /* Grey or another neutral color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none; /* Remove underline from link */
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.backButton:hover {
+  background-color: #5a6268;
+}
+
+/* NEW: Delete Button Style for Header */
+.deleteOrderButtonHeader {
+  padding: 0.5rem 1rem; /* Adjust padding */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem; /* Match back button */
+  font-weight: 600;
+  background-color: #dc3545; /* Red */
+  color: white;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  /* Remove margin-top and width: 100% if they were set before */
+  margin-top: 0;
+  width: auto; /* Allow button to size naturally */
+}
+.deleteOrderButtonHeader:hover {
+  background-color: #c82333;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+
+/* Overlay: Dims the background */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65); /* Darker overlay */
+  z-index: 1000; /* Ensure it's on top */
+  display: flex; /* Optional: Use flex to center content if needed */
+  align-items: center; /* Optional: Vertically center */
+  justify-content: center; /* Optional: Horizontally center */
+}
+
+/* Modal Content Box */
+.modalContent {
+  background: #fff;
+  padding: 2rem; /* More padding */
+  border-radius: 8px;
+  max-width: 450px; /* Limit width */
+  width: 90%; /* Responsive width */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative; /* Needed for potential absolute elements inside */
+  border: 1px solid #ccc; /* Subtle border */
+  outline: none; /* Remove browser default outline */
+  text-align: center; /* Center text content */
+}
+
+/* Modal Title Styles */
+.modalConfirmTitle,
+.modalErrorTitle {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.modalConfirmTitle {
+  color: #333; /* Or keep default */
+}
+.modalErrorTitle {
+  color: #dc3545; /* Red for error */
+}
+
+/* Modal Message Text */
+.modalMessage {
+  margin-bottom: 2rem; /* Space before buttons */
+  line-height: 1.6;
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Action Buttons Container */
+.modalActions {
+  display: flex;
+  justify-content: center; /* Center buttons */
+  gap: 1rem; /* Space between buttons */
+  margin-top: 1.5rem;
+}
+
+/* General Modal Button Style */
+.modalActions button {
+  padding: 0.7rem 1.5rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 100px; /* Give buttons some minimum width */
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.modalActions button:active {
+    transform: scale(0.98); /* Slight press effect */
+}
+
+
+/* Specific Button Styles */
+.confirmButton {
+  background-color: #dc3545; /* Red for delete confirmation */
+  color: white;
+  border: 1px solid #dc3545;
+}
+.confirmButton:hover {
+  background-color: #c82333;
+   border-color: #c82333;
+}
+
+.cancelButton {
+  background-color: #f8f9fa; /* Light grey */
+  color: #333;
+  border: 1px solid #ccc;
+}
+.cancelButton:hover {
+  background-color: #e2e6ea;
+   border-color: #bbb;
+}
+
+/* Style for loading state on confirm button */
+.confirmButton:disabled {
+    background-color: #e47a84; /* Lighter red when disabled */
+    border-color: #e47a84;
+    cursor: wait;
+}
+.confirmButton:disabled .spinner { /* Style a spinner if added */
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 
 
   

@@ -1,5 +1,6 @@
 // src/components/Order/EditOrderFormOldLayout.js (adjust path as needed)
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 // Receive all necessary props from the parent
 const EditOrderFormOldLayout = ({
@@ -14,6 +15,7 @@ const EditOrderFormOldLayout = ({
     handleKantListaChange,
     handleKlupplistaChange,
     handleSubmit,
+    handleDeleteOrder,
     toggleExpanded,
     deletePrilista,
     deleteKantlista,
@@ -26,6 +28,19 @@ const EditOrderFormOldLayout = ({
 
     return (
         <div className={styles.editOrderForm}>
+          <div className={styles.formHeaderActions}>
+             <Link to="/dashboard/orders" className={styles.backButton}> {/* Link back to orders list */}
+                ← Tillbaka till Ordrar {/* Use HTML arrow entity */}
+             </Link>
+             <button
+                type="button"
+                className={styles.deleteOrderButtonHeader} // Use a specific class for header button
+                onClick={handleDeleteOrder}
+                title="Radera hela ordern permanent" // Accessibility
+            >
+                Radera Order {/* Simplified text? */}
+            </button>
+          </div>
           <h2>Redigera Order</h2>
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formGroup}>

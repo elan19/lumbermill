@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Klupplista = require('../models/Klupplista'); // Adjust path to your Klupplista model
+const Klupplista = require('../models/Klupplista');
+const Order = require('../models/Order'); // Adjust path to your Klupplista model
 // const authMiddleware = require('../middleware/authMiddleware'); // UNCOMMENT if authentication is needed
 
 // --- CREATE a new Klupplista Entry ---
@@ -68,18 +69,6 @@ router.post('/create', async (req, res) => {
     }
     // Generic server error
     res.status(500).json({ message: 'Failed to create Klupplista', error: error.message });
-  }
-});
-
-// --- Add other routes for Klupplista (GET, PUT, DELETE) as needed ---
-
-router.put('/update/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const updatedOrder = await Klupplista.findByIdAndUpdate(id, req.body, { new: true });
-    res.status(200).json(updatedOrder);
-  } catch (error) {
-    res.status(500).json({ error: 'Misslyckades att uppdatera kantlistan', details: error.message });
   }
 });
 
@@ -161,18 +150,97 @@ router.put('/edit/:id', async (req, res) => {
   }
 });
 
-// Example: GET all Klupplistor
+// --- GET all Klupplistor ---
+// Consider adding authMiddleware
 router.get('/', async (req, res) => {
-    try {
-        const klupplistor = await Klupplista.find(); // Add .sort() if needed
-        res.status(200).json(klupplistor);
-    } catch(error) {
-        console.error('Error fetching Klupplistor:', error);
-        res.status(500).json({ message: 'Failed to fetch Klupplistor', error: error.message });
-    }
+  try {
+      // Add sort by position by default
+      const klupplistor = await Klupplista.find().sort({ position: 1 }); // Sort by position ascending
+      res.status(200).json(klupplistor);
+  } catch(error) {
+      console.error('Error fetching Klupplistor:', error);
+      res.status(500).json({ message: 'Failed to fetch Klupplistor', error: error.message });
+  }
 });
 
-// Example: GET a specific Klupplista by ID
+// --- GET a specific Klupplista by ID ---
+// Consider adding authMiddleware
+router.get('/:id', async (req, res) => {
+  try {
+      const klupplista = await Klupplista.findById(req.params.id);
+      if (!klupplista) {
+          return res.status(404).json({ message: 'Klupplista not found' });
+      }
+      res.status(200).json(klupplista);
+  } catch(error) {
+      console.error('Error fetching Klupplista:', error);
+       if (error.name === 'CastError') { return res.status(400).json({ message: 'Invalid ID format provided.' }); }
+      res.status(500).json({ message: 'Failed to fetch Klupplista', error: error.message });
+  }
+});
+
+// --- GET Klupplistor by orderNumber ---
+// Consider adding authMiddleware
+router.get('/order/:orderNumber', async (req, res) => {
+  const { orderNumber } = req.params;
+  try {
+    // Add sort by position
+    const klupplista = await Klupplista.find({ orderNumber }).sort({ position: 1 });
+    res.status(200).json(klupplista);
+  } catch (error) {
+    console.error("Error fetching klupplista by order number:", error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
+router.put('/reorder', async (req, res) => {
+  // const io = req.app.get('io');
+  const { updatedItems } = req.body; // Expect { updatedItems: [...] }
+
+  if (!updatedItems || !Array.isArray(updatedItems)) {
+     return res.status(400).json({ message: 'Invalid payload: Expected updatedItems array.' });
+  }
+
+  const bulkOperations = []; // Initialize array for operations
+
+  try {
+    // Prepare bulk operations inside try block
+    updatedItems.forEach(item => { // Use forEach for safer error handling within loop
+       if (!item._id || typeof item.position !== 'number' || item.position < 1) {
+           // Throw error to be caught by outer catch
+           throw new Error(`Invalid item format in updatedItems array: ${JSON.stringify(item)}`);
+       }
+       bulkOperations.push({
+         updateOne: {
+           filter: { _id: item._id },
+           update: { $set: { position: item.position } },
+         },
+       });
+    });
+
+     // Execute updates only if there are valid operations
+     if (bulkOperations.length > 0) {
+         await Klupplista.bulkWrite(bulkOperations);
+     } else {
+         console.log("No valid items provided to reorder for Klupplista.");
+     }
+
+    // if (io) { io.emit('kluppListReordered', { updatedItems }); }
+    res.status(200).json({ message: 'Klupplistor reordered successfully' });
+
+  } catch (error) {
+    console.error('Error reordering klupplistor:', error);
+     if (error.message.includes("Invalid item format")) {
+        return res.status(400).json({ message: error.message });
+    }
+     if (error.name === 'ValidationError') { // Handle potential bulkWrite validation errors
+        return res.status(400).json({ message: 'Validation failed during reorder', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to reorder klupplistor', error: error.message });
+  }
+});
+
+// Example: PUT a specific Klupplista by ID
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body; // Contains all fields sent from frontend
@@ -207,7 +275,7 @@ router.put('/:id', async (req, res) => {
       // Generic server error
       res.status(500).json({ message: 'Failed to update Klupplista item', error: error.message });
     }
-  });
+});
 
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
