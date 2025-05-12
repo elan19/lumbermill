@@ -51,7 +51,7 @@ router.post('/create', async (req, res) => {
       position: position,
       information,
       // Use provided status or default from schema if not provided
-      status: status || { klar: false, ej_Klar: false }
+      status: status
       // Note: The schema handles the default values for klar/ej_Klar if status object itself is missing
     });
 

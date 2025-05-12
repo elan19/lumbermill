@@ -562,6 +562,14 @@
 }
 
 
+
+
+
+
+
+
+
+
 /* Specific Button Styles */
 .confirmButton {
   background-color: #dc3545; /* Red for delete confirmation */
@@ -600,6 +608,13 @@
     animation: spin 0.8s linear infinite;
 }
 
+.modalSuccessTitle {
+  color: #155724; /* Green for success */
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -626,6 +641,14 @@
 }
 
 @media (max-width: 480px) {
+  .editOrderFormFieldset {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .formSectionFieldset {
+  padding: 0.5rem;
+  }
+
   .editOrderForm {
     padding: 10px;
   }

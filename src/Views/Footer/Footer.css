@@ -70,18 +70,43 @@
     font-size: 0.9rem;
     color: #a0b0a8; /* Muted color for copyright */
   }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-      .footer-content {
-          flex-direction: column;
-          text-align: center; /* Center text in columns on mobile */
-      }
-       .footer-section h3 {
-          display: block; /* Make heading take full width */
-          border-bottom: none;
-      }
-      .footer-section ul {
-          padding: 0;
-      }
+
+  .footer-links {
+    text-align: center;
   }
+
+  .footer-contact {
+    text-align: right;
+  }
+
+@media (max-width: 850px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center; /* Center text in columns on mobile */
+  }
+
+  .footer-links {
+    text-align: center;
+  }
+
+  .footer-contact {
+    text-align: center;
+  }
+}
+  
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center; /* Center text in columns on mobile */
+  }
+
+  .footer-section h3 {
+    display: block; /* Make heading take full width */
+    border-bottom: none;
+  }
+
+  .footer-section ul {
+    padding: 0;
+  }
+}

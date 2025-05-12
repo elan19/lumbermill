@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import styles from './Prilista.module.css';
 
 import io from 'socket.io-client';
@@ -30,6 +32,12 @@ const Prilista = () => {
   const [currentPrilistaId, setCurrentPrilistaId] = useState(null);
   const socket = useRef(null);
   const token = localStorage.getItem('token');
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For loading state during PDF gen
+  const pdfContentRef = useRef(null);
+  const [editablePdfText, setEditablePdfText] = useState('');
+  const [isTextEditModalOpen, setIsTextEditModalOpen] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     // Connect to the WebSocket server
@@ -394,6 +402,358 @@ const Prilista = () => {
     }
   };
 
+  // --- PDF DOWNLOAD FUNCTION ---
+   // --- PDF DOWNLOAD FUNCTION (using html2canvas) ---
+  const handleDownloadPrilistaPDF = async () => {
+    setIsGeneratingPdf(true);
+    setError(null); // Clear previous errors
+
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('sv-SE');
+    const pdfFilename = `Prilista_Mätlistor_${dateStr}.pdf`;
+
+    if (!pdfContentRef.current) {
+        console.error("PDF content container ref not found.");
+        setIsGeneratingPdf(false);
+        setError("Kunde inte hitta PDF-innehållsbehållaren.");
+        return;
+    }
+
+    // Determine which data to export based on current view
+    // If filtered, allOrders combines the filtered location lists.
+    // If not filtered, 'orders' state contains all incomplete items, sorted by position.
+    const dataToExport = isFiltered ? allOrders : orders.sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    if (dataToExport.length === 0) {
+        alert("Det finns inga data att exportera till PDF.");
+        setIsGeneratingPdf(false);
+        return;
+    }
+
+    // --- CONSTRUCT HTML FOR PDF ---
+    let contentHTML = `
+      <style>
+        .pdf-prilista-container {
+            font-family: Arial, sans-serif;
+            padding-top: 15mm; /* Standard A4 margins */
+            padding-right: 15mm;
+            background-color: white;
+            color: #333;
+            width: 210mm; /* Content width for A4 (210mm - 15mm margin each side) */
+            box-sizing: border-box;
+            border: none;
+        }
+        .pdf-prilista-container h1 {
+            font-size: 26px; /* Slightly smaller than order detail H1 */
+            text-align: center;
+            margin-bottom: 5px;
+            color: #000;
+            border: none;
+        }
+        .pdf-prilista-container h2 {
+            font-size: 14px; /* Slightly smaller */
+            text-align: center;
+            margin-bottom: 15px;
+            color: #555;
+            border: none;
+        }
+        .pdf-prilista-item {
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            font-size: 16px; /* Base font size for rows */
+            line-height: 1.4;
+            border: none;
+        }
+        .pdf-prilista-item:last-child {
+            border: none;
+        }
+        .pdf-prilista-item .details-line {
+            margin-left: 5px; /* Indent details slightly */
+            color: #444;
+            font-size: 16px;
+            border: none;
+        }
+        .pdf-prilista-item .info-text {
+            display: block; /* Info on its own line */
+            margin-top: 3px;
+            margin-left: 5px;
+            font-style: italic;
+            color: #555;
+            font-size: 16px;
+            border: none;
+        }
+      </style>
+      <div class="pdf-prilista-container">
+        <h1>Mätlista</h1>
+        <h2>Genererad: ${dateStr}</h2>
+    `;
+
+    dataToExport.forEach(item => {
+        contentHTML += `
+            <div class="pdf-prilista-item">
+                <div class="details-line">
+                  ${item.orderNumber || '-'}
+                    ${item.customer || '-'}
+                    ${item.quantity ? ` ${item.quantity}PKT` : ''}
+                    ${item.dimension ? ` ${item.dimension}MM` : ''}
+                    ${item.size ? ` ${item.size}` : ''}
+                    ${item.type ? ` ${item.type}` : ''}
+                </div>
+                ${item.description ? `<div class="info-text">${item.description}</div>` : ''}
+            </div>
+        `;
+    });
+
+    contentHTML += `</div>`; // Close pdf-prilista-container
+    // --- END OF HTML CONSTRUCTION ---
+
+    pdfContentRef.current.innerHTML = contentHTML;
+    // Temporarily make the div visible but off-screen for html2canvas
+    pdfContentRef.current.style.display = 'block';
+    pdfContentRef.current.style.position = 'absolute';
+    pdfContentRef.current.style.left = '-9999px';
+    pdfContentRef.current.style.top = '-9999px';
+    pdfContentRef.current.style.width = '210mm'; // Match content width in CSS
+    pdfContentRef.current.style.backgroundColor = 'white';
+
+
+    try {
+        const canvas = await html2canvas(pdfContentRef.current, {
+            scale: 2.5, // Good for text clarity
+            useCORS: true,
+            logging: false,
+            backgroundColor: null, // Handled by div's background
+            windowWidth: pdfContentRef.current.scrollWidth,
+            windowHeight: pdfContentRef.current.scrollHeight,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+
+        const imgEffectiveWidth = pdfWidth - (2 * margin);
+        const imgEffectiveHeight = (canvas.height * imgEffectiveWidth) / canvas.width;
+
+        let positionY = margin;
+        let heightLeft = imgEffectiveHeight;
+
+        pdf.addImage(imgData, 'PNG', margin, positionY, imgEffectiveWidth, imgEffectiveHeight);
+        heightLeft -= (pdfHeight - (2 * margin));
+
+        while (heightLeft > 0) {
+            positionY = margin - heightLeft; // Negative y-offset for the image on new pages
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', margin, positionY, imgEffectiveWidth, imgEffectiveHeight);
+            heightLeft -= (pdfHeight - (2 * margin));
+        }
+
+        pdf.save(pdfFilename);
+
+    } catch (pdfError) {
+        console.error("Error generating Prilista PDF:", pdfError);
+        setError("Kunde inte generera PDF för Prilista.");
+    } finally {
+        if (pdfContentRef.current) {
+            pdfContentRef.current.innerHTML = ''; // Clear content
+            pdfContentRef.current.style.display = 'none'; // Hide it again
+            // Reset other temporary styles
+            pdfContentRef.current.style.position = '';
+            pdfContentRef.current.style.left = '';
+            pdfContentRef.current.style.top = '';
+            pdfContentRef.current.style.width = '';
+        }
+        setIsGeneratingPdf(false);
+    }
+  };
+  // --- END PDF DOWNLOAD FUNCTION ---
+
+  const generateEditableTextForPrilista = () => {
+    const today = new Date();
+
+    // Determine which data to use
+    const dataToExport = isFiltered ? allOrders : orders.sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    if (dataToExport.length === 0) {
+        return "Inga artiklar att visa."; // Return a message if no data
+    }
+
+    // --- CONSTRUCT TEXT ---
+    let textContent = ``;
+
+    dataToExport.forEach(item => {
+        textContent += `${item.orderNumber || '-'} ${item.customer || '-'} ${item.quantity ? `${item.quantity}PKT` : '-'} ${item.dimension ? `${item.dimension}MM` : '-'} ${item.size || '-'} ${item.type || '-'} ${item.description}\n`;
+    });
+    // --- END OF TEXT CONSTRUCTION ---
+
+    return textContent;
+};
+
+const handleGenerateEditableText = () => {
+    const text = generateEditableTextForPrilista();
+    setEditablePdfText(text);
+    setIsTextEditModalOpen(true); // Open the modal to show/edit the text
+};
+
+const handleSaveEditedTextAsPDF = async () => {
+    // This function will take the content of `editablePdfText`
+    // and generate a PDF using html2canvas as before.
+    setIsGeneratingPdf(true); // Reuse the PDF generating indicator
+    setError(null);
+
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('sv-SE');
+    const pdfFilename = `Prilista_Redigerad_${dateStr}.pdf`;
+
+    if (!pdfContentRef.current) {
+        console.error("PDF content container ref not found.");
+        setIsGeneratingPdf(false);
+        setError("Kunde inte hitta PDF-innehållsbehållaren.");
+        return;
+    }
+
+    if (!editablePdfText.trim()) {
+        alert("Inget textinnehåll att generera PDF från.");
+        setIsGeneratingPdf(false);
+        return;
+    }
+
+    const titleText = "Mätlista";
+    const generatedDateText = `Genererad: ${dateStr}`;
+
+    const trimmedEditablePdfText = editablePdfText.trimEnd();
+
+    // --- CONSTRUCT HTML FROM EDITED TEXT ---
+    // Convert newlines in textarea to <br> for HTML rendering, and wrap in <pre> for formatting
+    // Or create a more structured HTML based on the edited text if needed.
+    // For simplicity, we'll wrap in <pre> to preserve line breaks and spacing.
+    let contentHTML = `
+      <style>
+        /* Reset everything for PDF capture area */
+        .pdf-edited-content-container,
+        .pdf-edited-content-container * {
+            margin: 0 !important;
+            padding: 0 !important; /* Crucial: No padding on container or children for capture */
+            border: none !important;
+            box-sizing: border-box !important;
+            line-height: 1.4;
+        }
+        .pdf-edited-content-container {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: #333;
+            /* width: 180mm; /* Set width on the off-screen div, not here for capture */
+            /* Let html2canvas determine width from content or its div */
+        }
+        .pdf-title {
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            color: #000;
+            padding-bottom: 5px; /* Space below title, within its own block */
+        }
+        .pdf-subtitle {
+            font-size: 14px;
+            text-align: center;
+            color: #555;
+            padding-bottom: 15px; /* Space below subtitle, within its own block */
+        }
+        .pdf-main-text {
+            background-color: white;
+        }
+        .pdf-edited-content-container pre {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: white;
+        }
+      </style>
+      <div class="pdf-edited-content-container">
+        <div class="pdf-title">${titleText}</div>
+        <div class="pdf-subtitle">${generatedDateText}</div>
+        <div class="pdf-main-text">
+          <pre>${trimmedEditablePdfText}</pre>
+        </div>
+      </div>
+    `;
+
+    pdfContentRef.current.innerHTML = contentHTML;
+    pdfContentRef.current.style.display = 'block';
+    pdfContentRef.current.style.position = 'absolute';
+    pdfContentRef.current.style.left = '-9999px';
+    pdfContentRef.current.style.top = '-9999px';
+    // Set a width on the off-screen div that html2canvas will capture.
+    // This width should be appropriate for the content to wrap correctly.
+    // 180mm is a good starting point for A4 content area (210mm - 15mm margins).
+    pdfContentRef.current.style.width = '180mm';
+    pdfContentRef.current.style.backgroundColor = 'white';
+    // Crucially, ensure no padding or margin on the ref div itself
+    pdfContentRef.current.style.padding = '0';
+    pdfContentRef.current.style.margin = '0';
+
+
+    try {
+        const canvas = await html2canvas(pdfContentRef.current, {
+            scale: 2.5,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff', // Explicit white background for the canvas
+            windowWidth: pdfContentRef.current.scrollWidth,
+            windowHeight: pdfContentRef.current.scrollHeight,
+            removeContainer: true,
+            x: 0, // Capture from the very left of the element
+            y: -65, // Capture from the very top of the element
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const pageMargin = 15; // This is the margin for the PDF page itself
+
+        const imgEffectiveWidth = pdfWidth - (2 * pageMargin);
+        const imgEffectiveHeight = (canvas.height * imgEffectiveWidth) / canvas.width;
+
+        let positionYOnPage = pageMargin; // <<< This is where the top margin on the PDF page is applied
+        let heightLeftOnImage = imgEffectiveHeight;
+
+        pdf.addImage(imgData, 'PNG', pageMargin, positionYOnPage, imgEffectiveWidth, imgEffectiveHeight);
+        heightLeftOnImage -= (pdfHeight - (2 * pageMargin));
+
+        while (heightLeftOnImage > 0) {
+            // The Y offset for the image on subsequent pages needs to account for what's already drawn
+            positionYOnPage = pageMargin - (imgEffectiveHeight - heightLeftOnImage) ;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', pageMargin, positionYOnPage, imgEffectiveWidth, imgEffectiveHeight);
+            heightLeftOnImage -= (pdfHeight - (2 * pageMargin));
+        }
+
+        pdf.save(pdfFilename);
+        setIsTextEditModalOpen(false);
+
+    } catch (pdfError) { /* ... error handling ... */ }
+    finally {
+        if (pdfContentRef.current) {
+            pdfContentRef.current.innerHTML = '';
+            pdfContentRef.current.style.display = 'none';
+            pdfContentRef.current.style.position = '';
+            pdfContentRef.current.style.left = '';
+            pdfContentRef.current.style.top = '';
+            pdfContentRef.current.style.width = '';
+        }
+        setIsGeneratingPdf(false);
+    }
+};
+
+
   const toggleFilter = () => {
     setIsFiltered(!isFiltered);
     fetchOrders();
@@ -458,7 +818,7 @@ const Prilista = () => {
         <td data-label="Avklarad:">
           {!order.completed && (
             <button onClick={() => onComplete(order._id)} className={styles.completeButton}>
-              Markera som avklarad
+              &#10003;
             </button>
           )}
         </td>
@@ -524,10 +884,52 @@ const Prilista = () => {
         >
           SKAPA NY PRILISTA
         </button>
+        {/* --- ADD PDF DOWNLOAD BUTTON --- */}
+        <button onClick={handleDownloadPrilistaPDF} className={styles.downloadPdfButton} disabled={isGeneratingPdf}>
+          {isGeneratingPdf ? 'Genererar PDF...' : 'Ladda Ner PDF'}
+        </button>
+        <button onClick={handleGenerateEditableText} className={styles.editTextButton} disabled={isGeneratingPdf}>
+          Redigera Text & Skapa PDF
+        </button>
+        {/* ----------------------------- */}
         <button onClick={toggleFilter}>
           {isFiltered ? "Visa alla ordrar tillsammans" : "Gruppera efter mätplats"}
         </button>
       </div>
+      {/* --- HIDDEN DIV FOR PDF TABLE --- */}
+      <div ref={pdfContentRef} style={{ display: 'none' }}></div>
+      {/* ------------------------------- */}
+      {/* --- MODAL FOR EDITING TEXT --- */}
+        {isTextEditModalOpen && (
+          <div className={styles.modalOverlay} onClick={() => setIsTextEditModalOpen(false)}>
+              <div className={styles.modalContentTextEdit} onClick={(e) => e.stopPropagation()}>
+                  <h2 className={styles.modalTitle}>Redigera Prilista Text</h2>
+                  <textarea
+                      className={styles.editableTextArea}
+                      value={editablePdfText}
+                      onChange={(e) => setEditablePdfText(e.target.value)}
+                      rows="20" // Adjust rows as needed
+                  />
+                  <div className={styles.textEditModalActions}>
+                      <button
+                          onClick={handleSaveEditedTextAsPDF}
+                          className={styles.saveTextPdfButton}
+                          disabled={isGeneratingPdf}
+                      >
+                          {isGeneratingPdf ? 'Genererar PDF...' : 'Spara som PDF'}
+                      </button>
+                      <button
+                          onClick={() => setIsTextEditModalOpen(false)}
+                          className={styles.cancelTextEditButton}
+                          disabled={isGeneratingPdf}
+                      >
+                          Avbryt
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+      {/* --- END TEXT EDIT MODAL --- */}
       {isFiltered ? (
         <div className={styles.orderList}>
           <h2 className={styles.title}>Prilista för Mätlag</h2>

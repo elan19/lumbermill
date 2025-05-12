@@ -149,7 +149,7 @@ function SettingsPage() {
                                 onChange={handleOrderDesignChange} // Use specific handler
                                 disabled={isSaving}
                             />
-                            Nytt utseende (Fieldset)
+                            Nytt utseende
                         </label>
                         <label className="radio-label">
                             <input
@@ -160,7 +160,7 @@ function SettingsPage() {
                                 onChange={handleOrderDesignChange}
                                 disabled={isSaving}
                             />
-                            Gammalt utseende (Enkel)
+                            Gammalt utseende
                         </label>
                     </div>
                 </fieldset>

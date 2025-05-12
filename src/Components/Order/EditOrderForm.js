@@ -27,6 +27,7 @@ const EditOrderForm = () => {
     const [modalMessage, setModalMessage] = useState(''); // Message for the modal
     const [isDeleting, setIsDeleting] = useState(false); 
     const [isDeleteError, setIsDeleteError] = useState(false);
+    const [modalMode, setModalMode] = useState('confirm');
 
     // Fetch BOTH order details and user settings
     const fetchData = useCallback(async () => {
@@ -173,12 +174,12 @@ const EditOrderForm = () => {
         } finally { setLoading(false); }
     };
     const toggleExpanded = (listType, index) => { setExpandedItems((prev) => ({ ...prev, [listType]: { ...prev[listType], [index]: !prev[listType]?.[index], }, })); };
-    const handleDeleteOrder = async () => {
-        // --- Step 1: Open Confirmation Modal ---
+    const handleDeleteOrder = () => {
         setModalMessage(`Är du säker på att du vill radera Order ${orderNumber} och ALLA medföljande artiklar permanent? Detta kan inte ångras.`);
-        setIsDeleteError(false); // It's a confirmation, not an error yet
+        // setIsDeleteError(false); // Not needed directly if using modalMode
+        setModalMode('confirm'); // Set to confirmation mode
         setIsDeleteModalOpen(true);
-        // The actual deletion logic will be called from the modal's confirmation button
+        setError(null);
     };
     const deletePrilista = async (prilistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/prilista/${prilistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove prilista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort okantad artikel.'); }};
     const deleteKantlista = async (kantlistaId) => { if (!window.confirm("Är du säker?")) return; try { await axios.delete(`${process.env.REACT_APP_API_URL}/api/kantlista/${kantlistaId}`, { headers: { Authorization: `Bearer ${token}` }, }); await fetchData(); } catch (err) { console.error('Failed to remove kantlista:', err); setError(err.response?.data?.message || 'Kunde inte ta bort kantad artikel.'); }};
@@ -198,49 +199,41 @@ const EditOrderForm = () => {
     };
 
     const confirmDeletion = async () => {
-        // Don't close modal immediately, close on success or explicit cancel
-        // setIsDeleteModalOpen(false);
         setError(null);
-        setIsDeleting(true); // Start deleting indicator
+        setIsDeleting(true);
 
         try {
-            // --- PUT BACK THE CORRECT AXIOS CALL ---
             await axios.delete(
-                `${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`, // The correct URL
-                { headers: { Authorization: `Bearer ${token}` } } // The headers
+                `${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}`,
+                { headers: { Authorization: `Bearer ${token}` } }
             );
-            // --- END OF FIX ---
 
-            // Now handle success
-            setIsDeleting(false); // Stop indicator
-            setModalMessage(`Order ${orderNumber} har raderats.`); // Success message
-            setIsDeleteError(false);
-            // Keep modal open briefly to show success, then navigate
-            // Or close modal immediately and show toast before navigating
+            setIsDeleting(false);
+            setModalMessage(`Order ${orderNumber} har raderats.`);
+            setModalMode('success'); // <-- SET TO SUCCESS MODE
+            // Keep modal open to show success
             setTimeout(() => {
                 setIsDeleteModalOpen(false);
                 navigate('/dashboard/orders');
-            }, 1500); // Adjust timing
+            }, 1500);
 
         } catch (err) {
             console.error('Failed to delete order:', err);
             const errorMsg = err.response?.data?.message || 'Kunde inte radera ordern.';
             setError(errorMsg); // Set main error state if desired
-            setModalMessage(`Fel vid radering: ${errorMsg}`); // Show error in modal
-            setIsDeleteError(true);
-            setIsDeleting(false); // Stop indicator on error
+            setModalMessage(`Fel vid radering: ${errorMsg}`);
+            setModalMode('error'); // <-- SET TO ERROR MODE
+            setIsDeleting(false);
             // Keep modal open to show error
         }
-        // No finally needed for setIsDeleting as it's handled in try/catch
     };
 
     const closeModal = () => {
         setIsDeleteModalOpen(false);
-        // Reset modal state if needed
-        setTimeout(() => { // Delay reset to avoid flash of content change
+        setTimeout(() => {
             setModalMessage('');
-            setIsDeleteError(false);
-        }, 300); // Match modal close transition time if any
+            setModalMode('confirm'); // Reset mode when closing
+        }, 300);
     };
 
     // --- Conditional Rendering Logic ---
@@ -258,39 +251,48 @@ const EditOrderForm = () => {
     // Render the correct layout based on the ORDER design setting <-- UPDATE THIS CONDITION
     return (
         <div className={styles.editOrderFormContainer}>
-            <Modal
+                  
+<Modal
                isOpen={isDeleteModalOpen}
                onRequestClose={closeModal}
-               contentLabel="Order Radering Bekräftelse"
+               contentLabel="Order Radering" // More generic label
                ariaHideApp={false}
-               // --- Apply classes from CSS Module ---
                className={styles.modalContent}
                overlayClassName={styles.modalOverlay}
-               // --- Optionally add closeTimeoutMS for animations ---
-               // closeTimeoutMS={300}
             >
-              <h2 className={isDeleteError ? styles.modalErrorTitle : styles.modalConfirmTitle}>
-                  {isDeleteError ? "Fel vid Radering" : "Bekräfta Radering"}
+              {/* Title changes based on mode */}
+              <h2 className={
+                  modalMode === 'error' ? styles.modalErrorTitle :
+                  modalMode === 'success' ? styles.modalSuccessTitle : // Add .modalSuccessTitle style
+                  styles.modalConfirmTitle
+                }>
+                  {modalMode === 'error' && "Fel vid Radering"}
+                  {modalMode === 'success' && "Order Raderad"}
+                  {modalMode === 'confirm' && "Bekräfta Radering"}
               </h2>
               <p className={styles.modalMessage}>{modalMessage}</p>
               <div className={styles.modalActions}>
-                {!isDeleteError ? (
+                {/* Show buttons based on modalMode */}
+                {modalMode === 'confirm' && (
                     <>
                         <button onClick={confirmDeletion} className={styles.confirmButton} disabled={isDeleting}>
-                            {isDeleting && <span className={styles.spinner}></span>} {/* Optional Spinner */}
+                            {isDeleting && <span className={styles.spinner}></span>}
                             {isDeleting ? 'Raderar...' : 'Ja, Radera Order'}
                         </button>
                         <button onClick={closeModal} className={styles.cancelButton} disabled={isDeleting}>
                             Avbryt
                         </button>
                     </>
-                ) : (
+                )}
+                {(modalMode === 'success' || modalMode === 'error') && (
                     <button onClick={closeModal} className={styles.cancelButton}>
                         Stäng
                     </button>
                 )}
               </div>
             </Modal>
+
+    
             {orderDesignSetting === 'old' ? (
                 <EditOrderFormOldLayout {...layoutProps} />
             ) : (

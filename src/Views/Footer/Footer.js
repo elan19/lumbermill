@@ -19,13 +19,13 @@ const Footer = () => {
     <footer className="main-footer">
       <div className="footer-content">
 
-        <div className="footer-section about">
+        <div className="footer-section footer-about">
           <h3>{companyName}</h3>
           <p>Tillhandahåller hållbara virkeslösningar sedan 1962. Kvalitetsträprodukter du kan lita på.</p>
            {/* Add social media icons/links here if desired */}
         </div>
 
-        <div className="footer-section links">
+        <div className="footer-section footer-links">
           <h3>Länkar</h3>
           <ul>
             <li><Link to="/">Hem</Link></li>
@@ -38,7 +38,7 @@ const Footer = () => {
           </ul>
         </div>
 
-        <div className="footer-section contact">
+        <div className="footer-section footer-contact">
           <h3>Kontakt & Plats</h3>
           <p>
             {streetAddress}<br />

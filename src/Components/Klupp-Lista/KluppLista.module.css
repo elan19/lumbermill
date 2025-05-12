@@ -12,9 +12,10 @@
       color: #333;
   }
   
-  .header {
+  .klupplistaContainer .header {
       display: flex;
-      justify-content: flex-end; /* Align button to the right */
+      justify-content: space-between;
+      align-items: center; /* Align button to the right */
       margin-bottom: 1rem;
   }
   
@@ -84,7 +85,7 @@
     font-size: 1.2rem;
     padding: 0 5px;
     color: #007bff;
-    vertical-align: middle; /* Align arrows with number */
+    padding-bottom: 5px;
   }
   .moveButton:disabled {
       color: #ccc;
@@ -114,6 +115,7 @@
     border-radius: 3px;
     min-width: 30px;
     display: inline-block;
+    text-align: center;
   }
   
   .orderLink:hover {
@@ -142,6 +144,7 @@ td span {
     min-height: 1em;
     padding: 2px; /* Slight padding for easier clicking */
     border-radius: 2px;
+    text-align: center;
 }
 
 td span:hover {
@@ -155,7 +158,176 @@ td span:hover {
 .orderLink:hover span {
      background-color: transparent; /* Prevent background on link hover */
 }
-  
+
+
+
+
+.statusCell {
+  min-width: 220px; /* Give status column more space if needed */
+  vertical-align: top; /* Align content to the top if it wraps */
+}
+
+.statusGroup {
+  display: flex; /* For aligning label and control side-by-side */
+  align-items: center;
+  justify-content: center; /* Vertically align items in the group */
+  gap: 0.5rem;       /* Space between checkbox/select and its label if label is separate */
+}
+.statusGroup:last-child {
+  margin-bottom: 0; /* Remove margin from the last group in the cell */
+}
+
+.statusLabel {
+  display: flex; /* To align checkbox and text */
+  font-size: 0.9em;
+  cursor: pointer;
+  white-space: nowrap; /* Prevent label from wrapping too early */
+  margin-bottom: 0px;
+}
+
+.statusLabel input[type="checkbox"] {
+  margin-right: 6px;
+  cursor: pointer;
+  transform: scale(1.1);
+  vertical-align: middle; 
+}
+
+.statusSelect {
+  padding: 6px 8px; /* Slightly more padding */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9em;
+  /* width: 100%; Remove if you want it to size to content or set specific width */
+  min-width: 150px; /* Ensure dropdown is wide enough */
+  box-sizing: border-box;
+  background-color: white; /* Ensure background for select */
+  cursor: pointer;
+}
+.statusSelect:disabled {
+  background-color: #e9ecef; /* Lighter grey for disabled */
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+/* Styling for the "Ej Klar Anledning" label when it's separate */
+.statusGroup label[htmlFor^="ejKlarReason-"] {
+    font-weight: normal; /* Make it less prominent than main cell labels */
+    margin-right: 0.5rem; /* Space between label and select */
+    flex-shrink: 0; /* Prevent label from shrinking too much */
+}
+
+/* Alternative for the label of the dropdown (if you want label and select on same line) */
+.ejKlarReasonLabel {
+    font-size: 0.9em;
+    margin-right: 0.5rem;
+    color: #555;
+}
+
+/* Ensure edit input doesn't overlap other status controls if they are in the same cell */
+.editInput.statusEdit { /* Add a specific class if needed */
+    width: calc(100% - 10px); /* Example adjustment */
+}
+
+
+.helpButton {
+  background-color: #6c757d; /* Grey or a neutral info color */
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  margin-right: auto; /* Pushes create button to the right */
+}
+.helpButton:hover {
+  background-color: #5a6268;
+}
+
+
+/* --- Simple Modal Styles --- */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; /* Padding for smaller screens */
+}
+
+.modalContent {
+  background: #fff;
+  padding: 1.5rem 2rem; /* Adjust padding */
+  border-radius: 8px;
+  max-width: 550px; /* Adjust width */
+  width: 95%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+  max-height: 90vh; /* Max height */
+  overflow-y: auto; /* Scroll if content overflows */
+  text-align: left; /* Align text left for info */
+}
+
+.modalTitle {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+}
+
+.helpSection {
+  margin-bottom: 1.2rem;
+}
+
+.helpSection h3 {
+  font-size: 1.1rem;
+  color: #0056b3; /* A highlight color */
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.helpSection ul {
+  list-style-type: disc; /* Or none if you prefer */
+  padding-left: 20px;
+  margin: 0;
+}
+
+.helpSection li {
+  margin-bottom: 0.3rem;
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.helpSection li strong {
+    color: #222; /* Make codes stand out */
+}
+
+
+.modalCloseButton {
+  display: block; /* Make it a block to center it */
+  margin: 1.5rem auto 0 auto; /* Center and add space above */
+  padding: 0.7rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  background-color: #0056b3;
+}
+
   
   /* Basic Responsive Table (Stacking) - Adjust as needed */
   @media screen and (max-width: 768px) {
@@ -216,4 +388,35 @@ td span:hover {
            padding-right: 5px;
            font-weight: bold;
        }
+
+       .statusCell {
+        padding-left: 50% !important; /* Ensure label space is consistent */
+        min-width: 0; /* Allow it to stack */
+    }
+    .statusCell:before {
+        content: "Status"; /* Ensure the main label is shown */
+    }
+    .statusGroup {
+        flex-direction: row; /* Keep label and control on same line */
+        justify-content: flex-end; /* Align to the right where data is */
+        margin-bottom: 8px;
+        width: 100%; /* Ensure it takes available space for alignment */
+    }
+    .statusGroup label[htmlFor^="ejKlarReason-"] {
+         /* For mobile, you might want to hide the text label if space is tight
+            and rely on the main cell :before pseudo-element if clear enough,
+            or let it wrap.
+         */
+        /* display: none; */ /* Example to hide label text */
+        white-space: normal;
+        flex-basis: 40%; /* Give label some space */
+        text-align: left;
+    }
+    .statusSelect {
+        flex-grow: 1; /* Allow select to take remaining space */
+        max-width: none; /* Allow it to fill */
+    }
+    .statusLabel input[type="checkbox"] {
+        margin-left: auto; /* Push checkbox to the right of its label text on mobile */
+    }
   }

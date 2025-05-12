@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import Modal from 'react-modal';
 import styles from './KluppLista.module.css'; // Ensure this CSS file exists
 
 // Define Draggable Item Type
@@ -16,7 +17,8 @@ const DraggableRow = ({
     moveItem, moveItemUp, moveItemDown, styles,
     // --- Editing props ---
     editingCell, editedValue, handleCellInteraction,
-    handleEditChange, handleEditKeyDown, handleEditBlur
+    handleEditChange, handleEditKeyDown, handleEditBlur,
+    handleKluppStatusChange
  }) => {
   const ref = useRef(null);
 
@@ -75,6 +77,18 @@ const DraggableRow = ({
   };
   // --- End Helper function ---
 
+  // Handle "Klar" checkbox change
+  const onKlarChange = (e) => {
+    const newKlarStatus = e.target.checked;
+    handleKluppStatusChange(index, 'klar', newKlarStatus);
+  };
+
+  // Handle "Ej Klar" reason select change
+  const onEjKlarReasonChange = (e) => {
+    const reasonCode = e.target.value ? parseInt(e.target.value, 10) : null;
+    handleKluppStatusChange(index, 'ej_Klar', reasonCode); // Pass 'ej_Klar' as field
+  };
+
   return (
     <tr ref={ref} style={{ opacity: isDragging ? 0.5 : 1 }} className={styles.draggableRow}>
       {/* Position Cell (Not Editable directly) */}
@@ -109,8 +123,42 @@ const DraggableRow = ({
       <td data-label="Info">{renderCellContent('information', item.information)}</td>
 
       {/* Status Cell (Not editable inline with this setup) */}
-      <td data-label="Status">
-        {item.status?.klar ? 'Klar' : (item.status?.ej_Klar ? 'Ej Klar' : 'Pågående')}
+      <td data-label="Status" className={styles.statusCell}>
+        <div className={styles.statusControlWrapper}> {/* Wrapper for all status controls */}
+            <div className={styles.statusGroup}> {/* Group for "Klar" checkbox */}
+                <label className={styles.statusLabel} htmlFor={`statusKlar-${index}`}>
+                    Klar
+                    <input
+                        type="checkbox"
+                        id={`statusKlar-${index}`} // Unique ID for label association
+                        name="status.klar" // Used by handler
+                        checked={!!item.status?.klar}
+                        onChange={onKlarChange}
+                        disabled={item.status?.ej_Klar !== null && item.status?.ej_Klar !== undefined}
+                    />
+                </label>
+            </div>
+
+            {/* Conditionally render "Ej Klar" reason section */}
+            {!item.status?.klar && (
+                <div className={styles.statusGroup}> {/* Group for "Ej Klar" dropdown */}
+                    <label htmlFor={`ejKlarReason-${index}`} className={styles.ejKlarReasonLabel}>Anledning:</label>
+                    <select
+                        id={`ejKlarReason-${index}`}
+                        name="status.ej_Klar"
+                        value={item.status?.ej_Klar || ""}
+                        onChange={onEjKlarReasonChange}
+                        className={styles.statusSelect}
+                        disabled={!!item.status?.klar}
+                    >
+                        <option value="">- Välj -</option>
+                        <option value="1">Ej Hittad</option>
+                        <option value="2">Inte hunnit</option>
+                        <option value="3">Övrigt</option>
+                    </select>
+                </div>
+            )}
+        </div>
       </td>
     </tr>
   );
@@ -129,6 +177,8 @@ const KlupplistaManager = () => {
   const [editingCell, setEditingCell] = useState(null);
   const [editedValue, setEditedValue] = useState('');
   const [lastInteractionTime, setLastInteractionTime] = useState(0);
+
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   // Fetch data on mount
   const fetchKlupplistor = useCallback(async () => {
@@ -267,7 +317,57 @@ const KlupplistaManager = () => {
        // Save immediately on blur for simplicity here
        handleSaveEdit(rowIndex, columnKey);
    };
+
+   const handleKluppStatusChange = async (rowIndex, field, value) => {
+    const itemToUpdate = klupplistor[rowIndex];
+    if (!itemToUpdate) return;
+
+    let newStatus = { ...itemToUpdate.status }; // Clone current status
+
+    if (field === 'klar') {
+        newStatus.klar = value; // value is boolean from checkbox
+        if (newStatus.klar === true) {
+            newStatus.ej_Klar = null; // If "Klar" is true, clear any "Ej Klar" reason
+        }
+    } else if (field === 'ej_Klar') { // Field is now directly 'ej_Klar' from select name
+        newStatus.ej_Klar = value; // value is number (1,2,3) or null from select
+        if (newStatus.ej_Klar !== null && newStatus.ej_Klar !== undefined) {
+            newStatus.klar = false; // If an "Ej Klar" reason is set, "Klar" must be false
+        }
+    }
+
+    const updatePayload = { status: newStatus };
+
+    // Optimistic UI Update for status
+    const updatedListOptimistic = [...klupplistor];
+    updatedListOptimistic[rowIndex] = {
+        ...updatedListOptimistic[rowIndex],
+        status: newStatus
+    };
+    setKlupplistor(updatedListOptimistic);
+
+    // Backend Update
+    try {
+        const response = await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/klupplista/${itemToUpdate._id}`,
+            updatePayload, // Send the whole status object
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Optionally update with response.data for full sync if backend returns updated item
+        // const updatedListBackend = [...klupplistor];
+        // updatedListBackend[rowIndex] = response.data;
+        // setKlupplistor(updatedListBackend);
+        console.log("Klupplista status updated:", response.data);
+    } catch (err) {
+        console.error('Failed to update klupplista status:', err);
+        setError(err.response?.data?.message || 'Failed to update status.');
+        fetchKlupplistor(); // Revert optimistic update on error
+    }
+  };
    // --- End Editing Handlers ---
+
+  const openHelpModal = () => setIsHelpModalOpen(true);
+  const closeHelpModal = () => setIsHelpModalOpen(false);
 
 
   // --- Render Logic ---
@@ -276,18 +376,78 @@ const KlupplistaManager = () => {
   if (error && klupplistor.length === 0 && !loading) return <p className={styles.error}>Fel: {error}</p>;
   // Handle case where list is empty after loading without error
   if (klupplistor.length === 0 && !loading && !error) return (
-        <div className={styles.klupplistaContainer}>
-             <h1>Klupplista</h1>
-             <p className={styles.noItems}>Inga klupplistor att visa.</p>
-        </div>
+      <div className={styles.klupplistaContainer}>
+        <h1>Klupplista</h1>
+        <p className={styles.noItems}>Inga klupplistor att visa.</p>
+      </div>
     );
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={styles.klupplistaContainer}>
         <h1>Klupplista</h1>
+        <div className={styles.header}>
+          {/* Help Button */}
+          <button onClick={openHelpModal} className={styles.helpButton}>
+            Hjälp / Info
+          </button>
+          </div>
         {/* Display save errors here */}
         {error && <p className={styles.error}>Fel vid uppdatering: {error}</p>}
+        {/* --- HELP MODAL --- */}
+        {/* Use your preferred Modal component. This is a conceptual example. */}
+        {isHelpModalOpen && (
+            <div className={styles.modalOverlay} onClick={closeHelpModal}> {/* Close on overlay click */}
+                <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}> {/* Prevent closing when clicking inside modal */}
+                    <h2 className={styles.modalTitle}>Information</h2>
+                    <div className={styles.helpSection}>
+                        <h3>Magasin:</h3>
+                        <ul>
+                            <li>Kajen = <strong>Kaj</strong></li>
+                            <li>Pump = <strong>Pum</strong></li>
+                            <li>Kinda = <strong>Kin</strong></li>
+                        </ul>
+                    </div>
+                    <div className={styles.helpSection}>
+                        <h3>Lagerplats (Format: Sida-Fack-Rad):</h3>
+                        <ul>
+                            <li>Sida: Vänster = <strong>V</strong>, Höger = <strong>H</strong></li>
+                            <li>Fack: <strong>1-6</strong></li>
+                            <li>Rad: <strong>1-6</strong></li>
+                            <li>Exempel: <strong>V-3-2</strong> (Vänster, Fack 3, Rad 2)</li>
+                        </ul>
+                    </div>
+                    <div className={styles.helpSection}>
+                        <h3>Sort (Träslag):</h3>
+                        <ul>
+                            <li>Furu = <strong>F</strong></li>
+                            <li>Gran = <strong>Gr</strong></li>
+                            {/* Add others if applicable */}
+                        </ul>
+                    </div>
+                    <div className={styles.helpSection}>
+                        <h3>Klar:</h3>
+                        <ul>
+                            <li>För att klicka i "Klar" krävs: <strong>' - Välj - '</strong> under "Anledning"</li>
+                            {/* Add others if applicable */}
+                        </ul>
+                    </div>
+                    <div className={styles.helpSection}>
+                        <h3>Extra:</h3>
+                        <ul>
+                            <li>Dubbelklicka på text inuti rad för att ändra<strong></strong></li>
+                            <li>Klicka och håll med mus eller använd pilarna för att förflytta paket upp och ner</li>
+                            <li>Klicka på ordernumret för att komma till ordern</li>
+                            {/* Add others if applicable */}
+                        </ul>
+                    </div>
+                    <button onClick={closeHelpModal} className={styles.modalCloseButton}>
+                        Stäng
+                    </button>
+                </div>
+            </div>
+        )}
+        {/* --- END HELP MODAL --- */}
         <div className={styles.tableContainer}>
           <table>
             <thead>
@@ -324,11 +484,13 @@ const KlupplistaManager = () => {
                   handleEditChange={handleEditChange}
                   handleEditKeyDown={handleEditKeyDown}
                   handleEditBlur={handleEditBlur}
+                  handleKluppStatusChange={handleKluppStatusChange}
                 />
               ))}
             </tbody>
           </table>
         </div>
+        
       </div>
     </DndProvider>
   );

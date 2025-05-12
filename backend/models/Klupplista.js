@@ -18,7 +18,7 @@ const kluppListaSchema = new mongoose.Schema({
   position: { type: Number },
   status: {
     klar: { type: Boolean, default: false },
-    ej_Klar: { type: Boolean, default: false },
+    ej_Klar: { type: Number, default: null, enum: [1, 2, 3], } // 1: Not found, 2: No time, 3: Other
   }, // New field for completion status
 });
 

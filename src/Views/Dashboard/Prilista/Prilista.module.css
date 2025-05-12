@@ -309,6 +309,101 @@
 }
 
 
+
+/* EDIT TEXT BUTTON PDF */
+
+.editTextButton {
+  /* Use common button styles if defined */
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.editTextButton:disabled,
+.downloadPdfButton:disabled { /* Style for disabled buttons */
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+
+/* Styles for Text Edit Modal */
+.modalContentTextEdit { /* Slightly wider modal for textarea */
+  background: #fff;
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  max-width: 1200px; /* Wider for text area */
+  width: 95%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  display: flex; /* Use flex for layout */
+  flex-direction: column; /* Stack title, textarea, buttons */
+  border: none;
+}
+
+.editableTextArea {
+  width: 100%;
+  min-height: 300px; /* Good starting height */
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-family: Arial, sans-serif; /* Monospace for better text alignment */
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  resize: vertical; /* Allow user to resize vertically */
+}
+
+.textEditModalActions {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 1rem;
+  margin-top: 1rem;
+  border: none;
+}
+
+.saveTextPdfButton,
+.cancelTextEditButton {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.saveTextPdfButton {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+.saveTextPdfButton:hover {
+  background-color: #218838;
+}
+.saveTextPdfButton:disabled {
+  background-color: #70c785;
+  cursor: wait;
+}
+
+
+.cancelTextEditButton {
+  background-color: #6c757d; /* Grey */
+  color: white;
+}
+.cancelTextEditButton:hover {
+  background-color: #5a6268;
+}
+
+
+
+
+
+
+
 /*1024*/
 @media (max-width: 1028px) {
   .header {

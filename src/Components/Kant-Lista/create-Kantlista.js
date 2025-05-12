@@ -184,6 +184,7 @@ const CreateKantlista = () => {
         <input
           type="text"
           value={thickness}
+          placeholder="50"
           onChange={(e) => setThickness(e.target.value)}
           required
         />
@@ -192,6 +193,7 @@ const CreateKantlista = () => {
         <input
           type="text"
           value={width}
+          placeholder="125"
           onChange={(e) => setWidth(e.target.value)}
           required
         />
@@ -200,6 +202,7 @@ const CreateKantlista = () => {
         <input
           type="text"
           value={varv}
+          placeholder="14"
           onChange={(e) => setVarv(e.target.value)}
           required
         />
@@ -208,6 +211,7 @@ const CreateKantlista = () => {
         <input
           type="text"
           value={maxLength}
+          placeholder="4.3"
           onChange={(e) => setMaxLength(e.target.value)}
         />
 

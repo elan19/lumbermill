@@ -423,4 +423,12 @@
   .kantlistaItem input {
     width: 100%;
   }
+
+  .createOrderContainer {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .formSection {
+    padding: 0.75rem;
+  }
 }

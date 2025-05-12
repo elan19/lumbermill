@@ -101,7 +101,7 @@ const CreateOrder = () => {
       // Add a new klupplista object with default/empty values
       {
         sagverk: '', dimension: '', max_langd: '', pktNumber: '', sort: '', stad: '', special: '', magasin: '', lagerplats: '',
-        leveransDatum: '', information: '', status: { klar: false, ej_Klar: false }
+        leveransDatum: '', information: '', status: { klar: false, ej_Klar: null }
         // Note: orderNumber and kund are added on the backend during creation
       },
     ]);
@@ -152,8 +152,8 @@ const CreateOrder = () => {
       setNotes('');
       setSpeditor('');
       // Reset lists
-      setPrilistas([{ quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', klupplager: false }]);
-      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, klupplager: false }]);
+      setPrilistas([{ quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '' }]);
+      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false } }]);
       setKlupplistas([]); // <-- RESET KLUPPLISTAS TO EMPTY
 
     } catch (err) {
@@ -360,7 +360,7 @@ const CreateOrder = () => {
                    className={`${styles.removeBtn} ${styles.removeBtnItem}`}
                    onClick={() => removeKlupplista(index)}
                  >
-                   Ta bort Klupplista Artikel #{index + 1}
+                   Ta bort Klupp Artikel #{index + 1}
                  </button>
                )}
                {index < klupplistas.length - 1 && <hr className={styles.itemSeparator} />}

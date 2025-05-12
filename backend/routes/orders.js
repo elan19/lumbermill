@@ -106,6 +106,22 @@ router.post('/create', async (req, res) => {
             const newPosition = (latestKlupplista && typeof latestKlupplista.position === 'number') ? latestKlupplista.position + 1 : 1;
             // Create the new Klupplista instance
             // Add orderNumber and kund for context, even if not strictly required by klupp schema
+            let finalStatus = { klar: false, ej_Klar: null };
+            if (klupplistaData.status) { // If status object is provided from frontend
+                finalStatus.klar = klupplistaData.status.klar === true; // Ensure boolean
+
+                // Ensure ej_Klar is valid or null
+                if (klupplistaData.status.ej_Klar && [1, 2, 3].includes(parseInt(klupplistaData.status.ej_Klar, 10))) {
+                    finalStatus.ej_Klar = parseInt(klupplistaData.status.ej_Klar, 10);
+                } else {
+                    finalStatus.ej_Klar = null; // Default to null if invalid or not provided
+                }
+
+                // If 'klar' is true, 'ej_Klar' must be null
+                if (finalStatus.klar) {
+                    finalStatus.ej_Klar = null;
+                }
+            }
             const newKlupp = new KluppLista({
               ...klupplistaData, // Spread the data from the request (dimension, max_langd, etc.)
               orderNumber: orderNumber, // Associate with the order

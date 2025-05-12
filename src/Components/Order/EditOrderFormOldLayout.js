@@ -343,67 +343,84 @@ const EditOrderFormOldLayout = ({
 
             {/* --- Klupplista Section (Old Layout) --- ADD THIS --- */}
             <h3>Klupplista</h3>
-             {klupplistaDetails.length === 0 && <p>Inga klupplistor i denna order.</p>}
-             {klupplistaDetails.map((kluppItem, index) => (
-                // Use a consistent item class if available, e.g., styles.prilistaItem or styles.listItem
-                <div key={kluppItem._id || index} className={`${styles.prilistaItem} ${kluppItem.status?.klar ? styles.completed : ''}`}>
-                     {/* Header like the others */}
-                     <h3>
-                        Klupplista Artikel #{index + 1}
-                        {kluppItem.status?.klar && <span className={styles.completedBadge}>Klar</span>} {/* Show Klar status */}
-                     </h3>
-                      <div className={styles.detailAndRemoveBtnDiv}>
-                          <button type="button" onClick={() => toggleExpanded('klupplista', index)} className={styles.toggleButton}>
-                              {expandedItems.klupplista?.[index] ? 'Dölj detaljer' : 'Visa detaljer'}
-                          </button>
-                          <button type="button" onClick={() => deleteKlupplista(kluppItem._id)} className={styles.deleteButton}> X </button>
-                      </div>
-
-                    {/* Details section like the others */}
-                    {expandedItems.klupplista?.[index] && (
-                        <div className={styles.details}>
-                             {/* Editable Input fields for Klupplista */}
-                            <label htmlFor={`klupp-${index}-sagverk`}>Sågverk:</label>
-                            <input id={`klupp-${index}-sagverk`} name="sagverk" value={kluppItem.sagverk || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
-
-                            <label htmlFor={`klupp-${index}-dimension`}>Dimension *:</label>
-                            <input id={`klupp-${index}-dimension`} name="dimension" value={kluppItem.dimension || ''} onChange={(e) => handleKlupplistaChange(index, e)} required className={styles.input}/>
-
-                            <label htmlFor={`klupp-${index}-max_langd`}>Längd *:</label>
-                            <input id={`klupp-${index}-max_langd`} name="max_langd" value={kluppItem.max_langd || ''} onChange={(e) => handleKlupplistaChange(index, e)} required className={styles.input}/>
-
-                            <label htmlFor={`klupp-${index}-pktNumber`}>Pkt Nummer:</label>
-                            <input id={`klupp-${index}-pktNumber`} name="pktNumber" value={kluppItem.pktNumber || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
-
-                            <label htmlFor={`klupp-${index}-sort`}>Sort:</label>
-                            <input id={`klupp-${index}-sort`} name="sort" value={kluppItem.sort || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
-
-                            <label htmlFor={`klupp-${index}-stad`}>Märkning:</label> {/* Renamed label from Märkning */}
-                            <input id={`klupp-${index}-stad`} name="stad" value={kluppItem.stad || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
-
-                            {/* Excluded Magasin, Lagerplats, LeveransDatum as requested */}
-
-                            <label htmlFor={`klupp-${index}-status-klar`}>Klar:</label>
-                            <select id={`klupp-${index}-status-klar`} name="status.klar" value={kluppItem.status?.klar ? 'true' : 'false'} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.select}>
-                                <option value="true">Ja</option>
-                                <option value="false">Nej</option>
-                            </select>
-
-                            <label htmlFor={`klupp-${index}-status-ej_Klar`}>Ej Klar:</label>
-                            <select id={`klupp-${index}-status-ej_Klar`} name="status.ej_Klar" value={kluppItem.status?.ej_Klar ? 'true' : 'false'} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.select}>
-                                <option value="true">Ja</option>
-                                <option value="false">Nej</option>
-                            </select>
-
-                            <label htmlFor={`klupp-${index}-information`}>Information:</label>
-                            <input id={`klupp-${index}-information`} name="information" value={kluppItem.information || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+                {klupplistaDetails.length === 0 && <p>Inga klupplistor i denna order.</p>}
+                {klupplistaDetails.map((kluppItem, index) => (
+                    <div key={kluppItem._id || index} className={`${styles.prilistaItem} ${kluppItem.status?.klar ? styles.completed : ''}`}> {/* Use a consistent item class */}
+                        <h3>Klupplista Artikel #{index + 1} {kluppItem.status?.klar && <span className={styles.completedBadge}>Klar</span>}</h3>
+                        <div className={styles.detailAndRemoveBtnDiv}>
+                            <button type="button" onClick={() => toggleExpanded('klupplista', index)} className={styles.toggleButton}>
+                                {expandedItems.klupplista?.[index] ? 'Dölj detaljer' : 'Visa detaljer'}
+                            </button>
+                            <button type="button" onClick={() => deleteKlupplista(kluppItem._id)} className={styles.deleteButton}> X </button>
                         </div>
-                    )}
-                </div>
-             ))}
-    
-            <button type="submit" className={styles.submitButton}>Spara Ändringar</button>
-          </form>
+
+                        {expandedItems.klupplista?.[index] && (
+                            <div className={styles.details}>
+                                {/* Editable Input fields for Klupplista */}
+                                <label htmlFor={`klupp-${index}-sagverk`}>Sågverk:</label>
+                                <input id={`klupp-${index}-sagverk`} name="sagverk" value={kluppItem.sagverk || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+
+                                <label htmlFor={`klupp-${index}-dimension`}>Dimension *:</label>
+                                <input id={`klupp-${index}-dimension`} name="dimension" value={kluppItem.dimension || ''} onChange={(e) => handleKlupplistaChange(index, e)} required className={styles.input}/>
+
+                                <label htmlFor={`klupp-${index}-max_langd`}>Längd *:</label>
+                                <input id={`klupp-${index}-max_langd`} name="max_langd" value={kluppItem.max_langd || ''} onChange={(e) => handleKlupplistaChange(index, e)} required className={styles.input}/>
+
+                                <label htmlFor={`klupp-${index}-pktNumber`}>Pkt Nummer:</label>
+                                <input id={`klupp-${index}-pktNumber`} name="pktNumber" value={kluppItem.pktNumber || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+
+                                <label htmlFor={`klupp-${index}-sort`}>Sort:</label>
+                                <input id={`klupp-${index}-sort`} name="sort" value={kluppItem.sort || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+
+                                <label htmlFor={`klupp-${index}-stad`}>Märkning (Stad):</label>
+                                <input id={`klupp-${index}-stad`} name="stad" value={kluppItem.stad || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+
+                                {/* --- NEW STATUS UI FOR KLUPPLISTA --- */}
+                                <div className={styles.statusSectionOld}> {/* Add a wrapper for status controls */}
+                                    <div className={styles.statusCheckboxOld}>
+                                        <label htmlFor={`klupp-${index}-status-klar`}>Klar:</label>
+                                        <input
+                                            type="checkbox"
+                                            id={`klupp-${index}-status-klar`}
+                                            name="status.klar"
+                                            checked={!!kluppItem.status?.klar}
+                                            onChange={(e) => handleKlupplistaChange(index, e)}
+                                            disabled={kluppItem.status?.ej_Klar !== null && kluppItem.status?.ej_Klar !== undefined}
+                                            className={styles.checkboxInput} // Optional specific class
+                                        />
+                                    </div>
+
+                                    {!kluppItem.status?.klar && (
+                                        <div className={styles.statusEjKlarOld}>
+                                            <label htmlFor={`klupp-${index}-status-ej_Klar`}>Anledning Ej klar:</label>
+                                            <select
+                                                id={`klupp-${index}-status-ej_Klar`}
+                                                name="status.ej_Klar"
+                                                value={kluppItem.status?.ej_Klar || ''}
+                                                onChange={(e) => handleKlupplistaChange(index, e)}
+                                                disabled={!!kluppItem.status?.klar}
+                                                className={styles.select} // Use existing select style
+                                            >
+                                                <option value="">Inget fel</option>
+                                                <option value="1">Ej Hittad</option>
+                                                <option value="2">Ingen Tid</option>
+                                                <option value="3">Annat</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+                                {/* --- END NEW STATUS UI --- */}
+
+                                <label htmlFor={`klupp-${index}-information`}>Information:</label>
+                                <input id={`klupp-${index}-information`} name="information" value={kluppItem.information || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {/* --- END OF KLUPPLISTA SECTION --- */}
+
+                <button type="submit" className={styles.submitButton}>Spara Ändringar</button>
+            </form>
         </div>
       );
 };

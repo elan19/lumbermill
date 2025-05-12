@@ -5,7 +5,7 @@ const Prilista = require('../models/Prilista');
 const Order = require('../models/Order');
 
 // Create a new Kantlista
-/*router.post('/create', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const newOrder = new Kantlista(req.body);
     console.log(req.body);
@@ -14,7 +14,7 @@ const Order = require('../models/Order');
   } catch (error) {
     res.status(500).json({ error: 'Misslyckades att skapa en ny kantlista', details: error.message });
   }
-});*/
+});
 
 // Create a new Kantlista
 router.post('/create', async (req, res) => {
