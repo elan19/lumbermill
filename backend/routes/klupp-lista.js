@@ -18,7 +18,6 @@ router.post('/create', async (req, res) => {
       pktNumber,
       sort,
       stad,
-      special,
       magasin,
       lagerplats,
       leveransDatum,
@@ -44,7 +43,6 @@ router.post('/create', async (req, res) => {
       pktNumber,
       sort,
       stad,
-      special,
       magasin,
       lagerplats,
       leveransDatum,
@@ -153,14 +151,34 @@ router.put('/edit/:id', async (req, res) => {
 // --- GET all Klupplistor ---
 // Consider adding authMiddleware
 router.get('/', async (req, res) => {
-  try {
-      // Add sort by position by default
-      const klupplistor = await Klupplista.find().sort({ position: 1 }); // Sort by position ascending
-      res.status(200).json(klupplistor);
-  } catch(error) {
-      console.error('Error fetching Klupplistor:', error);
-      res.status(500).json({ message: 'Failed to fetch Klupplistor', error: error.message });
-  }
+    try {
+        const allKlupplistor = await Klupplista.find().sort({ position: 1 });
+
+        // Get unique order numbers from the klupplistor that have one
+        const orderNumbers = [
+            ...new Set(allKlupplistor.map(kl => kl.orderNumber).filter(on => on != null))
+        ];
+
+        // Find orders that are NOT delivered
+        const nonDeliveredOrders = await Order.find({
+            orderNumber: { $in: orderNumbers },
+            status: { $ne: 'Delivered' } // $ne means "not equal"
+        }).select('orderNumber'); // Only need orderNumber for filtering
+
+        const nonDeliveredOrderNumbers = new Set(nonDeliveredOrders.map(o => o.orderNumber));
+
+        // Filter klupplistor:
+        // - Keep if it has no orderNumber (it's a general stock item)
+        // - Keep if its orderNumber is in the nonDeliveredOrderNumbers set
+        const filteredKlupplistor = allKlupplistor.filter(kl =>
+            kl.orderNumber == null || nonDeliveredOrderNumbers.has(kl.orderNumber)
+        );
+
+        res.status(200).json(filteredKlupplistor);
+    } catch(error) {
+        console.error('Error fetching Klupplistor:', error);
+        res.status(500).json({ message: 'Failed to fetch Klupplistor', error: error.message });
+    }
 });
 
 // --- GET a specific Klupplista by ID ---

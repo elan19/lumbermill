@@ -200,21 +200,48 @@ router.put('/:orderNumber/complete', async (req, res) => {
 router.put('/:orderNumber/delivered', async (req, res) => {
   const { orderNumber } = req.params;
 
+  // Validate if orderNumber is provided and perhaps is a number
+  if (!orderNumber) {
+    return res.status(400).json({ message: 'Order number is required.' });
+  }
+  const orderNumAsInt = parseInt(orderNumber, 10);
+  if (isNaN(orderNumAsInt)) {
+      return res.status(400).json({ message: 'Invalid order number format.' });
+  }
+
   try {
+    // 1. Update the Order status to 'Delivered'
     const updatedOrder = await Order.findOneAndUpdate(
-      { orderNumber },
+      { orderNumber: orderNumAsInt },
       { status: 'Delivered' },
-      { new: true }
+      { new: true } // Return the updated order document
     );
 
     if (!updatedOrder) {
-      return res.status(404).send('Order not found');
+      return res.status(404).json({ message: `Order ${orderNumAsInt} not found.` });
     }
 
+    // 2. If the order was successfully marked as delivered,
+    //    update all associated Klupplista items' status.klar to true.
+    if (updatedOrder.status === 'Delivered') {
+      const updateResult = await KluppLista.updateMany(
+        { orderNumber: updatedOrder.orderNumber }, // Find Klupplistor matching the orderNumber
+        { $set: { 'delivered': true} } // Set 'klar' to true and clear 'ej_Klar' reason
+      );
+      console.log(`Updated ${updateResult.modifiedCount} KluppLista items to klar:true for delivered order ${updatedOrder.orderNumber}`);
+    }
+
+    // Optionally, if you want to return the order with populated (and now updated) klupplistor:
+    // const finalOrderWithPopulatedKlupplistor = await Order.findById(updatedOrder._id).populate('klupplista');
+    // res.json(finalOrderWithPopulatedKlupplistor);
+    // For now, just return the updatedOrder object.
+    // The frontend would typically refetch details if it needs to see the updated klupplista statuses immediately.
+
     res.json(updatedOrder);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.error(`Error marking order ${orderNumber} as delivered or updating klupplistor:`, err);
+    res.status(500).json({ message: 'Server error', details: err.message });
   }
 });
 

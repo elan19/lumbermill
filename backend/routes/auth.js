@@ -106,7 +106,11 @@ router.get('/settings', authenticateToken, async (req, res) => {
       }
 
       const designSetting = user.settings?.design || 'new';
-      res.json({ design: designSetting, orderDesign: user.settings?.orderDesign || 'new' });
+      res.json({ 
+        design: designSetting, 
+        orderDesign: user.settings?.orderDesign || 'new',
+        fontSize: user.settings?.fontSize // Default font size
+      });
 
   } catch (error) {
       console.error('Error fetching user settings:', error);
@@ -124,16 +128,25 @@ router.put('/settings', authenticateToken, async (req, res) => {
            return res.status(401).json({ message: 'Authentication failed or user ID missing.' });
        }
 
-      // Destructure both settings from the body <-- MODIFIED
-      const { design, orderDesign } = req.body;
+      // Destructure all expected settings from the body
+      const { design, orderDesign, fontSize } = req.body;
 
-      // Validate both inputs <-- MODIFIED
-      if (design && !['old', 'new'].includes(design)) { // Allow partial updates - check if provided
+      // --- Validation ---
+      if (design && !['old', 'new'].includes(design)) {
           return res.status(400).json({ message: 'Invalid website design value provided.' });
       }
-      if (orderDesign && !['old', 'new'].includes(orderDesign)) { // Allow partial updates - check if provided
+      if (orderDesign && !['old', 'new'].includes(orderDesign)) {
            return res.status(400).json({ message: 'Invalid order design value provided.' });
-       }
+      }
+      // Validate fontSize if provided
+      if (fontSize !== undefined) { // Check if it was sent
+          const parsedFontSize = parseInt(fontSize, 10);
+          if (isNaN(parsedFontSize) || parsedFontSize < 8 || parsedFontSize > 32) { // Example range
+               return res.status(400).json({ message: 'Invalid font size. Must be a number between 8 and 32.' });
+          }
+      }
+      // --- End Validation ---
+
 
       const user = await User.findById(req.user.id);
 
@@ -143,34 +156,51 @@ router.put('/settings', authenticateToken, async (req, res) => {
 
       // Ensure settings object exists
       if (!user.settings) {
-          user.settings = {};
+          user.settings = {
+              design: 'new', // Default if settings object was missing
+              orderDesign: 'new',
+              fontSize: 16
+          };
       }
 
-      // Update ONLY the fields that were sent <-- MODIFIED (allows partial updates)
       let changed = false;
+
+      // Update website design if provided and different
       if (design && user.settings.design !== design) {
            user.settings.design = design;
            changed = true;
       }
+
+      // Update order design if provided and different
       if (orderDesign && user.settings.orderDesign !== orderDesign) {
             user.settings.orderDesign = orderDesign;
             changed = true;
       }
 
+      // Update font size if provided and different
+      if (fontSize !== undefined) {
+          const parsedFontSize = parseInt(fontSize, 10); // Use parsed value
+          if (user.settings.fontSize !== parsedFontSize) {
+              user.settings.fontSize = parsedFontSize;
+              changed = true;
+          }
+      }
 
       // Only save if something actually changed
       if (changed) {
-            user.markModified('settings'); // Mark modified since it's nested
+            user.markModified('settings'); // Mark nested 'settings' object as modified
             await user.save();
+            console.log(`Settings updated for user: ${req.user.id}`, user.settings);
       } else {
            console.log("No setting changes detected for user:", req.user.id);
       }
 
 
-      // Return the current state of both settings <-- MODIFIED
+      // Return the current state of all settings
       res.json({
           design: user.settings.design,
-          orderDesign: user.settings.orderDesign
+          orderDesign: user.settings.orderDesign,
+          fontSize: user.settings.fontSize
         });
 
   } catch (error) {
@@ -178,7 +208,7 @@ router.put('/settings', authenticateToken, async (req, res) => {
        if (error.name === 'ValidationError') {
           return res.status(400).json({ message: 'Validation failed', errors: error.errors });
       }
-      res.status(500).json({ message: 'Server error while updating settings.' });
+      res.status(500).json({ message: 'Server error while updating settings.', error: error.message });
   }
 });
 

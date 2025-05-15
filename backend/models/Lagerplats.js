@@ -11,7 +11,7 @@ const LagerplatsSchema = new mongoose.Schema({
   sawData: {
     tum: { type: Number, required: function () { return this.type === "Sågat"; } }, // Inches
     typ: { type: String, required: function () { return this.type === "Sågat"; } }, // Side/X
-    nt: { type: String, required: function () { return this.type === "Sågat"; } }, // Optional, additional info
+    nt: { type: String, required: function () { return this.type === "Sågat"; } }, // Nertork, additional info
   },
 
   // Specifik för Kantat virke
@@ -20,6 +20,13 @@ const LagerplatsSchema = new mongoose.Schema({
     varv: { type: String, required: function () { return this.type === "Kantat"; } },
     max_langd: { type: String, required: function () { return this.type === "Kantat"; } },
     kvalite: { type: String, required: function () { return this.type === "Kantat"; } },
+  },
+
+  okantatData: {
+    varv: { type: String, required: function () { return this.type === "Okantat"; } },
+    kvalite: { type: String, required: function () { return this.type === "Okantat"; } },
+    typ: { type: String, required: function () { return this.type === "Okantat"; } }, // Side/X
+    nt: { type: String, required: function () { return this.type === "Okantat"; } },
   },
 });
 

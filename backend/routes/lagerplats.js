@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 
 // Add a new lagerplats entry
 router.post("/", async (req, res) => {
-  const { type, tree, dim, location, sawData, kantatData } = req.body;
+  const { type, tree, dim, location, sawData, kantatData, okantatData } = req.body;
 
   try {
     let newLagerplats;
@@ -52,13 +52,22 @@ router.post("/", async (req, res) => {
           kvalite: kantatData.kvalite,
         },
       });
-    } else {
+    } else if (type === "Okantat") {
+      if (!okantatData || !okantatData.varv || !okantatData.kvalite || !okantatData.typ || !okantatData.nt) {
+        return res.status(400).json({ error: "Missing required Kantat fields" });
+      }
       // Default handling for "Okantat" or unknown types
       newLagerplats = new Lagerplats({
         type,
         tree,
         dim,
         location,
+        okantatData: {
+          varv: okantatData.varv,
+          kvalite: okantatData.kvalite,
+          typ: okantatData?.typ,
+          nt: okantatData?.nt,
+        }
       });
     }
 
