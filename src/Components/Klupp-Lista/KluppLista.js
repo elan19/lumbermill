@@ -121,6 +121,7 @@ const DraggableRow = ({
       <td data-label="Magasin">{renderCellContent('magasin', item.magasin)}</td>
       <td data-label="Lagerplats">{renderCellContent('lagerplats', item.lagerplats)}</td>
       <td data-label="Info">{renderCellContent('information', item.information)}</td>
+      <td data-label="Lev. Datum">{renderCellContent('leveransDatum', item.leveransDatum)}</td>
 
       {/* Status Cell (Not editable inline with this setup) */}
       <td data-label="Status" className={styles.statusCell}>
@@ -142,7 +143,7 @@ const DraggableRow = ({
             {/* Conditionally render "Ej Klar" reason section */}
             {!item.status?.klar && (
                 <div className={styles.statusGroup}> {/* Group for "Ej Klar" dropdown */}
-                    <label htmlFor={`ejKlarReason-${index}`} className={styles.ejKlarReasonLabel}>Anledning:</label>
+                    <label htmlFor={`ejKlarReason-${index}`} className={styles.ejKlarReasonLabel}>Fel:</label>
                     <select
                         id={`ejKlarReason-${index}`}
                         name="status.ej_Klar"
@@ -428,7 +429,7 @@ const KlupplistaManager = () => {
                     <div className={styles.helpSection}>
                         <h3>Klar:</h3>
                         <ul>
-                            <li>För att klicka i "Klar" krävs: <strong>' - Välj - '</strong> under "Anledning"</li>
+                            <li>För att klicka i "Klar" krävs: <strong>' - Välj - '</strong> under "Fel"</li>
                             {/* Add others if applicable */}
                         </ul>
                     </div>
@@ -463,6 +464,7 @@ const KlupplistaManager = () => {
                 <th>Magasin</th>
                 <th>Lagerplats</th>
                 <th>Info</th>
+                <th>Lev. Datum</th>
                 <th>Status</th>
               </tr>
             </thead>

@@ -11,22 +11,19 @@ const LagerPlatsComp = () => {
     location: "",
     sawData: { tum: "", typ: "", nt: "" },
     kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
+    okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
   });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const token = localStorage.getItem('token');
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const [editing, setEditing] = useState(null); // Track the editing state (row & column)
-  const [editedValue, setEditedValue] = useState(''); // Track the value being edited
+  const [editing, setEditing] = useState(null); 
+  const [editedValue, setEditedValue] = useState('');
   const [lastClick, setLastClick] = useState(0);
-
-  // Touch event tracking
   const [lastTouch, setLastTouch] = useState(0);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 1
-
-
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchLagerplatser();
@@ -35,9 +32,7 @@ const LagerPlatsComp = () => {
   const fetchLagerplatser = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/lagerplats`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setLagerplatser(response.data);
     } catch (err) {
@@ -47,113 +42,114 @@ const LagerPlatsComp = () => {
 
   const handleDoubleClick = (rowIndex, columnKey, currentValue, isTouchEvent) => {
     const currentTime = Date.now();
-    console.log("test");
-  
-    // For mouse events (double-click)
+    const activateEditing = () => {
+        setEditing({ rowIndex, columnKey });
+        setEditedValue(currentValue === undefined || currentValue === null ? "" : String(currentValue));
+    };
+
     if (!isTouchEvent && currentTime - lastClick < 300) {
-      // Detected double-click (within 300ms)
-      setEditing({ rowIndex, columnKey });
-      setEditedValue(currentValue); // Set value for editing
+        activateEditing();
+    } else if (isTouchEvent && currentTime - lastTouch < 300) {
+        activateEditing();
     }
   
-    // For touch events (double-tap)
-    if (isTouchEvent && currentTime - lastTouch < 300) {
-      // Detected double-tap (within 300ms)
-      setEditing({ rowIndex, columnKey });
-      setEditedValue(currentValue); // Set value for editing
-    }
-  
-    setLastClick(currentTime); // Update last click time
-    setLastTouch(currentTime); // Update last touch time
+    setLastClick(currentTime);
+    setLastTouch(currentTime);
   };
   
   const handleSave = async (rowIndex, columnKey) => {
-    const updatedLagerplatser = [...lagerplatser]; // Klona för att undvika state-mutation
-  
-    // Hitta objektet som redigeras i den filtrerade listan
-    const editedItem = filteredLagerplatser[rowIndex]; // Hämta objekt baserat på filtrerad lista
-    const originalIndex = updatedLagerplatser.findIndex(item => item._id === editedItem._id); // Hitta rätt objekt i hela listan
+    const paginatedCurrentItems = filteredLagerplatser.slice(indexOfFirstItem, indexOfLastItem);
+    const editedItem = paginatedCurrentItems[rowIndex];
+
+    if (!editedItem) {
+        console.error("Edited item not found in paginated list.");
+        setEditing(null);
+        return;
+    }
+
+    const lagerplatserCopy = [...lagerplatser];
+    const originalIndex = lagerplatserCopy.findIndex(item => item._id === editedItem._id);
 
     if (originalIndex === -1) {
       console.error("Kunde inte hitta objektet i ofiltrerad lista.");
+      setEditing(null);
       return;
     }
 
-    // Hantera nested keys (t.ex. 'kantatData.bredd')
     const keys = columnKey.split('.');
     const lastKey = keys.pop();
-    let currentObj = updatedLagerplatser[originalIndex];
+    let currentObj = lagerplatserCopy[originalIndex];
 
     keys.forEach((key) => {
-      if (!currentObj[key]) currentObj[key] = {}; // Se till att objektet existerar
+      if (!currentObj[key] || typeof currentObj[key] !== 'object') {
+        currentObj[key] = {}; 
+      }
       currentObj = currentObj[key];
     });
+    
+    let valueToSave = editedValue;
+    // Example: Convert to number for specific fields defined as Number in schema
+    if ((columnKey === 'dim' || columnKey === 'sawData.tum' /* add other numeric fields like kantatData.bredd if they are numbers */) 
+        && valueToSave !== "" && !isNaN(Number(valueToSave))) {
+        valueToSave = Number(editedValue);
+    } else if ( (columnKey.endsWith('.varv') || columnKey.endsWith('.max_langd') || columnKey.endsWith('.tum')) && valueToSave !== "" && !isNaN(Number(valueToSave))) {
+        // Assuming varv, max_langd, tum can be numbers
+        // Check your schema for actual types
+        valueToSave = Number(editedValue);
+    }
 
-    // Uppdatera värdet
-    currentObj[lastKey] = editedValue;
 
-    const updatedField = { [columnKey]: editedValue };
-
-    console.log("Updating field:", updatedField);
+    currentObj[lastKey] = valueToSave;
+    const updatedField = { [columnKey]: valueToSave };
 
     try {
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/lagerplats/${updatedLagerplatser[originalIndex]._id}`,
+        `${process.env.REACT_APP_API_URL}/api/lagerplats/${lagerplatserCopy[originalIndex]._id}`,
         updatedField,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setLagerplatser(updatedLagerplatser); // Uppdatera hela listan korrekt
-      setEditing(null); // Avsluta redigeringsläge
+      setLagerplatser(lagerplatserCopy);
+      setEditing(null); 
     } catch (err) {
       console.error("Failed to save updated data:", err);
     }
-};
-
-  
-  
-
-  
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log("Edit");
-    // If changing type, reset the specific fields
     if (name === "type") {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev, // Keep all common fields
         type: value,
+        // Reset only type-specific data, not common fields
         sawData: { tum: "", typ: "", nt: "" },
         kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
-      });
+        okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
+      }));
       return;
     }
 
-    // Handle nested object updates
-    if (name.startsWith("sawData.") || name.startsWith("kantatData.")) {
+    if (name.startsWith("sawData.") || name.startsWith("kantatData.") || name.startsWith("okantatData.")) {
       const [parent, child] = name.split(".");
-      setFormData({
-        ...formData,
-        [parent]: { ...formData[parent], [child]: value },
-      });
+      setFormData(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: value } }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/lagerplats`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchLagerplatser();
       setFormData({ 
-        type: 'Sågat', tree: '', dim: '', location: '', sawData: { tum: "", typ: "", nt: "" },
-        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" }
+        type: formData.type, // Retain current type for next entry
+        tree: '', dim: '', location: '', 
+        sawData: { tum: "", typ: "", nt: "" },
+        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
+        okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
       });
     } catch (err) {
       console.error('Failed to add lagerplats:', err);
@@ -165,34 +161,67 @@ const LagerPlatsComp = () => {
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
     } else if (sortConfig.key === key && sortConfig.direction === "descending") {
-      // Reset to default when the same key is clicked again
-      direction = "none";
+      setSortConfig({ key: null, direction: 'ascending' }); 
+      fetchLagerplatser(); // Reset to original order
+      return;
     }
     setSortConfig({ key, direction });
   
-    if (direction !== "none") {
-      const sortedData = [...lagerplatser].sort((a, b) => {
-        const getValue = (obj, path) => path.split(".").reduce((o, p) => (o ? o[p] : "-"), obj);
-  
-        const aValue = getValue(a, key) || "-";
-        const bValue = getValue(b, key) || "-";
-  
-        if (key === "nt") {
-          // Sort with '-' first and 'ja' second
-          if (aValue === bValue) return 0;
-          if (aValue === "-") return direction === "ascending" ? -1 : 1;
-          if (bValue === "-") return direction === "ascending" ? 1 : -1;
-          return direction === "ascending" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    const sortedData = [...lagerplatser].sort((a, b) => {
+      const getValue = (obj, path) => {
+        // Handle shared paths for sorting
+        if (path === "sharedVarv") {
+            if (obj.type === "Kantat") return obj.kantatData?.varv;
+            if (obj.type === "Okantat") return obj.okantatData?.varv;
+            return null;
         }
-  
-        // Default sorting for other keys
-        if (aValue < bValue) return direction === "ascending" ? -1 : 1;
-        if (aValue > bValue) return direction === "ascending" ? 1 : -1;
-        return 0;
-      });
-  
-      setLagerplatser(sortedData);
-    }
+        if (path === "sharedKvalite") {
+            if (obj.type === "Kantat") return obj.kantatData?.kvalite;
+            if (obj.type === "Okantat") return obj.okantatData?.kvalite;
+            return null;
+        }
+        if (path === "sharedTyp") { // "Sid/X"
+            if (obj.type === "Sågat") return obj.sawData?.typ;
+            if (obj.type === "Okantat") return obj.okantatData?.typ;
+            return null;
+        }
+        if (path === "sharedNt") { // "Nertork"
+            if (obj.type === "Sågat") return obj.sawData?.nt;
+            if (obj.type === "Okantat") return obj.okantatData?.nt;
+            return null;
+        }
+        // Fallback for non-shared keys or direct properties
+        return path.split(".").reduce((o, p) => (o && o[p] !== undefined && o[p] !== null ? o[p] : null), obj);
+      };
+
+      let aValue = getValue(a, key);
+      let bValue = getValue(b, key);
+
+      // Numeric sort for specific keys (adjust as per your schema's data types)
+      const numericKeys = ["dim", "sawData.tum", "kantatData.bredd", "kantatData.max_langd"]; 
+      // For shared keys that might be numeric:
+      if ( (key === "sharedVarv" || key === "sawData.tum") ) { 
+          aValue = aValue !== null ? Number(aValue) : -Infinity;
+          bValue = bValue !== null ? Number(bValue) : -Infinity;
+      } else if (numericKeys.includes(key)){
+          aValue = aValue !== null ? Number(aValue) : -Infinity;
+          bValue = bValue !== null ? Number(bValue) : -Infinity;
+      } else { // String sort for others
+          aValue = aValue !== null ? String(aValue).toLowerCase() : "";
+          bValue = bValue !== null ? String(bValue).toLowerCase() : "";
+      }
+
+      if (key.endsWith(".nt") || key === "sharedNt") { // Special sort for NT fields
+          if (aValue === bValue) return 0;
+          if (aValue === "-" || aValue === "") return direction === "ascending" ? -1 : 1;
+          if (bValue === "-" || bValue === "") return direction === "ascending" ? 1 : -1;
+      }
+
+      if (aValue < bValue) return direction === "ascending" ? -1 : 1;
+      if (aValue > bValue) return direction === "ascending" ? 1 : -1;
+      return 0;
+    });
+    setLagerplatser(sortedData);
   };
   
   const getSortIndicator = (key) => {
@@ -200,45 +229,65 @@ const LagerPlatsComp = () => {
       if (sortConfig.direction === 'ascending') return '▲';
       if (sortConfig.direction === 'descending') return '▼';
     }
-    return '⬍'; // Default indicator when not sorted
+    return '⬍';
   };
 
   const deleteLagerPlats = async (lagerPlatsId) => {
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/lagerplats/${lagerPlatsId}`,{
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
-      fetchLagerplatser();
-    } catch (err) {
-      console.error('Failed to remove lagerplats:', err);
+    if (window.confirm("Är du säker på att du vill ta bort denna lagerplats?")) {
+        try {
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/lagerplats/${lagerPlatsId}`,{
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        fetchLagerplatser();
+        } catch (err) {
+        console.error('Failed to remove lagerplats:', err);
+        }
     }
   }
 
-  // Filter lagerplatser based on selectedCategory
   const filteredLagerplatser = selectedCategory
     ? lagerplatser.filter((item) => item.type === selectedCategory)
     : lagerplatser;
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredLagerplatser.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory]);
+  }, [selectedCategory, itemsPerPage]);
+
+  // Helper function to render shared cells
+  const renderSharedCell = (lagerplats, rowIndex, displayLogic) => {
+    const { value, columnKeyForEdit, isNumeric } = displayLogic(lagerplats);
+    
+    return editing?.rowIndex === rowIndex && editing?.columnKey === columnKeyForEdit && columnKeyForEdit ? (
+      <input
+        type={isNumeric ? "number" : "text"}
+        value={editedValue}
+        onChange={(e) => setEditedValue(e.target.value)}
+        onBlur={() => handleSave(rowIndex, columnKeyForEdit)}
+        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSave(rowIndex, columnKeyForEdit))}
+        autoFocus
+      />
+    ) : (
+      <span onClick={(e) => columnKeyForEdit && handleDoubleClick(rowIndex, columnKeyForEdit, value, e.type === 'touchstart')}>
+        {value !== null && value !== undefined ? value : "-"}
+      </span>
+    );
+  };
+
 
   return (
     <div className={styles.lagerplatsContainer}>
       <h1>Lagerplats</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={styles.formLayout}>
+        {/* ... form inputs ... (no changes needed here from previous version) */}
         <select name="type" value={formData.type} onChange={handleInputChange}>
           <option value="Sågat">Sågat</option>
           <option value="Kantat">Kantat</option>
-          <option value="Okantat">Okantat / EJ FIXAD</option>
+          <option value="Okantat">Okantat</option>
         </select>
 
         <label>Trädslag:</label>
@@ -250,407 +299,214 @@ const LagerPlatsComp = () => {
         <label>Lagerplats:</label>
         <input name="location" value={formData.location} onChange={handleInputChange} placeholder="Ex. jb 3h" required />
 
-        {/* Sågat-specific fields */}
         {formData.type === "Sågat" && (
           <>
             <label>Tum:</label>
             <input type="number" name="sawData.tum" value={formData.sawData.tum} placeholder="Ex. 11, 15" onChange={handleInputChange} />
-
             <label>Typ:</label>
             <input name="sawData.typ" value={formData.sawData.typ} placeholder="Ex: Sid/2x" onChange={handleInputChange} />
-
             <label>Nertork:</label>
             <input name="sawData.nt" value={formData.sawData.nt} placeholder="Ex: 12%" onChange={handleInputChange} />
           </>
         )}
-
-        {/* Kantat-specific fields */}
         {formData.type === "Kantat" && (
           <>
             <label>Bredd:</label>
             <input name="kantatData.bredd" value={formData.kantatData.bredd} placeholder="Ex. 75, 125" onChange={handleInputChange} />
-
             <label>Varv:</label>
             <input name="kantatData.varv" value={formData.kantatData.varv} placeholder="Ex. 15" onChange={handleInputChange} />
-
             <label>Max Längd:</label>
             <input name="kantatData.max_langd" value={formData.kantatData.max_langd} placeholder="Ex. 4.3" onChange={handleInputChange} />
-
             <label>Kvalite:</label>
             <input name="kantatData.kvalite" value={formData.kantatData.kvalite} placeholder="Ex. A, B" onChange={handleInputChange} />
           </>
         )}
-
+        {formData.type === "Okantat" && (
+          <>
+            <label>Varv:</label>
+            <input name="okantatData.varv" value={formData.okantatData.varv} placeholder="Ex. 15" onChange={handleInputChange} />
+            <label>Kvalite:</label>
+            <input name="okantatData.kvalite" value={formData.okantatData.kvalite} placeholder="Ex. A/Ulägg/Modell/Blå" onChange={handleInputChange} />
+            <label>Typ:</label>
+            <input name="okantatData.typ" value={formData.okantatData.typ} placeholder="Sid/2X" onChange={handleInputChange} />
+            <label>Nertork:</label>
+            <input name="okantatData.nt" value={formData.okantatData.nt} placeholder="Ex. 16%" onChange={handleInputChange} />
+          </>
+        )}
         <button type="submit">Lägg till</button>
       </form>
 
       <div className={styles.tableDeciderDiv}>
-        <button 
-          className={selectedCategory === 'Sågat' ? styles.activeButton : ''} 
-          onClick={() => setSelectedCategory('Sågat')}
-        >
-          Sågat
-        </button>
-        
-        <button 
-          className={selectedCategory === 'Kantat' ? styles.activeButton : ''} 
-          onClick={() => setSelectedCategory('Kantat')}
-        >
-          Kantat
-        </button>
-        
-        <button 
-          className={selectedCategory === 'Okantat' ? styles.activeButton : ''} 
-          onClick={() => setSelectedCategory('Okantat')}
-        >
-          Okantat / EJ FIXAD
-        </button>
-        
-        <button 
-          className={selectedCategory === null ? styles.activeButton : ''} 
-          onClick={() => setSelectedCategory(null)}
-        >
-          Visa alla
-        </button>
-
+        <button className={selectedCategory === 'Sågat' ? styles.activeButton : ''} onClick={() => setSelectedCategory('Sågat')}>Sågat</button>
+        <button className={selectedCategory === 'Kantat' ? styles.activeButton : ''} onClick={() => setSelectedCategory('Kantat')}>Kantat</button>
+        <button className={selectedCategory === 'Okantat' ? styles.activeButton : ''} onClick={() => setSelectedCategory('Okantat')}>Okantat</button>
+        <button className={selectedCategory === null ? styles.activeButton : ''} onClick={() => setSelectedCategory(null)}>Visa alla</button>
         <select 
             className={styles.itemsPerPage}
             value={itemsPerPage} 
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value)); 
-              setCurrentPage(1); // Reset to page 1 when changing items per page
-            }}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
           >
-            <option value="" disabled>Visa per sida</option>
             <option value="5">5</option>
             <option value="10">10</option>
-            <option value="20">25</option>
+            <option value="25">25</option>
             <option value="50">50</option>
+            <option value={lagerplatser.length > 0 ? lagerplatser.length : 100}>Alla</option>
           </select>
         </div>
 
-      {/* Wrap the table in a scrollable div */}
       <div className={styles.tableContainer}>
         <table>
           <thead>
             <tr>
-              <th onClick={() => handleSort("type")} title="Kategori">
-                <span>Kategori</span> {getSortIndicator("type")}
-              </th>
-              <th onClick={() => handleSort("tree")} title="Träslag">
-                <span>Träslag</span> {getSortIndicator("tree")}
-              </th>
-              <th onClick={() => handleSort("dim")} title="Tjocklek">
-                <span>Tjocklek</span> {getSortIndicator("dim")}
-              </th>
+              {/* Always Visible */}
+              <th onClick={() => handleSort("type")} title="Kategori"><span>Kategori</span> {getSortIndicator("type")}</th>
+              <th onClick={() => handleSort("tree")} title="Träslag"><span>Träslag</span> {getSortIndicator("tree")}</th>
+              <th onClick={() => handleSort("dim")} title="Tjocklek"><span>Tjocklek</span> {getSortIndicator("dim")}</th>
 
-              {/* Conditionally render Kantat-specific columns */}
-              {selectedCategory === "Kantat" || selectedCategory === null ? (
-                <>
-                  <th onClick={() => handleSort("kantatData.bredd")} title="Bredd">
-                    <span>Bredd</span> {getSortIndicator("kantatData.bredd")}
-                  </th>
-                  <th onClick={() => handleSort("kantatData.varv")} title="Varv">
-                    <span>Varv</span> {getSortIndicator("kantatData.varv")}
-                  </th>
-                  <th onClick={() => handleSort("kantatData.max_langd")} title="Max Längd">
-                    <span>Max Längd</span> {getSortIndicator("kantatData.max_langd")}
-                  </th>
-                  <th onClick={() => handleSort("kantatData.kvalite")} title="Kvalitet">
-                    <span>Kvalitet</span> {getSortIndicator("kantatData.kvalite")}
-                  </th>
-                </>
-              ) : null}
+              {/* Kantat Specific */}
+              {(selectedCategory === "Kantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("kantatData.bredd")} title="Bredd (Kantat)"><span>Bredd</span> {getSortIndicator("kantatData.bredd")}</th>
+              )}
+              {(selectedCategory === "Kantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("kantatData.max_langd")} title="Max Längd (Kantat)"><span>Max Längd</span> {getSortIndicator("kantatData.max_langd")}</th>
+              )}
 
-              {/* Conditionally render Sågat-specific columns */}
-              {selectedCategory === "Sågat" || selectedCategory === null ? (
-                <>
-                  <th onClick={() => handleSort("sawData.tum")} title="Tum">
-                    <span>Tum</span> {getSortIndicator("sawData.tum")}
-                  </th>
-                  <th onClick={() => handleSort("sawData.typ")} title="Sid/X">
-                    <span>Sid/X</span> {getSortIndicator("sawData.typ")}
-                  </th>
-                  <th onClick={() => handleSort("sawData.nt")} title="Nertork">
-                    <span>Nertork</span> {getSortIndicator("sawData.nt")}
-                  </th>
-                </>
-              ) : null}
+              {/* Sågat Specific */}
+              {(selectedCategory === "Sågat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sawData.tum")} title="Tum (Sågat)"><span>Tum</span> {getSortIndicator("sawData.tum")}</th>
+              )}
+              
+              {/* Shared: Varv (Kantat, Okantat) */}
+              {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sharedVarv")} title="Varv"><span>Varv</span> {getSortIndicator("sharedVarv")}</th>
+              )}
 
-              <th onClick={() => handleSort("location")} title="Plats">
-                <span>Plats</span> {getSortIndicator("location")}
-              </th>
+              {/* Shared: Kvalite (Kantat, Okantat) */}
+              {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sharedKvalite")} title="Kvalite"><span>Kvalite</span> {getSortIndicator("sharedKvalite")}</th>
+              )}
 
+              {/* Shared: Sid/X (Sågat, Okantat) */}
+              {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sharedTyp")} title="Sid/X"><span>Sid/X</span> {getSortIndicator("sharedTyp")}</th>
+              )}
+
+              {/* Shared: Nertork (Sågat, Okantat) */}
+              {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sharedNt")} title="Nertork"><span>Nertork</span> {getSortIndicator("sharedNt")}</th>
+              )}
+
+              {/* Always Visible */}
+              <th onClick={() => handleSort("location")} title="Plats"><span>Plats</span> {getSortIndicator("location")}</th>
               <th>Ta bort</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.map((lagerplats, rowIndex) => (
               <tr key={lagerplats._id}>
-                <td data-label="Kategori">
-                  {editing?.rowIndex === rowIndex && editing?.columnKey === "type" ? (
-                    <input 
-                      value={editedValue}
-                      onChange={(e) => setEditedValue(e.target.value)} 
-                      onBlur={() => handleSave(rowIndex, "type")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault(); // Prevent new line in input
-                          handleSave(rowIndex, "type");
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span
-                      onClick={(e) => handleDoubleClick(rowIndex, 'type', lagerplats.type, e.type === 'touchstart')}
-                    >
-                      {lagerplats.type}
-                    </span>
-                  )}
-                </td>
+                {/* Kategori */}
+                <td data-label="Kategori">{renderSharedCell(lagerplats, rowIndex, (lp) => ({ value: lp.type, columnKeyForEdit: "type" }))}</td>
+                {/* Träslag */}
+                <td data-label="Träslag">{renderSharedCell(lagerplats, rowIndex, (lp) => ({ value: lp.tree, columnKeyForEdit: "tree" }))}</td>
+                {/* Tjocklek */}
+                <td data-label="Tjocklek">{renderSharedCell(lagerplats, rowIndex, (lp) => ({ value: lp.dim, columnKeyForEdit: "dim", isNumeric: true }))}</td>
 
-                <td data-label="Träslag">
-                  {editing?.rowIndex === rowIndex && editing?.columnKey === "tree" ? (
-                    <input
-                      value={editedValue}
-                      onChange={(e) => setEditedValue(e.target.value)}
-                      onBlur={() => handleSave(rowIndex, "tree")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault(); // Prevent new line in input
-                          handleSave(rowIndex, "tree");
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span
-                      onClick={(e) => handleDoubleClick(rowIndex, 'tree', lagerplats.tree, e.type === 'touchstart')}
-                    >
-                      {lagerplats.tree}
-                    </span>
-                  )}
-                </td>
+                {/* Bredd (Kantat specific) */}
+                {(selectedCategory === "Kantat" || selectedCategory === null) && (
+                  <td data-label="Bredd">
+                    {lagerplats.type === "Kantat" || selectedCategory === null ? 
+                      renderSharedCell(lagerplats, rowIndex, (lp) => ({ 
+                        value: lp.type === "Kantat" ? lp.kantatData?.bredd : (selectedCategory === null ? "-" : ""), 
+                        columnKeyForEdit: lp.type === "Kantat" ? "kantatData.bredd" : "",
+                        // isNumeric: true (if bredd is number)
+                      })) : (selectedCategory !== null && <span>-</span>) // Show dash if specific category selected and item is not of this type
+                    }
+                  </td>
+                )}
+                 {/* Max Längd (Kantat specific) */}
+                 {(selectedCategory === "Kantat" || selectedCategory === null) && (
+                  <td data-label="Max Längd">
+                    {lagerplats.type === "Kantat" || selectedCategory === null ?
+                      renderSharedCell(lagerplats, rowIndex, (lp) => ({ 
+                        value: lp.type === "Kantat" ? lp.kantatData?.max_langd : (selectedCategory === null ? "-" : ""), 
+                        columnKeyForEdit: lp.type === "Kantat" ? "kantatData.max_langd" : "",
+                        // isNumeric: true (if max_langd is number)
+                       })) : (selectedCategory !== null && <span>-</span>)
+                    }
+                  </td>
+                )}
 
-                <td data-label="Tjocklek">
-                  {editing?.rowIndex === rowIndex && editing?.columnKey === "dim" ? (
-                    <input 
-                      type="number"
-                      value={editedValue}
-                      onChange={(e) => setEditedValue(e.target.value)} 
-                      onBlur={() => handleSave(rowIndex, "dim")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault(); // Prevent new line in input
-                          handleSave(rowIndex, "dim");
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span
-                      onClick={(e) => handleDoubleClick(rowIndex, 'dim', lagerplats.dim, e.type === 'touchstart')}
-                    >
-                      {lagerplats.dim}
-                    </span>
-                  )}
-                </td>
+                {/* Tum (Sågat specific) */}
+                {(selectedCategory === "Sågat" || selectedCategory === null) && (
+                  <td data-label="Tum">
+                    {lagerplats.type === "Sågat" || selectedCategory === null ?
+                      renderSharedCell(lagerplats, rowIndex, (lp) => ({ 
+                        value: lp.type === "Sågat" ? lp.sawData?.tum : (selectedCategory === null ? "-" : ""), 
+                        columnKeyForEdit: lp.type === "Sågat" ? "sawData.tum" : "",
+                        isNumeric: true 
+                      })) : (selectedCategory !== null && <span>-</span>)
+                    }
+                  </td>
+                )}
 
-                {/* Conditionally render Kantat-specific data */}
-                {selectedCategory === "Kantat" || selectedCategory === null ? (
-                  <>
-                    <td data-label="Bredd">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "kantatData.bredd" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "kantatData.bredd")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "kantatData.bredd");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'kantatData.bredd', lagerplats.kantatData?.bredd, e.type === 'touchstart')}>
-                          {lagerplats.kantatData?.bredd || "-"}
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="Varv">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "kantatData.varv" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "kantatData.varv")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "kantatData.varv");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'kantatData.varv', lagerplats.kantatData?.varv, e.type === 'touchstart')}>
-                          {lagerplats.kantatData?.varv || "-"}
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="Max Längd">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "kantatData.max_langd" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "kantatData.max_langd")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "kantatData.max_langd");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'kantatData.max_langd', lagerplats.kantatData?.max_langd, e.type === 'touchstart')}>
-                          {lagerplats.kantatData?.max_langd || "-"}
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="Kvalitet">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "kantatData.kvalite" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "kantatData.kvalite")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "kantatData.kvalite");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'kantatData.kvalite', lagerplats.kantatData?.kvalite, e.type === 'touchstart')}>
-                          {lagerplats.kantatData?.kvalite || "-"}
-                        </span>
-                      )}
-                    </td>
-                  </>
-                ) : null}
+                {/* Shared: Varv */}
+                {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Varv">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Kantat") return { value: lp.kantatData?.varv, columnKeyForEdit: "kantatData.varv" /* isNumeric: true */ };
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.varv, columnKeyForEdit: "okantatData.varv" /* isNumeric: true */ };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
 
-                {/* Conditionally render Sågat-specific data */}
-                {selectedCategory === "Sågat" || selectedCategory === null ? (
-                  <>
-                    <td data-label="Tum">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "sawData.tum" ? (
-                        <input 
-                          type="number"
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "sawData.tum")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "sawData.tum");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'sawData.tum', lagerplats.sawData?.tum, e.type === 'touchstart')}>
-                          {lagerplats.sawData?.tum || "-"}
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="Sid/X">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "sawData.typ" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "sawData.typ")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "sawData.typ");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'sawData.typ', lagerplats.sawData?.typ, e.type === 'touchstart')}>
-                          {lagerplats.sawData?.typ || "-"}
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="NT">
-                      {editing?.rowIndex === rowIndex && editing?.columnKey === "sawData.nt" ? (
-                        <input 
-                          value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)} 
-                          onBlur={() => handleSave(rowIndex, "sawData.nt")}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // Prevent new line in input
-                              handleSave(rowIndex, "sawData.nt");
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span onClick={(e) => handleDoubleClick(rowIndex, 'sawData.nt', lagerplats.sawData?.nt, e.type === 'touchstart')}>
-                          {lagerplats.sawData?.nt || "-"}
-                        </span>
-                      )}
-                    </td>
-                  </>
-                ) : null}
+                {/* Shared: Kvalite */}
+                {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Kvalite">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Kantat") return { value: lp.kantatData?.kvalite, columnKeyForEdit: "kantatData.kvalite" };
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.kvalite, columnKeyForEdit: "okantatData.kvalite" };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
 
-                <td data-label="Plats">
-                  {editing?.rowIndex === rowIndex && editing?.columnKey === "location" ? (
-                    <input 
-                      value={editedValue}
-                      onChange={(e) => setEditedValue(e.target.value)} 
-                      onBlur={() => handleSave(rowIndex, "location")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault(); // Prevent new line in input
-                          handleSave(rowIndex, "location");
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span onClick={(e) => handleDoubleClick(rowIndex, 'location', lagerplats.location, e.type === 'touchstart')}>
-                      {lagerplats.location}
-                    </span>
-                  )}
-                </td>
+                {/* Shared: Sid/X (Typ) */}
+                {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Sid/X">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Sågat") return { value: lp.sawData?.typ, columnKeyForEdit: "sawData.typ" };
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.typ, columnKeyForEdit: "okantatData.typ" };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
 
-                <td>
-                  <button
-                    onClick={() => deleteLagerPlats(lagerplats._id)}
-                    className={styles.deleteButton}
-                  >
-                    X
-                  </button>
-                </td>
+                {/* Shared: Nertork (NT) */}
+                {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Nertork">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Sågat") return { value: lp.sawData?.nt, columnKeyForEdit: "sawData.nt" };
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.nt, columnKeyForEdit: "okantatData.nt" };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
+                
+                {/* Plats */}
+                <td data-label="Plats">{renderSharedCell(lagerplats, rowIndex, (lp) => ({ value: lp.location, columnKeyForEdit: "location" }))}</td>
+                {/* Ta bort */}
+                <td><button onClick={() => deleteLagerPlats(lagerplats._id)} className={styles.deleteButton}>X</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Controls */}
       <div className={styles.pagination}>
-        <button 
-          onClick={() => setCurrentPage(currentPage - 1)} 
-          disabled={currentPage === 1}
-        >
-          Föregående
-        </button>
-
-        <span> Sida {currentPage} av {Math.ceil(filteredLagerplatser.length / itemsPerPage)} </span>
-
-        <button 
-          onClick={() => setCurrentPage(currentPage + 1)} 
-          disabled={currentPage >= Math.ceil(filteredLagerplatser.length / itemsPerPage)}
-        >
-          Nästa
-        </button>
+        <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>Föregående</button>
+        <span> Sida {currentPage} av {Math.max(1, Math.ceil(filteredLagerplatser.length / itemsPerPage))} </span>
+        <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage >= Math.ceil(filteredLagerplatser.length / itemsPerPage)}>Nästa</button>
       </div>
     </div>
   );

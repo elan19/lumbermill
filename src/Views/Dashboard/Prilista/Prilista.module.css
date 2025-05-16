@@ -33,6 +33,7 @@
   .title {
     margin-bottom: 8px;
     color: #333;
+    text-align: center;
   }
   
   .orderTable {
@@ -48,7 +49,6 @@
   .orderTable th, .orderTable td {
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
   }
 
   .orderTable td {
@@ -118,63 +118,60 @@
   }
   
 .dimensionTitle {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
 }
 
 .dimensionDetails {
-    list-style-type: none;
-    padding-left: 0;
+  list-style-type: none;
+  padding-left: 0;
 }
 
 .dimensionDetails li {
-    margin: 5px 0;
-    font-size: 1rem;
+  margin: 5px 0;
+
 }
 
 .dimensionDetails li strong {
-    color: #2c3e50;
+  color: #2c3e50;
 }
 
 /* Optional: Add some padding or border to make it look cleaner */
 .orderDetails {
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .locationInput {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .saveButton {
-    margin-top: 10px;
+  margin-top: 10px;
 }
   
 .dimensionItem {
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ddd; /* Optional: adds separation between items */
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ddd; /* Optional: adds separation between items */
 }
 
 .dimensionTitle {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
 }
 
 .dimensionDetails {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
 }
 
 .dimensionDetails li {
-    font-size: 0.9rem;
-    margin: 3px 0;
+  margin: 3px 0;
 }
 
 .dimensionDetails li strong {
@@ -205,7 +202,7 @@
   text-decoration: none;
   outline: 1px solid #007bff;
   padding: 5px 5px;
-  border-radius: 3px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -292,16 +289,16 @@
 }
 
 .moveButton {
-  margin-top: 20px;
-  margin-bottom: 20px;
   width: 40px;
-  height: 30px;
+  height: auto;
+  min-height: 30px;
   text-align: center;
   padding: 0px;
 }
 
 .orderNrTD {
   min-width: 125px;
+  display: flex;
 }
 
 .orderTable .orderNrTH {
@@ -318,7 +315,6 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
   font-weight: 500;
   transition: background-color 0.2s ease;
   white-space: nowrap;
@@ -351,7 +347,6 @@
   padding: 0.75rem;
   border-radius: 4px;
   font-family: Arial, sans-serif; /* Monospace for better text alignment */
-  font-size: 1.2rem;
   line-height: 1.5;
   margin-bottom: 1rem;
   box-sizing: border-box;
@@ -372,7 +367,6 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.95rem;
   font-weight: 600;
   transition: background-color 0.2s ease;
 }
@@ -464,7 +458,6 @@
 
   .orderLink {
     height: 40px;
-    width: 40px;
     margin-top: 10px;
     line-height: 40px;
   }

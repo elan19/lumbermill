@@ -41,3 +41,45 @@ html, body, #root { /* Adjust #root if your root div has a different ID */
 .main-footer { /* Use the actual class/element selector for your footer */
   flex-shrink: 0;
 }
+
+
+/* Optional: Add some styles for the header and footer */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: var(--base-font-size, 16px); /* Use variable, fallback to 16px */
+  line-height: 1.6; /* Example base line height */
+  background-color: #f4f7f6; /* Example body background */
+}
+
+/* Apply to other elements if needed, or use relative units like rem/em */
+h1 {
+  /* Example: make h1 relatively larger than base */
+  font-size: calc(var(--base-font-size, 16px) * 1.8);
+}
+
+h2 {
+  font-size: calc(var(--base-font-size, 16px) * 1.6);
+}
+
+h3 {
+  font-size: calc(var(--base-font-size, 16px) * 1.4);
+}
+
+h4 {
+  font-size: calc(var(--base-font-size, 16px) * 1.2);
+}
+
+button, input, select, textarea, td, tr {
+  font-family: inherit; /* Inherit from body */
+  font-size: var(--base-font-size, 16px); /* Buttons use base font size */
+}
+
+/* You can also use it for specific component styles if needed */
+.some-component p {
+    font-size: var(--base-font-size, 16px);
+}

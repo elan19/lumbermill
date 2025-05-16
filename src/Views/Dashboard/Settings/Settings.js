@@ -10,6 +10,9 @@ function SettingsPage() {
     const [currentOrderDesign, setCurrentOrderDesign] = useState('');
     const [selectedOrderDesign, setSelectedOrderDesign] = useState('');
 
+    const [currentFontSize, setCurrentFontSize] = useState(16);
+    const [selectedFontSize, setSelectedFontSize] = useState(16);
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
@@ -22,7 +25,12 @@ function SettingsPage() {
         setError(null);
         setSuccessMessage('');
 
-        if (!token) { /* ... no change ... */ }
+        if (!token) {
+            setError('Authentication required. Inloggning krävs.');
+            setIsLoading(false);
+            navigate('/login');
+            return;
+        }
 
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/settings`, {
@@ -30,21 +38,36 @@ function SettingsPage() {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
 
-            if (!response.ok) { /* ... no change ... */ }
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Authentication failed. Logga in igen!');
+                }
+                throw new Error(`Failed to fetch settings (${response.status})`);
+            }
 
             const data = await response.json();
-            console.log("Fetched settings:", data); // Log fetched data
 
             // Set Website Design
             setCurrentDesign(data.design || 'new');
             setSelectedDesign(data.design || 'new');
 
-            // Set Order Design <-- ADDED
+            // Set Order Design
             setCurrentOrderDesign(data.orderDesign || 'new');
             setSelectedOrderDesign(data.orderDesign || 'new');
 
-        } catch (err) { /* ... no change ... */ }
-        finally {
+            // --- SET FONT SIZE ---
+            setCurrentFontSize(data.fontSize || 16); // Use schema default if not present
+            setSelectedFontSize(data.fontSize || 16); // Initialize selection
+            // --- END SET FONT SIZE ---
+
+        } catch (err) {
+            console.error("Error fetching settings:", err);
+            setError(err.message);
+            if (err.message.includes('Authentication failed')) {
+                localStorage.removeItem('token');
+                navigate('/login');
+            }
+        } finally {
             setIsLoading(false);
         }
     }, [token, navigate]);
@@ -62,6 +85,13 @@ function SettingsPage() {
     const handleOrderDesignChange = (event) => {
         setSelectedOrderDesign(event.target.value);
         setSuccessMessage(''); setError(null);
+    };
+
+    const handleFontSizeChange = (event) => {
+        const value = parseInt(event.target.value, 10); // Ensure it's a number
+        // Optional: Add client-side validation for min/max here if desired // Only update if it's a valid number
+        setSelectedFontSize(value);
+        setSuccessMessage(''); setError(null); // Clear messages on change
     };
 
     // Handle saving settings
@@ -83,7 +113,8 @@ function SettingsPage() {
                 // Send BOTH settings in the body <-- MODIFIED
                 body: JSON.stringify({
                     design: selectedDesign,
-                    orderDesign: selectedOrderDesign
+                    orderDesign: selectedOrderDesign,
+                    fontSize: selectedFontSize
                 }),
             });
 
@@ -91,16 +122,20 @@ function SettingsPage() {
 
             const updatedSettings = await response.json();
 
-            // Update local state for both settings <-- MODIFIED
+            // Update local state for both settings
             setCurrentDesign(updatedSettings.design);
             setSelectedDesign(updatedSettings.design);
             setCurrentOrderDesign(updatedSettings.orderDesign);
             setSelectedOrderDesign(updatedSettings.orderDesign);
+            setCurrentFontSize(updatedSettings.fontSize);
+            setSelectedFontSize(updatedSettings.fontSize);
 
-            setSuccessMessage('Inställningar sparade!');
+            setSuccessMessage('Inställningar sparade! Sidan laddas om...'); // Updated success message
 
-            // Optional: Trigger global state update or reload if needed
-            // window.location.reload();
+            // --- RELOAD THE SITE AFTER 1.5 SECONDS ---
+            setTimeout(() => {
+                window.location.reload(); // Reloads the current page
+            }, 1500);
 
         } catch (err) { /* ... no change ... */ }
         finally {
@@ -111,7 +146,7 @@ function SettingsPage() {
     if (isLoading) { /* ... no change ... */ }
 
     // Check if anything actually changed before enabling save
-    const hasChanges = selectedDesign !== currentDesign || selectedOrderDesign !== currentOrderDesign;
+    const hasChanges = selectedDesign !== currentDesign || selectedOrderDesign !== currentOrderDesign || selectedFontSize !== currentFontSize;
 
     return (
         <div className="settings-page-container">
@@ -121,20 +156,7 @@ function SettingsPage() {
             {successMessage && <p className="settings-success">{successMessage}</p>}
 
             <form onSubmit={handleSaveSettings} className="settings-form">
-                {/* Website Design Fieldset */}
-                <fieldset className="settings-fieldset">
-                    <legend>Webbplatsdesign</legend>
-                    <div className="radio-group">
-                        <label className="radio-label">
-                            <input type="radio" name="design" value="new" checked={selectedDesign === 'new'} onChange={handleDesignChange} disabled={isSaving}/>
-                            Nytt utseende
-                        </label>
-                        <label className="radio-label">
-                            <input type="radio" name="design" value="old" checked={selectedDesign === 'old'} onChange={handleDesignChange} disabled={isSaving}/>
-                            Gammalt utseende
-                        </label>
-                    </div>
-                </fieldset>
+
 
                 {/* Order Design Fieldset <-- ADDED --> */}
                 <fieldset className="settings-fieldset">
@@ -164,6 +186,29 @@ function SettingsPage() {
                         </label>
                     </div>
                 </fieldset>
+
+                {/* --- FONT SIZE FIELDSET --- ADD THIS --- */}
+                <fieldset className="settings-fieldset">
+                    <legend>Textstorlek (Text)</legend>
+                    <div className="font-size-input-group"> {/* You might want a specific class */}
+                        <label htmlFor="fontSize" className="font-size-label">Välj storlek (standard 16):</label>
+                        <input
+                            type="number"
+                            id="fontSize"
+                            name="fontSize"
+                            value={selectedFontSize}
+                            onChange={handleFontSizeChange}
+                            min="8"  // Corresponds to backend/schema validation
+                            max="40"  // Corresponds to backend/schema validation
+                            disabled={isSaving}
+                            className="font-size-input" // Add class for styling
+                        />
+                        <span className="font-size-preview" style={{ fontSize: `${selectedFontSize}px` }}>
+                            Förhandsgranskning text
+                        </span>
+                    </div>
+                </fieldset>
+                {/* --- END FONT SIZE FIELDSET --- */}
 
                 {/* Add other settings sections here */}
 

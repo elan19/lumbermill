@@ -10,7 +10,7 @@
   margin-bottom: 40px;
 }
   
-h2 {
+.newKantlistaContainer h2 {
   text-align: center;
   font-size: 24px;
   color: #333333;
@@ -22,33 +22,31 @@ h2 {
   flex-direction: column;
 }
 
-label {
+.newKantlistaContainer label {
   margin-bottom: 12px;
   font-weight: 600;
   color: #555555;
 }
 
-input {
+.newKantlistaContainer input {
   margin-bottom: 20px;
   padding: 10px;
   border: 1px solid #cccccc;
   border-radius: 6px;
-  font-size: 16px;
   transition: border-color 0.3s;
 }
 
-input:focus {
+.newKantlistaContainer input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
 }
 
-textarea {
+.newKantlistaContainer textarea {
   margin-bottom: 20px;
   padding: 10px;
   border: 1px solid #cccccc;
   border-radius: 6px;
-  font-size: 16px;
   transition: border-color 0.3s;
 }
 
@@ -58,7 +56,6 @@ button {
   color: #ffffff;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 }
@@ -74,7 +71,6 @@ button:active {
 
 .errorMessage {
   color: red;
-  font-size: 14px;
   margin-bottom: 12px;
   text-align: center;
 }
@@ -86,7 +82,6 @@ button:active {
 }
 
 .optional {
-  font-size: 12px;
   font-style: italic;
   color: #888888;
 }
@@ -94,6 +89,10 @@ button:active {
 .selectOrder {
   padding: 10px;
   margin-bottom: 20px;
-  font-size: 16px;
 }
-  
+
+
+
+@media (max-width: 600px) {
+
+}

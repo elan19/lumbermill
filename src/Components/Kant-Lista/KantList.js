@@ -352,7 +352,7 @@ const KantListaManager = () => {
             className={styles.createButton}
             onClick={() => navigate('/dashboard/new-kantlista')}
           >
-            SKAPA NY KANTLISTA
+            SKAPA NY KANTAD
           </button>
         </div>
 

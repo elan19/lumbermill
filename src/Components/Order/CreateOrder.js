@@ -297,12 +297,12 @@ const CreateOrder = () => {
 
         {/* --- Klupplistas Section --- ADD THIS --- */}
         <fieldset className={styles.formSection}>
-          <legend>Klupplista</legend>
+          <legend>Klupp</legend>
            {/* Conditionally render message if list is empty */}
            {klupplistas.length === 0 && <p className={styles.emptyListNote}>Inga klupplistor tillagda. Klicka nedan för att lägga till.</p>}
           {klupplistas.map((klupplista, index) => (
             <div key={`klupplista-${index}`} className={styles.listItem}>
-               <h4>Klupplista Artikel #{index + 1}</h4>
+               <h4>Klupp Artikel #{index + 1}</h4>
                {/* Add inputs corresponding to Klupplista Schema */}
                <div className={styles.itemInputs}>
                     {/* Required Fields */}

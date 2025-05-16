@@ -31,7 +31,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
       <button className="close-btn" onClick={toggleSidebar}>×</button>
-      <h2>Navigering</h2> {/* Dynamic Title */}
+      <h2>Navigering</h2>
 
       <ul>
         {/* --- Links visible regardless of login status --- */}
@@ -70,7 +70,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
         {/* --- Links specific to logged-in users (Dashboard/Platform) --- */}
         {isLoggedIn && (
           <>
-            <li className="sidebar-divider"><hr/></li> {/* Optional Separator */}
+            <li className="sidebar-divider"><hr/></li>
             <li>
               <NavLink to="/dashboard" onClick={handleLinkClick} className={getNavLinkClass}>
                 Dashboard
@@ -106,10 +106,8 @@ function Sidebar({ isOpen, toggleSidebar }) {
                 Settings
               </NavLink>
             </li>
-             {/* Add other key dashboard links here if needed */}
-             <li className="sidebar-divider"><hr/></li> {/* Optional Separator */}
+             <li className="sidebar-divider"><hr/></li>
              <li>
-               {/* Use a button for actions like logout */}
                <button onClick={handleLogout} className="sidebar-link logout-button">
                  Logga ut
                </button>
@@ -120,7 +118,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
         {/* --- Login Link (Only visible when logged out) --- */}
         {!isLoggedIn && (
            <>
-             <li className="sidebar-divider"><hr/></li> {/* Optional Separator */}
+             <li className="sidebar-divider"><hr/></li>
              <li>
                <NavLink to="/login" onClick={handleLinkClick} className={getNavLinkClass}>
                  Plattform 

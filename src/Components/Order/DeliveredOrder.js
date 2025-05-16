@@ -11,6 +11,7 @@ function DeliveredOrderList() {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [prilistorData, setPrilistorData] = useState({});
   const [kantlistorData, setKantlistorData] = useState({});
+  const [klupplistorData, setKlupplistorData] = useState({});
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -36,50 +37,83 @@ function DeliveredOrderList() {
     fetchOrders();
   }, []);
 
-  const handleToggleExpand = async (orderId) => {
-    if (expandedOrderId === orderId) {
-      setExpandedOrderId(null);
+  const handleToggleExpand = async (orderNumberToExpand) => { // Changed param name for clarity
+    if (expandedOrderId === orderNumberToExpand) {
+      setExpandedOrderId(null); // Collapse if already expanded
       return;
     }
 
-    // Check if the prilistor data for this order is already fetched
-    if (!prilistorData[orderId]) {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/prilista/order/${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Add token to Authorization header
-          },
-        });
-        setPrilistorData(prevData => ({
-          ...prevData,
-          [orderId]: response.data,
-        }));
-        //console.log('Fetched prilistor data:', response.data);
-      } catch (err) {
-        console.error('Failed to fetch prilistor data:', err);
-        setError('Failed to load prilistor data');
-      }
+    // Set the new expanded order ID immediately for responsiveness
+    setExpandedOrderId(orderNumberToExpand);
+    setError(null); // Clear previous detail-loading errors
+
+    // Array to hold all fetch promises
+    const fetchPromises = [];
+
+    // Fetch Prilistor if not already fetched
+    if (!prilistorData[orderNumberToExpand]) {
+      fetchPromises.push(
+        axios.get(`${process.env.REACT_APP_API_URL}/api/prilista/order/${orderNumberToExpand}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(response => ({ type: 'prilista', data: response.data }))
+          .catch(err => ({ type: 'prilista', error: err })) // Catch individual errors
+      );
     }
 
-    if (!kantlistorData[orderId]) {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/kantlista/order/${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Add token to Authorization header
-          },
-        });
-        setKantlistorData(prevData => ({
-          ...prevData,
-          [orderId]: response.data,
-        }));
-        //console.log('Fetched kantlistor data:', response.data);
-      } catch (err) {
-        console.error('Failed to fetch kantlistor data:', err);
-        setError('Failed to load kantlistor data');
-      }
+    // Fetch Kantlistor if not already fetched
+    if (!kantlistorData[orderNumberToExpand]) {
+      fetchPromises.push(
+        axios.get(`${process.env.REACT_APP_API_URL}/api/kantlista/order/${orderNumberToExpand}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(response => ({ type: 'kantlista', data: response.data }))
+          .catch(err => ({ type: 'kantlista', error: err }))
+      );
     }
 
-    setExpandedOrderId(orderId);
+    // --- FETCH KLUPPLISTOR IF NOT ALREADY FETCHED --- ADD THIS ---
+    if (!klupplistorData[orderNumberToExpand]) {
+      fetchPromises.push(
+        axios.get(`${process.env.REACT_APP_API_URL}/api/klupplista/order/${orderNumberToExpand}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(response => ({ type: 'klupplista', data: response.data }))
+          .catch(err => ({ type: 'klupplista', error: err }))
+      );
+    }
+    // --- END OF KLUPPLISTA FETCH ---
+
+    // If there are no new lists to fetch, just ensure the order is expanded
+    if (fetchPromises.length === 0) {
+        return; // Already expanded or data cached
+    }
+
+    // Execute all fetches concurrently
+    try {
+      const results = await Promise.all(fetchPromises);
+
+      // Process results and update state
+      results.forEach(result => {
+        if (result.error) {
+          console.error(`Failed to fetch ${result.type} data:`, result.error);
+          setError(prevError => `${prevError || ''} Failed to load ${result.type} data. `);
+          // Update specific data to empty array on error to prevent undefined access
+           if (result.type === 'prilista') setPrilistorData(prev => ({ ...prev, [orderNumberToExpand]: [] }));
+           if (result.type === 'kantlista') setKantlistorData(prev => ({ ...prev, [orderNumberToExpand]: [] }));
+           if (result.type === 'klupplista') setKlupplistorData(prev => ({ ...prev, [orderNumberToExpand]: [] }));
+        } else {
+          if (result.type === 'prilista') {
+            setPrilistorData(prevData => ({ ...prevData, [orderNumberToExpand]: result.data }));
+          } else if (result.type === 'kantlista') {
+            setKantlistorData(prevData => ({ ...prevData, [orderNumberToExpand]: result.data }));
+          } else if (result.type === 'klupplista') {
+            setKlupplistorData(prevData => ({ ...prevData, [orderNumberToExpand]: result.data }));
+          }
+        }
+      });
+    } catch (overallError) {
+        // This catch block might not be strictly necessary if individual catches are handled
+        console.error("Error during Promise.all for list fetches:", overallError);
+        setError("An error occurred while loading order details.");
+    }
   };
 
   if (loading) {
@@ -115,7 +149,7 @@ function DeliveredOrderList() {
             </div>
             {expandedOrderId === order.orderNumber && (
               <div className="orderDetails">
-                <h4>Prilistor:</h4>
+                <h4>Okantad:</h4>
                 <ul>
                   {prilistorData[order.orderNumber] && prilistorData[order.orderNumber].length > 0 ? (
                     prilistorData[order.orderNumber].map((prilist, index) => (
@@ -134,7 +168,7 @@ function DeliveredOrderList() {
                   )}
                 </ul>
 
-                <h4>Kantlistor:</h4>
+                <h4>Kantad:</h4>
                 <ul>
                   {kantlistorData[order.orderNumber] && kantlistorData[order.orderNumber].length > 0 ? (
                     kantlistorData[order.orderNumber].map((kantlista, index) => (
@@ -152,8 +186,29 @@ function DeliveredOrderList() {
                     <li>---</li>
                   )}
                 </ul>
+                {/* --- KLUPPLISTOR SECTION --- ADD THIS --- */}
+                <h4>Klupp:</h4>
+                <ul>
+                  {klupplistorData[order.orderNumber] && klupplistorData[order.orderNumber].length > 0 ? (
+                      klupplistorData[order.orderNumber].map((klupplista, index) => (
+                        <li
+                          key={index}
+                          style={{
+                            textDecoration: klupplista.status.klar && klupplista.status.kapad ? 'line-through' : 'none',
+                            color: klupplista.status.klar && klupplista.status.kapad ? 'gray' : 'black',
+                          }}
+                        >
+                          {`${klupplista.antal}PKT ${klupplista.dimension}MM ${klupplista.sagverk} ${klupplista.pktNumber} ${klupplista.max_langd} ${klupplista.sort}`}
+                        </li>
+                      ))
+                    ) : (
+                      <li>---</li>
+                    )}
+                </ul>
+                {/* --- END OF KLUPPLISTOR SECTION --- */}
+
                 <div className="orderActions">
-                  <button className="orderDetailButtons" onClick={() => navigate(`/dashboard/delivered/order-detail/${order.orderNumber}`)}>Details</button>
+                  <button className="orderDetailButtons" onClick={() => navigate(`/dashboard/delivered/order-detail/${order.orderNumber}`)}>Detaljer</button>
                 </div>
               </div>
             )}

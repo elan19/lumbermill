@@ -454,7 +454,7 @@ const OrderDetailComp = () => {
       <div className="prilistaDetails">
       {prilistaDetails.length > 0 ? (
         <>
-        <h3 id="prilistaH3">Lista mätning</h3>
+        <h3 id="prilistaH3">Okantad</h3>
           <div className="prilistaList">
             {prilistaDetails.map((item, index) => (
               <div key={index} className="prilistaItem">
@@ -474,7 +474,7 @@ const OrderDetailComp = () => {
       <div className="kantlistaDetails">
         {kantlistaDetails.length > 0 ? (
           <>
-          <h3 id="kantlistaH3">Lista kantning</h3>
+          <h3 id="kantlistaH3">Kantad</h3>
           <div className="kantlistaList">
             {kantlistaDetails.map((item, index) => (
               <div key={index} className="kantlistaItem">
@@ -498,7 +498,7 @@ const OrderDetailComp = () => {
         {/* Only render the section if there are klupplista items */}
         {klupplistaDetails.length > 0 && (
           <>
-            <h3 id="klupplistaH3">Klupplista</h3>
+            <h3 id="klupplistaH3">Klupp</h3>
             <div className="klupplistaList">
               {klupplistaDetails.map((item, index) => (
                 <div key={item._id || index} className="klupplistItem">

@@ -56,6 +56,10 @@
     text-decoration: none;
     display: block;
   }
+
+  .sidebar ul .sidebar-divider {
+    height: 15px;
+  }
   
   .sidebar ul li a:hover {
     color: #FFFFFF; /* Brighter white on hover/active */
@@ -67,10 +71,11 @@
   .sidebar {
     width: 100%;
     right: -100%;
+    padding-top: 0px;
   }
 
-  .sidebar ul .sidebar-divider {
-    height: 15px;
+  .logout-button {
+    margin-bottom: 15px;
   }
 }
   

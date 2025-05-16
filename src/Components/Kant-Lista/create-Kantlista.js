@@ -104,7 +104,7 @@ const CreateKantlista = () => {
 
   return (
     <div className={styles.newKantlistaContainer}>
-      <h2>Skapa ny Kantlista</h2>
+      <h2>Skapa ny Kantad</h2>
       {error && <p className={styles.errorMessage}>{error}</p>}
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Toggle for "Lager" */}
@@ -256,7 +256,7 @@ const CreateKantlista = () => {
           </label>
         </div>
 
-        <button type="submit">Skapa KANTLISTA</button>
+        <button type="submit">Skapa KANTAD</button>
       </form>
     </div>
   );

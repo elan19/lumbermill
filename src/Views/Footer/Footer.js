@@ -1,10 +1,9 @@
 // ./Views/Footer/Footer.js
 import React from 'react';
-import { Link } from 'react-router-dom'; // Use Link for internal navigation
-import './Footer.css'; // Create this CSS file
+import { Link } from 'react-router-dom';
+import './Footer.css';
 
 const Footer = () => {
-  // Re-use address details or define them here
   const companyName = "Ansgarius Svensson AB";
   const streetAddress = "Industrigatan 35";
   const city = "Södra Vi";
@@ -22,7 +21,6 @@ const Footer = () => {
         <div className="footer-section footer-about">
           <h3>{companyName}</h3>
           <p>Tillhandahåller hållbara virkeslösningar sedan 1962. Kvalitetsträprodukter du kan lita på.</p>
-           {/* Add social media icons/links here if desired */}
         </div>
 
         <div className="footer-section footer-links">
@@ -34,7 +32,6 @@ const Footer = () => {
             <li><Link to="/information">Produktion</Link></li>
             <li><Link to="/contact">Kontakta oss</Link></li>
             <li><Link to="/policy">Våra policier</Link></li>
-             {/* Add other important links */}
           </ul>
         </div>
 

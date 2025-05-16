@@ -6,6 +6,7 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: var(--base-font-size, 16px);
   }
   
   .settings-page-container h2 {
@@ -94,3 +95,50 @@
     background-color: #dff2bf;
     border: 1px solid #4f8a10;
   }
+
+
+.font-size-input-group {
+  display: flex;
+  align-items: baseline; /* Align label, input, and preview */
+  gap: 10px; /* Space between elements */
+  padding: 10px 0; /* Add some padding */
+}
+
+.font-size-label {
+  font-weight: normal; /* Adjust as needed */
+  color: #555;
+}
+
+.font-size-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 70px; /* Or adjust width as needed */
+  text-align: center;
+}
+
+.font-size-preview {
+  padding: 8px;
+  border: 1px dashed #eee;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  /* Transition for font size change can be added if desired */
+  /* transition: font-size 0.3s ease; */
+}
+
+
+@media (max-width: 500px) {
+  .font-size-input {
+    margin-right: 10px; 
+  }
+
+  .font-size-preview {
+    padding: 0px;
+    /* Transition for font size change can be added if desired */
+    /* transition: font-size 0.3s ease; */
+  }
+
+  .font-size-input-group {
+    display: block;
+  }
+}

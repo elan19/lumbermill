@@ -10,7 +10,6 @@
   }
   
   .orderDetail-title {
-    font-size: 24px;
     font-weight: bold;
     margin-bottom: 16px;
     text-align: center;
@@ -24,7 +23,6 @@
   
   .orderDetail-section h3 {
     margin-bottom: 10px;
-    font-size: 18px;
   }
   
   .orderDetail-notes {
@@ -33,7 +31,6 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 8px;
-    font-size: 14px;
     resize: vertical;
   }
 
@@ -63,7 +60,6 @@
   
   .orderDetail-button {
     padding: 10px 20px;
-    font-size: 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -102,7 +98,6 @@
 }
 
 .orderList h2 {
-  font-size: 28px;
   font-weight: bold;
   margin-bottom: 16px;
   text-align: center;
@@ -177,7 +172,6 @@
 }
 
 .orderItem h3 {
-  font-size: 20px;
   font-weight: bold;
   margin: 0;
   color: #333;
@@ -185,7 +179,6 @@
 
 .orderItem p {
   margin: 5px 0;
-  font-size: 16px;
   color: #666;
 }
 
@@ -233,7 +226,6 @@
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 .markAsDelivered button:hover {
@@ -271,7 +263,6 @@
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 .finishedBtn:hover {
@@ -282,7 +273,6 @@
 .orderDetailButtons {
   display: flex;
   margin-bottom: 10px;
-  width: 100px;
 }
 
 
@@ -385,7 +375,6 @@
 
 .h2ToPdf {
   text-align: center;
-  font-size: 24px;
   margin-bottom: 20px;
   position: relative; /* Required for the button positioning */
 }
@@ -398,7 +387,7 @@
   color: white;
   border: none;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   border-radius: 4px;
 }
@@ -427,7 +416,6 @@
 
 .klupplistaDetails h3 {
   margin-bottom: 10px;
-  font-size: 1.1rem;
   font-weight: bold;
   padding-bottom: 5px;
 }
@@ -461,6 +449,12 @@
   }
 }
 
+@media (max-width: 1000px) {
+  .downloadBtn {
+    top: 50px;
+  }
+}
+
 
 
 /* Responsive Design */
@@ -473,10 +467,6 @@
     text-align: center;
   }
 
-  .downloadBtn {
-    top: 50px;
-  }
-
   .orderHeader .markAsDelivered {
     text-align: right;
     margin-right: 0px;
@@ -484,5 +474,28 @@
 
   .markAsDelivered .editBtn {
     margin-top: 10px;
+  }
+}
+
+@media (max-width: 468px) {
+  .orderList {
+    padding: 0px;
+    padding-top: 25px;
+  }
+
+  .orderSummary {
+    display: block;
+  }
+
+  .orderLeft {
+    padding: 0px;
+  }
+
+  .orderMiddle {
+    border: none;
+  }
+
+  .orderRight {
+    padding: 0;
   }
 }

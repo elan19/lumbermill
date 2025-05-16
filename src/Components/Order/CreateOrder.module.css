@@ -10,9 +10,8 @@
     margin-bottom: 40px;
   }
   
-  h2 {
+  .createOrder h2 {
     text-align: center;
-    font-size: 24px;
     color: #333333;
     margin-bottom: 20px;
   }
@@ -24,7 +23,6 @@
     padding: 10px;
     border: 1px solid #cccccc;
     border-radius: 6px;
-    font-size: 16px;
     transition: border-color 0.3s;
   }
   
@@ -43,43 +41,40 @@
     color: #555555;
   }
   
-  input:focus,
-  textarea:focus {
+  .createOrder input:focus,
+  .createOrder textarea:focus {
     outline: none;
     border-color: #007bff;
     box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
   }
   
-  button {
+  .createOrder button {
     padding: 12px 18px;
     background-color: #007bff;
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
   }
   
-  button:hover {
+  .createOrder button:hover {
     background-color: #0056b3;
     transform: scale(1.02);
   }
   
-  button:active {
+  .createOrder button:active {
     transform: scale(0.98);
   }
   
   .errorMessage {
     color: red;
-    font-size: 14px;
     margin-bottom: 12px;
     text-align: center;
   }
   
   .success {
     color: green;
-    font-size: 14px;
     margin-bottom: 12px;
     text-align: center;
   }
@@ -153,7 +148,6 @@
   }
   
   .optional {
-    font-size: 12px;
     font-style: italic;
     color: #888888;
   }
@@ -192,7 +186,6 @@
   }
   
   .requiredNote {
-    font-size: 0.9rem;
     color: #666;
     text-align: left;
     margin-bottom: 1rem; /* Add some space below the note */
@@ -207,7 +200,6 @@
   }
   
   .formSection legend {
-    font-size: 1.2rem;
     font-weight: bold;
     color: #0056b3; /* Example color */
     padding: 0 0.5rem;
@@ -224,7 +216,6 @@
   .inputGroup label {
     margin-bottom: 0.4rem;
     font-weight: 600;
-    font-size: 0.95rem;
     color: #555;
   }
   
@@ -236,7 +227,6 @@
     padding: 0.7rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 1rem;
     width: 100%; /* Make inputs fill container */
     box-sizing: border-box; /* Include padding and border in width */
     margin-bottom: 0px;
@@ -269,7 +259,6 @@
       margin-top: 0;
       margin-bottom: 1rem;
       color: #444;
-      font-size: 1rem;
       font-weight: 600;
       border-bottom: 1px solid #eee;
       padding-bottom: 0.5rem;
@@ -315,7 +304,6 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
     font-weight: 600;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -334,8 +322,7 @@
   
   .removeBtn {
     background-color: #dc3545; /* Red */
-    color: white;
-    font-size: 0.9rem; /* Slightly smaller remove button */
+    color: white;/* Slightly smaller remove button */
     padding: 0.4rem 0.8rem;
   }
   .removeBtnItem {

@@ -141,7 +141,7 @@ function OrderList() {
               </div>
               {expandedOrderId === order.orderNumber && (
                 <div className="orderDetails">
-                  <h4>Prilistor:</h4>
+                  <h4>Okantad:</h4>
                   <ul>
                     {prilistorData[order.orderNumber] && prilistorData[order.orderNumber].length > 0 ? (
                       prilistorData[order.orderNumber].map((prilist, index) => (
@@ -160,7 +160,7 @@ function OrderList() {
                     )}
                   </ul>
   
-                  <h4>Kantlistor:</h4>
+                  <h4>Kantad:</h4>
                   <ul>
                     {kantlistorData[order.orderNumber] && kantlistorData[order.orderNumber].length > 0 ? (
                       kantlistorData[order.orderNumber].map((kantlista, index) => (
@@ -179,7 +179,7 @@ function OrderList() {
                     )}
                   </ul>
 
-                  <h4>Klupplistor:</h4>
+                  <h4>Klupp:</h4>
                   <ul>
                     {klupplistorData[order.orderNumber] && klupplistorData[order.orderNumber].length > 0 ? (
                       klupplistorData[order.orderNumber].map((klupplista, index) => (

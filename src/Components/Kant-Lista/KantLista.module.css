@@ -34,6 +34,7 @@
   .title {
     margin-bottom: 8px;
     color: #333;
+    text-align: center;
   }
   
   .orderTable {
@@ -162,72 +163,68 @@
   }
   
 .dimensionTitle {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
 }
 
 .dimensionDetails {
-    list-style-type: none;
-    padding-left: 0;
+  list-style-type: none;
+  padding-left: 0;
 }
 
 .dimensionDetails li {
-    margin: 5px 0;
-    font-size: 1rem;
+  margin: 5px 0;
 }
 
 .dimensionDetails li strong {
-    color: #2c3e50;
+  color: #2c3e50;
 }
 
 /* Optional: Add some padding or border to make it look cleaner */
 .orderDetails {
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .locationInput {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .saveButton {
-    margin-top: 10px;
+  margin-top: 10px;
 }
   
 .dimensionItem {
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ddd; /* Optional: adds separation between items */
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ddd; /* Optional: adds separation between items */
 }
 
 .dimensionTitle {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
 }
 
 .dimensionDetails {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
 }
 
 .dimensionDetails li {
-    font-size: 0.9rem;
-    margin: 3px 0;
+  margin: 3px 0;
 }
 
 .dimensionDetails li strong {
-    color: #2c3e50;
+  color: #2c3e50;
 }
 
 /* Optional: Add a light border to each table row */
 .orderTable tr {
-    border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 .orderLink {
@@ -337,6 +334,14 @@
   .header {
       flex-direction: column; /* Stack buttons vertically */
       align-items: center;
+  }
+
+  .checkButton {
+    padding: 0 18px;
+  }
+
+  .activeButton {
+    padding: 0 18px;
   }
 
   .navButton {

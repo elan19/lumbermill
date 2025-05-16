@@ -108,7 +108,7 @@ const CreatePrilista = () => {
 
   return (
     <div className={styles.newPrilistaContainer}>
-      <h2>Skapa ny Prilista</h2>
+      <h2>Skapa ny Okantad</h2>
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <p className={styles.errorMessage}>{error}</p>}
         
@@ -217,7 +217,7 @@ const CreatePrilista = () => {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        <button type="submit">Skapa PRILISTA</button>
+        <button type="submit">Skapa OKANTAD</button>
       </form>
     </div>
   );

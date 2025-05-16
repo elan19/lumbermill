@@ -6,7 +6,7 @@ import logo from '../../images/ansvab_logo.png';
 
 function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate(); // React Router hook for navigation
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -21,7 +21,7 @@ function Header() {
       <div className="navbar">
         <img src={logo} alt="Logo" className="logo" onClick={handleLogoClick} />
         <span className="hamburger" onClick={toggleSidebar}>
-          &#9776; {/* This is the hamburger icon */}
+          &#9776; {/* Hamburger icon */}
         </span>
       </div>
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />

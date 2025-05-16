@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './Views/Home/Home';
 import About from './Views/About/About';
@@ -27,7 +27,22 @@ import DeliveredOrderList from './Views/Dashboard/Orders/DeliveredOrder';
 import DeliveredOrderDetails from './Views/Dashboard/Orders/DeliveredOrderDetails';
 import ProtectedRoute from './Components/Routes/ProtectedRoute'; // Import the ProtectedRoute component
 
+import { useSettings } from './contexts/SettingsContext';
+
 function App() {
+  const { fontSize, isLoadingSettings } = useSettings();
+
+  useEffect(() => {
+    if (!isLoadingSettings) { // Apply only after settings are loaded
+      document.documentElement.style.setProperty('--base-font-size', `${fontSize}px`);
+      // Or target body: document.body.style.setProperty('--base-font-size', `${fontSize}px`);
+    }
+  }, [fontSize, isLoadingSettings]); // Re-apply if fontSize or loading status changes
+
+  if (isLoadingSettings) {
+    return <div></div>; // Or your app shell/spinner
+  }
+
   return (
     <Router>
       {/* Add the main wrapper div */}

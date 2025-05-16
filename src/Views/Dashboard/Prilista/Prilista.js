@@ -43,14 +43,12 @@ const Prilista = () => {
     // Connect to the WebSocket server
     fetchUserData();
     socket.current = io(`${process.env.REACT_APP_API_URL}`, {
-    transports: ['websocket'], // Optional, but ensures you're using WebSocket for communication
+    transports: ['websocket'],
     auth: {
-      token: localStorage.getItem('token') // Send token as part of the connection
+      token: localStorage.getItem('token')
     }
     }); // Adjust URL as needed
     socket.current.on('orderUpdated', (data) => {
-      //console.log('Received order update:', data);
-      // Fetch the updated list of orders from the backend
       fetchOrders();
     });
 
@@ -77,13 +75,9 @@ const Prilista = () => {
       setIsTouchDevice(window.innerWidth < 1024);
     };
 
-    // Initialize on mount
     updateDeviceType();
 
-    // Add resize listener
     window.addEventListener('resize', updateDeviceType);
-
-    //console.log(`Is touch device: ${isTouchDevice}`);
 
     return () => {
       // Cleanup listener on unmount
@@ -104,8 +98,8 @@ const Prilista = () => {
   
       const data = response.data;
   
-      if (response.status === 200) {  // Check if status is OK
-        setUser(data); // Store the user data in state
+      if (response.status === 200) {
+        setUser(data);
       } else {
         console.error(data.message);
       }
@@ -125,11 +119,9 @@ const Prilista = () => {
         },
       });
 
-      const completedOrders = response.data.filter(order => order.completed);
       const incompleteOrders = response.data.filter(order => !order.completed);
       const sortedOrders = incompleteOrders.sort((a, b) => a.position - b.position);
       setOrders(sortedOrders);
-      //setCompletedOrders(completedOrders);
 
       setIshallenOrders(
         sortedOrders.filter(order => order.measureLocation === 'Ishallen')
@@ -155,7 +147,6 @@ const Prilista = () => {
         
         // Store the new token in localStorage
         localStorage.setItem('token', newToken);
-        console.log('New token stored:', newToken);
       }
 
     } catch (error) {
@@ -169,36 +160,31 @@ const Prilista = () => {
     if (!user) {
       fetchUserData();
     } else {
-      //console.log(user); // This will log the user after it's available
       fetchOrders(); // Fetch orders after the user is fetched
     }
   
   }, [user]);
 
   const moveOrder = async (dragIndex, hoverIndex, list) => {
-    //console.log('Drag Index:', dragIndex, 'Hover Index:', hoverIndex);
-  
-    //const draggedOrder = list[dragIndex];
-  
-    // Step 1: Update the local UI to reflect the new order
+    // Update the local UI to reflect the new order
     const updatedOrders = [...list];
-    const [movedOrder] = updatedOrders.splice(dragIndex, 1); // Remove the dragged order
-    updatedOrders.splice(hoverIndex, 0, movedOrder); // Insert the moved order in the target position
+    const [movedOrder] = updatedOrders.splice(dragIndex, 1);
+    updatedOrders.splice(hoverIndex, 0, movedOrder);
   
     // Update the local state
     setOrders(updatedOrders);
   
-    // Step 2: Calculate the new positions for all affected orders
+    // Calculate the new positions for all affected orders
     const reorderedOrders = updatedOrders.map((order, index) => ({
       ...order,
-      position: index + 1, // Assuming 1-based indexing for positions
+      position: index + 1,
     }));
   
-    // Step 3: Send the updated positions to the backend
+    // Send the updated positions to the backend
     try {
       await axios.put(
         `${process.env.REACT_APP_API_URL}/api/prilista/reorder`,
-        { updatedOrders: reorderedOrders }, // Send the entire reordered list to the backend
+        { updatedOrders: reorderedOrders },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -220,8 +206,6 @@ const Prilista = () => {
   
 
   const moveOrderUp = async (dragIndex, list) => {
-    //console.log('Drag Index:', dragIndex, 'Orders:', orders);
-  
     // Filter out completed orders
     const updatedOrders = list.filter(order => !order.completed);
   
@@ -269,10 +253,6 @@ const Prilista = () => {
   
 
   const moveOrderDown = async (dragIndex, list) => {
-    /*console.log('Drag Index:', dragIndex, 'Orders:', orders);
-    console.log(token);*/
-  
-    // Filter out completed orders
     const updatedOrders = list.filter(order => !order.completed);
   
     // Move the order down
@@ -326,13 +306,11 @@ const Prilista = () => {
         location: newLocation,
       }, {
         headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
+          Authorization: `Bearer ${token}`,
         },
       });
       
       if (response.status === 200) {
-        //alert(`Lagerplats updated to: ${newLocation}`);
-        
         // Re-fetch orders to reflect the updated Lagerplats
         fetchOrders();
   
@@ -369,8 +347,6 @@ const Prilista = () => {
   };
 
   const handleFilterClick = async (prilistaId, dimension, size) => {
-    /*console.log("Filterclick");
-    console.log(token);*/
     try {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append('tum', size);
@@ -403,7 +379,6 @@ const Prilista = () => {
   };
 
   // --- PDF DOWNLOAD FUNCTION ---
-   // --- PDF DOWNLOAD FUNCTION (using html2canvas) ---
   const handleDownloadPrilistaPDF = async () => {
     setIsGeneratingPdf(true);
     setError(null); // Clear previous errors
@@ -435,23 +410,22 @@ const Prilista = () => {
       <style>
         .pdf-prilista-container {
             font-family: Arial, sans-serif;
-            padding-top: 15mm; /* Standard A4 margins */
+            padding-top: 15mm;
             padding-right: 15mm;
             background-color: white;
             color: #333;
-            width: 210mm; /* Content width for A4 (210mm - 15mm margin each side) */
+            width: 210mm;
             box-sizing: border-box;
             border: none;
         }
         .pdf-prilista-container h1 {
-            font-size: 26px; /* Slightly smaller than order detail H1 */
+            font-size: 26px;
             text-align: center;
-            margin-bottom: 5px;
             color: #000;
             border: none;
         }
         .pdf-prilista-container h2 {
-            font-size: 14px; /* Slightly smaller */
+            font-size: 16px; /* Slightly smaller */
             text-align: center;
             margin-bottom: 15px;
             color: #555;
@@ -460,7 +434,7 @@ const Prilista = () => {
         .pdf-prilista-item {
             margin-bottom: 8px;
             padding-bottom: 6px;
-            font-size: 16px; /* Base font size for rows */
+            font-size: 18px;
             line-height: 1.4;
             border: none;
         }
@@ -468,18 +442,18 @@ const Prilista = () => {
             border: none;
         }
         .pdf-prilista-item .details-line {
-            margin-left: 5px; /* Indent details slightly */
+            margin-left: 5px;
             color: #444;
-            font-size: 16px;
+            font-size: 18px;
             border: none;
         }
         .pdf-prilista-item .info-text {
-            display: block; /* Info on its own line */
+            display: block;
             margin-top: 3px;
             margin-left: 5px;
             font-style: italic;
             color: #555;
-            font-size: 16px;
+            font-size: 18px;
             border: none;
         }
       </style>
@@ -498,31 +472,30 @@ const Prilista = () => {
                     ${item.dimension ? ` ${item.dimension}MM` : ''}
                     ${item.size ? ` ${item.size}` : ''}
                     ${item.type ? ` ${item.type}` : ''}
+                    ${item.description}
                 </div>
-                ${item.description ? `<div class="info-text">${item.description}</div>` : ''}
             </div>
         `;
     });
 
-    contentHTML += `</div>`; // Close pdf-prilista-container
+    contentHTML += `</div>`;
     // --- END OF HTML CONSTRUCTION ---
 
     pdfContentRef.current.innerHTML = contentHTML;
-    // Temporarily make the div visible but off-screen for html2canvas
     pdfContentRef.current.style.display = 'block';
     pdfContentRef.current.style.position = 'absolute';
     pdfContentRef.current.style.left = '-9999px';
     pdfContentRef.current.style.top = '-9999px';
-    pdfContentRef.current.style.width = '210mm'; // Match content width in CSS
+    pdfContentRef.current.style.width = '210mm';
     pdfContentRef.current.style.backgroundColor = 'white';
 
 
     try {
         const canvas = await html2canvas(pdfContentRef.current, {
-            scale: 2.5, // Good for text clarity
+            scale: 2.5,
             useCORS: true,
             logging: false,
-            backgroundColor: null, // Handled by div's background
+            backgroundColor: null,
             windowWidth: pdfContentRef.current.scrollWidth,
             windowHeight: pdfContentRef.current.scrollHeight,
         });
@@ -561,9 +534,8 @@ const Prilista = () => {
         setError("Kunde inte generera PDF för Prilista.");
     } finally {
         if (pdfContentRef.current) {
-            pdfContentRef.current.innerHTML = ''; // Clear content
-            pdfContentRef.current.style.display = 'none'; // Hide it again
-            // Reset other temporary styles
+            pdfContentRef.current.innerHTML = '';
+            pdfContentRef.current.style.display = 'none';
             pdfContentRef.current.style.position = '';
             pdfContentRef.current.style.left = '';
             pdfContentRef.current.style.top = '';
@@ -575,13 +547,10 @@ const Prilista = () => {
   // --- END PDF DOWNLOAD FUNCTION ---
 
   const generateEditableTextForPrilista = () => {
-    const today = new Date();
-
-    // Determine which data to use
     const dataToExport = isFiltered ? allOrders : orders.sort((a, b) => (a.position || 0) - (b.position || 0));
 
     if (dataToExport.length === 0) {
-        return "Inga artiklar att visa."; // Return a message if no data
+        return "Inga artiklar att visa.";
     }
 
     // --- CONSTRUCT TEXT ---
@@ -598,13 +567,11 @@ const Prilista = () => {
 const handleGenerateEditableText = () => {
     const text = generateEditableTextForPrilista();
     setEditablePdfText(text);
-    setIsTextEditModalOpen(true); // Open the modal to show/edit the text
+    setIsTextEditModalOpen(true);
 };
 
 const handleSaveEditedTextAsPDF = async () => {
-    // This function will take the content of `editablePdfText`
-    // and generate a PDF using html2canvas as before.
-    setIsGeneratingPdf(true); // Reuse the PDF generating indicator
+    setIsGeneratingPdf(true);
     setError(null);
 
     const today = new Date();
@@ -630,16 +597,13 @@ const handleSaveEditedTextAsPDF = async () => {
     const trimmedEditablePdfText = editablePdfText.trimEnd();
 
     // --- CONSTRUCT HTML FROM EDITED TEXT ---
-    // Convert newlines in textarea to <br> for HTML rendering, and wrap in <pre> for formatting
-    // Or create a more structured HTML based on the edited text if needed.
-    // For simplicity, we'll wrap in <pre> to preserve line breaks and spacing.
     let contentHTML = `
       <style>
         /* Reset everything for PDF capture area */
         .pdf-edited-content-container,
         .pdf-edited-content-container * {
             margin: 0 !important;
-            padding: 0 !important; /* Crucial: No padding on container or children for capture */
+            padding: 0 !important;
             border: none !important;
             box-sizing: border-box !important;
             line-height: 1.4;
@@ -648,8 +612,6 @@ const handleSaveEditedTextAsPDF = async () => {
             font-family: Arial, sans-serif;
             background-color: white;
             color: #333;
-            /* width: 180mm; /* Set width on the off-screen div, not here for capture */
-            /* Let html2canvas determine width from content or its div */
         }
         .pdf-title {
             font-size: 26px;
@@ -689,12 +651,8 @@ const handleSaveEditedTextAsPDF = async () => {
     pdfContentRef.current.style.position = 'absolute';
     pdfContentRef.current.style.left = '-9999px';
     pdfContentRef.current.style.top = '-9999px';
-    // Set a width on the off-screen div that html2canvas will capture.
-    // This width should be appropriate for the content to wrap correctly.
-    // 180mm is a good starting point for A4 content area (210mm - 15mm margins).
     pdfContentRef.current.style.width = '180mm';
     pdfContentRef.current.style.backgroundColor = 'white';
-    // Crucially, ensure no padding or margin on the ref div itself
     pdfContentRef.current.style.padding = '0';
     pdfContentRef.current.style.margin = '0';
 
@@ -704,7 +662,7 @@ const handleSaveEditedTextAsPDF = async () => {
             scale: 2.5,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff', // Explicit white background for the canvas
+            backgroundColor: '#ffffff', 
             windowWidth: pdfContentRef.current.scrollWidth,
             windowHeight: pdfContentRef.current.scrollHeight,
             removeContainer: true,
@@ -882,7 +840,7 @@ const handleSaveEditedTextAsPDF = async () => {
           className={styles.createButton}
           onClick={() => navigate('/dashboard/new-prilista')}
         >
-          SKAPA NY PRILISTA
+          SKAPA NY OKANTAD
         </button>
         {/* --- ADD PDF DOWNLOAD BUTTON --- */}
         <button onClick={handleDownloadPrilistaPDF} className={styles.downloadPdfButton} disabled={isGeneratingPdf}>
@@ -1089,7 +1047,7 @@ const handleSaveEditedTextAsPDF = async () => {
             </thead>
             <tbody>
               {allOrders
-                .sort((a, b) => a.position - b.position) // Sort orders by position
+                .sort((a, b) => a.position - b.position)
                 .map((order, index) => (
                   <DraggableRow
                     key={order._id}

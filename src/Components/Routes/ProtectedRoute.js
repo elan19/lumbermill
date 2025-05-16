@@ -42,7 +42,6 @@ const ProtectedRoute = ({ children }) => {
 
     // 1. Check current access token
     if (accessToken && !isTokenExpired(accessToken)) {
-      console.log("ProtectedRoute: Access token valid.");
       setIsAuthenticated(true);
       setIsLoading(false);
       return;
@@ -62,7 +61,6 @@ const ProtectedRoute = ({ children }) => {
 
         const newAccessToken = response.data.token;
         if (newAccessToken) {
-          console.log("ProtectedRoute: Token refresh successful.");
           localStorage.setItem('token', newAccessToken);
           setIsAuthenticated(true);
         } else {
