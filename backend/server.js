@@ -120,7 +120,7 @@ app.use('/api/log', authenticateToken, logRoutes); // Add authentication here as
 app.use('/api/admin', authenticateToken, adminRoutes);
 
 
-const definedPermissions = [
+/*const definedPermissions = [
   // Orders
   "orders:create", "orders:read", "orders:readOwn", "orders:update", "orders:delete", "orders:markDelivered",
   // Prilista
@@ -169,7 +169,7 @@ const rolesToSeed = [
       "kantlista:read",
     ],
   },
-];
+];*/
 
 /*const seedDB = async () => {
   await connectDB();
