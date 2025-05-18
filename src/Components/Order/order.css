@@ -438,6 +438,11 @@
 }
 
 
+.orderDetail h2 {
+  text-align: center;
+}
+
+
 @media (max-width: 1099px) {
   .markAsDelivered {
       text-align: right;

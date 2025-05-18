@@ -8,6 +8,8 @@ import styles from './KantLista.module.css';
 
 import io from 'socket.io-client';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const ItemType = {
   ORDER: 'order',
 };
@@ -22,6 +24,8 @@ const KantListaManager = () => {
   const socket = useRef(null);
   const token = localStorage.getItem('token');
 
+  const { user, hasPermission, isLoadingAuth } = useAuth();
+
   useEffect(() => {
     // Connect to the WebSocket server
     socket.current = io(`${process.env.REACT_APP_API_URL}`, {
@@ -30,13 +34,11 @@ const KantListaManager = () => {
       }
     }); // Adjust URL as needed
     socket.current.on('kantListUpdate', (data) => {
-      //console.log('Received order update:', data);
       // Fetch the updated list of orders from the backend
       fetchOrders();
     });
 
     socket.current.on('activeKantList', (data) => {
-      //console.log('Received order update:', data);
       // Fetch the updated list of orders from the backend
       fetchOrders();
     });
@@ -75,7 +77,6 @@ const KantListaManager = () => {
   };
 
   const handleToggleActiveKantlista = async (kantlista) => {
-    //console.log(kantlista);
     try {
       // Use the new toggle-active endpoint
   
@@ -134,7 +135,6 @@ const KantListaManager = () => {
   };
 
   const handleFilterClick = async (kantlistId, dimension, size) => {
-    //console.log(kantlistId);
     try {
       const params = new URLSearchParams({ dim: dimension });
       if (size) params.append("tum", size);
@@ -169,8 +169,6 @@ const KantListaManager = () => {
 
   const handleUpdateLagerplats = async (kantlistId, newLocation) => {
     try {
-      //console.log(kantlistId);
-      //console.log(newLocation);
       const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/kantlista/update-lagerplats`, {
         kantlistId,
         lagerplats: newLocation,
@@ -199,8 +197,6 @@ const KantListaManager = () => {
         return;
       }
   
-      
-  
       // Determine the endpoint for updating the status
       const endpoint = field === "kapad" ? "cut" : "completed";
 
@@ -212,14 +208,11 @@ const KantListaManager = () => {
         return;
       }
 
-      //console.log(endpoint);
-      //console.log(currentOrder.customer);
   
       // If `ordernumber` is missing and `kund` is "lager", delete the kantlista when clicking "Klar"
       if (currentOrder.customer === "Lager" && endpoint === "completed") {
-        //console.log(currentOrder);
         const deleteResponse = await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/kantlista/${id}`,
+          `${process.env.REACT_APP_API_URL}/api/kantlista/${id}/klar`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -229,14 +222,15 @@ const KantListaManager = () => {
 
         const newLagerplats = {
           type: "Kantat",
-          tree: "f",
+          tree: "F",
           dim: currentOrder.tjocklek,
           location: "-",
           kantatData: {
             bredd: currentOrder.bredd,
             varv: currentOrder.varv,
             max_langd: currentOrder.max_langd,
-            kvalite: "-"
+            kvalite: "-",
+            pktNr: currentOrder.pktNr || null,
           },
            // Du kan uppdatera detta om det finns en specifik plats
       };
@@ -348,12 +342,14 @@ const KantListaManager = () => {
           </div>
         )}
         <div className={styles.header}>
+          {hasPermission('kantlista', 'create') && (
           <button
             className={styles.createButton}
             onClick={() => navigate('/dashboard/new-kantlista')}
           >
-            SKAPA NY KANTAD
+            Skapa ny kantad
           </button>
+          )}
         </div>
 
         {/** Aktiva Kantlistor Table */}
@@ -365,10 +361,11 @@ const KantListaManager = () => {
                 <th>Ordernummer</th>
                 <th>Kund</th>
                 <th>Data</th>
+                <th>Pkt Nr</th>
                 <th>Lagerplats</th>
                 <th>Information</th>
-                <th>Kapad</th>
                 <th>Klar</th>
+                <th>Kapad</th>
                 <th>Ta bort</th>
               </tr>
             </thead>
@@ -383,24 +380,13 @@ const KantListaManager = () => {
                     </Link>
                   </td>
                   <td data-label="Kund">{kantlista.customer}</td>
-                  <td data-label="Data">{kantlista.tjocklek} x {kantlista.bredd} - {kantlista.varv}varv - {kantlista.max_langd}m - {kantlista.stampel || '-'}</td>
+                  <td data-label="Data">
+                    {kantlista.antal && `${kantlista.antal}PKT `}
+                    {kantlista.tjocklek} x {kantlista.bredd} - {kantlista.varv}varv - {kantlista.max_langd}m - {kantlista.stampel || '-'}
+                  </td>
+                  <td data-label="Pkt Nr">{kantlista.pktNr || '-'}</td> {/* <-- DISPLAY Pkt Nr */}
                   <td data-label="Lagerplats">{kantlista.lagerplats || '-'}</td>
                   <td data-label="Information">{kantlista.information || '-'}</td>
-                  <td data-label="Kapad">
-                    {!kantlista.status.kapad && (
-                      <button
-                        onClick={() => handleComplete(kantlista._id, 'kapad')}
-                        className={styles.checkButton}
-                      >
-                        Kapad
-                      </button>
-                    )}
-                    {kantlista.status.kapad && (
-                      <button className={styles.greenButton} disabled>
-                        Kapad
-                      </button>
-                    )}
-                  </td>
                   <td data-label="Klar">
                     {!kantlista.status.klar && (
                       <button
@@ -413,6 +399,21 @@ const KantListaManager = () => {
                     {kantlista.status.klar && (
                       <button className={styles.greenButton} disabled>
                         Klar
+                      </button>
+                    )}
+                  </td>
+                  <td data-label="Kapad">
+                    {!kantlista.status.kapad && (
+                      <button
+                        onClick={() => handleComplete(kantlista._id, 'kapad')}
+                        className={styles.checkButton}
+                      >
+                        Kapad
+                      </button>
+                    )}
+                    {kantlista.status.kapad && (
+                      <button className={styles.greenButton} disabled>
+                        Kapad
                       </button>
                     )}
                   </td>
@@ -439,10 +440,11 @@ const KantListaManager = () => {
                 <th>Kund</th>
                 <th>Tjocklek</th>
                 <th>Data</th>
+                <th>Pkt Nr</th>
                 <th>Lagerplats</th>
                 <th>Information</th>
-                <th>Kapad</th>
                 <th>Klar</th>
+                <th>Kapad</th>
                 <th>Aktiv</th>
               </tr>
             </thead>
@@ -510,24 +512,13 @@ const DraggableRow = ({ order, index, moveOrder, onComplete, onFilter, activeKan
       <td data-label="Dimension:">
         <span className={styles.clickable} onClick={() => onFilter(order._id, order.tjocklek, null)}>{order.tjocklek} MM</span>
       </td>
-      <td data-label="Data">{order.tjocklek} x {order.bredd} - {order.varv}varv - {order.max_langd}m - {order.stampel || ''}</td>
+      <td data-label="Data">
+        {order.antal && `${order.antal}PKT `}
+        {order.tjocklek} x {order.bredd} - {order.varv}varv - {order.max_langd}m - {order.stampel || ''}
+      </td>
+      <td data-label="Pkt Nr">{order.pktNr || '-'}</td>
       <td data-label="Lagerplats">{order.lagerplats || '-'}</td>
       <td data-label="Information">{order.information || '-'}</td>
-      <td data-label="Kapad">
-        {!order.status.kapad && (
-          <button
-            onClick={() => onComplete(order._id, 'kapad')}
-            className={kapadButtonClass}
-          >
-            Kapad
-          </button>
-        )}
-        {order.status.kapad && (
-          <button className={kapadButtonClass} disabled>
-            Kapad
-          </button>
-        )}
-      </td>
       <td data-label="Klar">
         {!order.status.klar && (
           <button
@@ -540,6 +531,21 @@ const DraggableRow = ({ order, index, moveOrder, onComplete, onFilter, activeKan
         {order.status.klar && (
           <button className={klarButtonClass} disabled>
             Klar
+          </button>
+        )}
+      </td>
+      <td data-label="Kapad">
+        {!order.status.kapad && (
+          <button
+            onClick={() => onComplete(order._id, 'kapad')}
+            className={kapadButtonClass}
+          >
+            Kapad
+          </button>
+        )}
+        {order.status.kapad && (
+          <button className={kapadButtonClass} disabled>
+            Kapad
           </button>
         )}
       </td>

@@ -3,22 +3,22 @@ import React, { useState } from 'react';
 import './Information.css'; // Create this CSS file
 
 
-import banner from '../../images/hero_banner.jpg';
-import sidobrador from '../../images/sidobrador.jpg';
+/*import banner from '../../images/hero_banner.jpg';
+import sidobrador from '../../images/sidobrador.jpg';*/
 import staplar from '../../images/staplar.jpg';
 import drone_shot from '../../images/drone_shot.jpg';
 import close_shot from '../../images/close_shot.jpg';
 import sustain from '../../images/sustain.jpg';
 
 // --- Using Picsum Photos placeholders ---
-const picsumUrl = 'https://picsum.photos/';
+/*const picsumUrl = 'https://picsum.photos/';
 const sectionImgW = '550';
 const sectionImgH = '380';
 
 const sustainableForestImg = `${picsumUrl}${sectionImgW}/${sectionImgH}?random=50`;
 const sawmillProcessImg = `${picsumUrl}${sectionImgW}/${sectionImgH}?random=51`;
 const woodSpeciesImg = `${picsumUrl}${sectionImgW}/${sectionImgH}?random=52`;
-const dryingKilnImg = `${picsumUrl}${sectionImgW}/${sectionImgH}?random=53`;
+const dryingKilnImg = `${picsumUrl}${sectionImgW}/${sectionImgH}?random=53`;*/
 
 // PDF link path
 const sustainabilityPdfPath = "/pdfs/hallbarhetsmetoder.pdf";

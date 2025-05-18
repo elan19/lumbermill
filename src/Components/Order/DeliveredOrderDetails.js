@@ -2,6 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import './order.css';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const DeliveredOrderDetails = () => {
   const { orderNumber } = useParams();
   const navigate = useNavigate();
@@ -12,6 +14,8 @@ const DeliveredOrderDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem('token');
+
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -109,9 +113,11 @@ const DeliveredOrderDetails = () => {
           <p>Avsänds med bil</p>
           <p>Avrop: {orderDetails.delivery}</p>
         </div>
-        <div className="markAsDelivered">
-          <button className="editBtn" onClick={handleEdit}>Redigera Order</button>
-        </div>
+        {hasPermission('orders', 'update') && (
+          <div className="markAsDelivered">
+            <button className="editBtn" onClick={handleEdit}>Redigera Order</button>
+          </div>
+        )}
       </div>
       <div className="vehicleDetails">
         <p>Speditör: BIL {totalPackets} PKT</p>

@@ -2,8 +2,11 @@ const express = require('express');
 const Lagerplats = require('../models/Lagerplats');
 const router = express.Router();
 
+const authenticateToken = require('./authMiddleware');
+const checkPermission = require('../middleware/authorizationMiddleware');
+
 // Get all lagerplats entries
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, checkPermission('lagerplats', 'read'), async (req, res) => {
   try {
     const lagerplatser = await Lagerplats.find();
     res.json(lagerplatser);
@@ -13,14 +16,14 @@ router.get('/', async (req, res) => {
 });
 
 // Add a new lagerplats entry
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, checkPermission('lagerplats', 'create'), async (req, res) => {
   const { type, tree, dim, location, sawData, kantatData, okantatData } = req.body;
 
   try {
     let newLagerplats;
 
     if (type === "Sågat") {
-      if (!sawData || !sawData.tum || !sawData.typ) {
+      if (!sawData) {
         return res.status(400).json({ error: "Missing required Sågat fields" });
       }
 
@@ -36,7 +39,7 @@ router.post("/", async (req, res) => {
         },
       });
     } else if (type === "Kantat") {
-      if (!kantatData || !kantatData.bredd || !kantatData.varv || !kantatData.max_langd || !kantatData.kvalite) {
+      if (!kantatData || !kantatData.bredd || !kantatData.kvalite) {
         return res.status(400).json({ error: "Missing required Kantat fields" });
       }
 
@@ -50,10 +53,11 @@ router.post("/", async (req, res) => {
           varv: kantatData.varv,
           max_langd: kantatData.max_langd,
           kvalite: kantatData.kvalite,
+          pktNr: kantatData.pktNr,
         },
       });
     } else if (type === "Okantat") {
-      if (!okantatData || !okantatData.varv || !okantatData.kvalite || !okantatData.typ || !okantatData.nt) {
+      if (!okantatData || !okantatData.kvalite) {
         return res.status(400).json({ error: "Missing required Kantat fields" });
       }
       // Default handling for "Okantat" or unknown types
@@ -65,14 +69,15 @@ router.post("/", async (req, res) => {
         okantatData: {
           varv: okantatData.varv,
           kvalite: okantatData.kvalite,
-          typ: okantatData?.typ,
-          nt: okantatData?.nt,
+          typ: okantatData.typ,
+          nt: okantatData.nt,
+          pktNr: okantatData.pktNr,
+          pktNamn: okantatData.pktNamn,
         }
       });
     }
 
     const savedLagerplats = await newLagerplats.save();
-    console.log(savedLagerplats);
     res.status(201).json(savedLagerplats);
   } catch (err) {
     console.error(err);
@@ -81,7 +86,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update a lagerplats entry
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, checkPermission('lagerplats', 'update'), async (req, res) => {
   const { id } = req.params;
   const updateData = req.body; // This contains only the updated field
 
@@ -105,7 +110,7 @@ router.put('/:id', async (req, res) => {
 
 
 // Delete a lagerplats entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkPermission('lagerplats', 'delete'), async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -116,7 +121,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.get('/filter', async (req, res) => {
+router.get('/filter', authenticateToken, checkPermission('lagerplats', 'read'), async (req, res) => {
   try {
     const { dim, tum } = req.query;
     const filter = { dim };

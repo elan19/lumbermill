@@ -49,7 +49,7 @@ const ProtectedRoute = ({ children }) => {
 
     // 2. Access token is expired or missing, try to refresh if refresh token exists
     if (refreshToken) {
-      console.log("ProtectedRoute: Access token expired/missing. Attempting refresh...");
+      //console.log("ProtectedRoute: Access token expired/missing. Attempting refresh...");
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/auth/refresh-token`, // Use your actual refresh endpoint
@@ -67,6 +67,7 @@ const ProtectedRoute = ({ children }) => {
           // Refresh successful but no new token (should not happen with a good backend)
           console.warn("ProtectedRoute: Refresh successful but no new token received.");
           localStorage.removeItem('token'); // Ensure old token is gone
+          localStorage.removeItem('selectedRoleName')
           setIsAuthenticated(false);
         }
       } catch (error) {
@@ -78,8 +79,9 @@ const ProtectedRoute = ({ children }) => {
       }
     } else {
       // No access token and no refresh token
-      console.log("ProtectedRoute: No access or refresh token found.");
+      //console.log("ProtectedRoute: No access or refresh token found.");
       localStorage.removeItem('token');
+      localStorage.removeItem('selectedRoleName')
       setIsAuthenticated(false);
     }
 
@@ -97,7 +99,7 @@ const ProtectedRoute = ({ children }) => {
 
   // If not authenticated after checks, redirect to login
   if (!isAuthenticated) {
-    console.log("ProtectedRoute: Not authenticated, redirecting to login.");
+    //console.log("ProtectedRoute: Not authenticated, redirecting to login.");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

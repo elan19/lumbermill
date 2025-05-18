@@ -59,6 +59,7 @@ body {
   font-size: var(--base-font-size, 16px); /* Use variable, fallback to 16px */
   line-height: 1.6; /* Example base line height */
   background-color: #f4f7f6; /* Example body background */
+
 }
 
 /* Apply to other elements if needed, or use relative units like rem/em */

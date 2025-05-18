@@ -174,6 +174,15 @@ const EditOrderFormOldLayout = ({
                     onChange={(e) => handlePrilistaChange(index, e)}
                     className={styles.input}
                   />
+                  <label htmlFor={`prilista-${index}-pktNr`}>Paketnummer:</label>
+                  <input
+                    type="number"
+                    id={`prilista-${index}-pktNr`}
+                    name="pktNr"
+                    value={prilistaItem.pktNr || ''}
+                    onChange={(e) => handlePrilistaChange(index, e)}
+                    className={styles.input}
+                  />
                   <label htmlFor={`prilista-${index}-description`}>Information:</label>
                   <input
                     type="text"
@@ -283,6 +292,15 @@ const EditOrderFormOldLayout = ({
                   id={`kantlista-${index}-max_langd`}
                   name="max_langd"
                   value={kantListaItem.max_langd || ''}
+                  onChange={(e) => handleKantListaChange(index, e)}
+                  className={styles.input}
+                />
+                <label htmlFor={`kantlista-${index}-pktNr`}>Paketnummer:</label>
+                <input
+                  type="number"
+                  id={`kantlista-${index}-pktNr`}
+                  name="pktNr"
+                  value={kantListaItem.pktNr || ''}
                   onChange={(e) => handleKantListaChange(index, e)}
                   className={styles.input}
                 />

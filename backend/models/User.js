@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, maxlength: 255 },
   role: {
     type: String,
-    enum: ['employee', 'admin'], // Keep existing role enum
+    enum: ['employee', 'admin', 'truck'], // Keep existing role enum
+    required: true,
     default: 'employee'
   },
   settings: {
@@ -31,8 +32,14 @@ const userSchema = new mongoose.Schema({
 
 // --- Middleware MUST be defined BEFORE compiling the model ---
 
+/*userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});*/
+
 // Hash the password before saving
-userSchema.pre('save', async function (next) {
+/*userSchema.pre('save', async function (next) {
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
 
@@ -44,7 +51,7 @@ userSchema.pre('save', async function (next) {
   } catch (error) {
     next(error); // Pass error to Mongoose error handling
   }
-});
+});*/
 
 // --- Compile the model AFTER defining middleware ---
 module.exports = mongoose.model('User', userSchema);

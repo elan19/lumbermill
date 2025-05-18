@@ -4,8 +4,11 @@ const Kantlista = require('../models/Kantlista');
 const Prilista = require('../models/Prilista');
 const Order = require('../models/Order');
 
+const authenticateToken = require('./authMiddleware');
+const checkPermission = require('../middleware/authorizationMiddleware');
+
 // Create a new Kantlista
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateToken, checkPermission('kantlista', 'create'), async (req, res) => {
   try {
     const newOrder = new Kantlista(req.body);
     console.log(req.body);
@@ -17,7 +20,7 @@ router.post('/create', async (req, res) => {
 });
 
 // Create a new Kantlista
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateToken, checkPermission('kantlista', 'create'), async (req, res) => {
   const {
     orderNumber,
     customer,
@@ -32,7 +35,8 @@ router.post('/create', async (req, res) => {
     status, // Receive potential status object
     position,
     active,
-    isLager,    // Receive isLager flag
+    isLager,
+    pktNr,
   } = req.body;
 
   console.log("Received data:", req.body);
@@ -58,9 +62,10 @@ router.post('/create', async (req, res) => {
       stampel,
       lagerplats,
       information,
-      status,           // Use the determined status
-      position: position,              // Add position if you handle it during creation
-      active: active || false,         // Default active
+      status,
+      position: position,
+      active: active || false,
+      pktNr
     };
 
      // Add position logic if needed (find highest + 1)
@@ -83,7 +88,7 @@ router.post('/create', async (req, res) => {
 });
 
 // Fetch all orders
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, checkPermission('kantlista', 'read'), async (req, res) => {
   try {
     const orders = await Kantlista.find();
     res.status(200).json(orders);
@@ -93,13 +98,23 @@ router.get('/', async (req, res) => {
 });
 
 // Delete a kantlista entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkPermission('kantlista', 'delete'), async (req, res) => {
   const { id } = req.params;
 
   try {
     await Kantlista.findByIdAndDelete(id);
-    console.log("testing to delete");
-    console.log(id);
+    res.json({ message: 'Storage location deleted.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete storage location.' });
+  }
+});
+
+
+router.delete('/:id/klar', authenticateToken, checkPermission('kantlista', 'markComplete'), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await Kantlista.findByIdAndDelete(id);
     res.json({ message: 'Storage location deleted.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete storage location.' });
@@ -107,7 +122,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Update a specific order
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', authenticateToken, checkPermission('kantlista', 'update'), async (req, res) => {
   const { id } = req.params;
   try {
     const updatedOrder = await Kantlista.findByIdAndUpdate(id, req.body, { new: true });
@@ -131,7 +146,7 @@ router.delete('/delete/:id', async (req, res) => {
 
 
 // Route to get all Kantlistor documents for a specific orderNumber
-router.get('/order/:orderNumber', async (req, res) => {
+router.get('/order/:orderNumber', authenticateToken, checkPermission('kantlista', 'read'), async (req, res) => {
   const { orderNumber } = req.params;
   
   try {
@@ -143,7 +158,7 @@ router.get('/order/:orderNumber', async (req, res) => {
   }
 });
 
-router.put('/edit/:id', async (req, res) => {
+router.put('/edit/:id', authenticateToken, checkPermission('kantlista', 'update'), async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
 
@@ -222,11 +237,9 @@ router.put('/edit/:id', async (req, res) => {
 });
 
 
-router.put('/reorder', async (req, res) => {
+router.put('/reorder', authenticateToken, checkPermission('kantlista', 'reorder'), async (req, res) => {
   const io = req.app.get('io');
   const { updatedOrders } = req.body;
-
-  console.log(updatedOrders);
 
   const bulkOperations = updatedOrders.map(order => ({
     updateOne: {
@@ -250,14 +263,11 @@ router.put('/reorder', async (req, res) => {
 });
 
 // Route to mark a kantlista as Kapad
-router.put('/cut/:id', async (req, res) => {
+router.put('/cut/:id', authenticateToken, checkPermission('kantlista', 'markComplete'), async (req, res) => {
   const io = req.app.get('io');
   try {
     const { id } = req.params;
     const { kantlistId, status } = req.body;
-
-    console.log(status);
-    console.log("test");
 
     // Update the `status.kapad` field to true for the specified item
     const item = await Kantlista.findByIdAndUpdate(
@@ -293,14 +303,11 @@ router.put('/cut/:id', async (req, res) => {
   }
 });
 
-router.put('/completed/:id', async (req, res) => {
+router.put('/completed/:id', authenticateToken, checkPermission('kantlista', 'markComplete'), async (req, res) => {
   const io = req.app.get('io');
   try {
     const { id } = req.params;
     const { kantlistId, status } = req.body;
-
-    console.log(status);
-    console.log("testCompleted");
 
     // Update the `status.klar` field to true for the specified item
     const item = await Kantlista.findByIdAndUpdate(
@@ -346,7 +353,7 @@ router.put('/completed/:id', async (req, res) => {
 });
 
 
-router.put('/update-lagerplats', async (req, res) => {
+router.put('/update-lagerplats', authenticateToken, checkPermission('lagerplats', 'update'), async (req, res) => {
   const io = req.app.get('io');
   try {
     const { kantlistId, lagerplats } = req.body;

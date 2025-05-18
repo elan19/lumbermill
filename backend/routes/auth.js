@@ -2,19 +2,22 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const authMiddleware = require('./authMiddleware');
-const authenticateToken = require('./authMiddleware');
+const Role = require('../models/Role');
 const router = express.Router();
+
+const authenticateToken = require('./authMiddleware');
+const checkPermission = require('../middleware/authorizationMiddleware');
 
 // Generate JWT
 const generateToken = (id, role) => {
   //return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  return jwt.sign({ id: id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({
+    id: id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' 
+  });
 };
 
 // Generate Refresh Token
 const generateRefreshToken = (id, role) => {
-  console.log("refreshtokenadded");
   //return jwt.sign({ id, role }, process.env.JWT_REFRESH_TOKEN_SECRET, { expiresIn: '6d' });
   return jwt.sign({ id: id, role: role }, process.env.JWT_REFRESH_TOKEN_SECRET, { expiresIn: '6d' });
 };
@@ -26,6 +29,38 @@ const verifyToken = (token) => {
     return null; // If token verification fails, return null
   }
 };
+
+router.get('/me', authenticateToken, async (req, res) => { // Apply the authentication middleware
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'Authentication failed or user ID missing.' });
+        }
+
+        const user = await User.findById(req.user.id).select('-password'); // Exclude password
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // --- Fetch the role from the database ---
+        const roleDoc = await Role.findOne({ name: user.role });
+
+        // --- If the role is not found ---
+        if (!roleDoc) {
+            console.error("Role not found for user:", user.role);
+            return res.status(500).json({ message: "Server error: User role not found." });
+        }
+
+        const permissions = roleDoc.permissions; // <-- Get the permissions!
+
+        res.json({
+            ...user.toObject(), // Spread the user data
+            permissions: permissions, // Include the permissions
+        });
+    } catch (error) {
+        console.error('Error fetching user information:', error);
+        res.status(500).json({ message: 'Server error while fetching user information.' });
+    }
+});
 
 router.get('/', async (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1]; // Extract token from Authorization header
@@ -55,41 +90,57 @@ router.get('/', async (req, res) => {
 });
 
 // Login route
+// auth.js
+// auth.js - Inside router.post('/login', ...) - Make sure you send the role
 router.post('/login', async (req, res) => {
-  const { name, password } = req.body;
+    const { name, password } = req.body;
 
-  try {
-    const user = await User.findOne({ name });
+    try {
+        const user = await User.findOne({ name });
 
-    if (!user) return res.status(404).json({ message: 'Fel användarnamn eller lösenord!' });
+        if (!user) {
+            return res.status(404).json({ message: 'Fel användarnamn eller lösenord!' });
+        }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+        // This line is correct and should remain:
+        const isMatch = await bcrypt.compare(password, user.password);
 
-    if (isMatch) {
-      const token = generateToken(user._id, user.role); // Generate access token
-      const refreshToken = generateRefreshToken(user._id, user.role); // Generate refresh token
+        if (isMatch) {
+            const token = generateToken(user._id, user.role);
+            const refreshToken = generateRefreshToken(user._id, user.role);
 
-      // Store the refresh token in the user's document in the database
-      user.refreshToken = refreshToken;
-      await user.save();
+            user.refreshToken = refreshToken;
+            await user.save();
 
-      res.json({
-        token,
-        //refreshToken, // Optionally send it back to the frontend
-        user: { id: user._id, name: user.name, role: user.role },
-      });
-    } else {
-      res.status(401).json({ message: 'Fel användarnamn eller lösenord!' });
+            const userRoleDoc = await Role.findOne({ name: user.role }); // Corrected Logic
+            // --- Fetch the roles and their permissions to include with the response ---
+            if (!userRoleDoc) {
+                console.error("Role not found for user:", user.role);
+                return res.status(500).json({ message: "Server error: User role not found." });
+            }
+
+            // --- Send the permissions back for the roles ---
+            const permissions = userRoleDoc.permissions;
+
+            console.log(`Login success for ${user.name}, Role: ${user.role}, Permissions: ${permissions}`);
+            res.json({
+                token,
+                user: { id: user._id, name: user.name, role: user.role, permissions: permissions },
+            });
+        } else {
+            console.log("Password mismatch for user:", user.name);
+            res.status(401).json({ message: 'Fel användarnamn eller lösenord!' });
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(400).json({ message: error.message });
     }
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
 });
 
 
 // --- GET User Settings ---
 // Apply authentication middleware FIRST
-router.get('/settings', authenticateToken, async (req, res) => {
+router.get('/settings', authenticateToken, checkPermission('settings', 'read'), async (req, res) => {
   try {
       // req.user should be populated by authenticateToken
       // UNCOMMENT the check, adjust property if needed (e.g., req.user.id if that's in your token payload)
@@ -121,7 +172,7 @@ router.get('/settings', authenticateToken, async (req, res) => {
 
 // --- PUT/PATCH User Settings ---
 // (You'll need this counterpart to save settings)
-router.put('/settings', authenticateToken, async (req, res) => {
+router.put('/settings', authenticateToken, checkPermission('settings', 'update'),async (req, res) => {
   try {
        if (!req.user || !req.user.id) {
            console.error("Auth middleware failed to attach user ID in PUT /settings.");

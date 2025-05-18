@@ -6,6 +6,7 @@ const http = require('http'); // For WebSocket integration
 const { Server } = require('socket.io'); // WebSocket library
 const jwt = require('jsonwebtoken');
 
+const Role = require('./models/Role');
 
 const authRoutes = require('./routes/auth');
 const ordersRoutes = require('./routes/orders');
@@ -15,6 +16,7 @@ const kantListaRoutes = require('./routes/kant-lista');
 const kluppListaRoutes = require('./routes/klupp-lista');
 const logRoutes = require('./routes/log'); // Import the log routes
 const authenticateToken = require('./routes/authMiddleware'); // Import the middleware
+const adminRoutes = require('./routes/adminRoutes');
 
 dotenv.config();
 connectDB();
@@ -115,6 +117,91 @@ app.use('/api/lagerplats', authenticateToken, lagerplatsRoute);
 app.use('/api/kantlista', authenticateToken, kantListaRoutes);
 app.use('/api/klupplista', authenticateToken, kluppListaRoutes);
 app.use('/api/log', authenticateToken, logRoutes); // Add authentication here as well
+app.use('/api/admin', authenticateToken, adminRoutes);
+
+
+const definedPermissions = [
+  // Orders
+  "orders:create", "orders:read", "orders:readOwn", "orders:update", "orders:delete", "orders:markDelivered",
+  // Prilista
+  "prilista:create", "prilista:read", "prilista:update", "prilista:delete", "prilista:markComplete", "prilista:reorder",
+  // Kantlista
+  "kantlista:create", "kantlista:read", "kantlista:update", "kantlista:delete", "kantlista:markComplete", "kantlista:reorder", "kantlista:toggleActive",
+  // Klupplista
+  "klupplista:create", "klupplista:read", "klupplista:update", "klupplista:delete", "klupplista:reorder", "klupplista:changeStatus",
+  // Lagerplats
+  "lagerplats:create", "lagerplats:read", "lagerplats:update", "lagerplats:delete",
+  // Users (Admin only usually)
+  "users:create", "users:read", "users:update", "users:delete", "users:manageRoles",
+  // Settings
+  "settings:read", "settings:update",
+  // Admin Area
+  "admin:access", // General access to admin sections
+  "admin:managePermissions"
+];
+
+const rolesToSeed = [
+  {
+    name: 'admin',
+    description: 'Administrator with full access.',
+    permissions: definedPermissions, // Admin gets all defined permissions
+  },
+  {
+    name: 'employee',
+    description: 'Standard employee access.',
+    permissions: [
+      "orders:create", "orders:read", "orders:update",
+      "prilista:create", "prilista:read", "prilista:update", "prilista:markComplete", "prilista:reorder",
+      "kantlista:create", "kantlista:read", "kantlista:update", "kantlista:markComplete", "kantlista:reorder", "kantlista:toggleActive",
+      "klupplista:create", "klupplista:read", "klupplista:update", "klupplista:changeStatus", "klupplista:reorder",
+      "lagerplats:create", "lagerplats:read", "lagerplats:update", "lagerplats:delete",
+      "settings:read", "settings:update", // Allow employees to change their own settings
+    ],
+  },
+  {
+    name: 'truck',
+    description: 'Truck driver access, limited view.',
+    permissions: [
+      "orders:readOwn", // Example: Maybe only see orders assigned to them
+      "orders:markDelivered",
+      // Potentially read-only access to certain list types if needed for delivery
+      "prilista:read",
+      "kantlista:read",
+    ],
+  },
+];
+
+/*const seedDB = async () => {
+  await connectDB();
+  try {
+    await Role.deleteMany({}); // Clear existing roles (optional, careful in production)
+    console.log('Existing roles cleared.');
+
+    for (const roleData of rolesToSeed) {
+      const existingRole = await Role.findOne({ name: roleData.name });
+      if (!existingRole) {
+        const role = new Role(roleData);
+        await role.save();
+        console.log(`Role '${role.name}' created with ${role.permissions.length} permissions.`);
+      } else {
+        // Optionally update permissions for existing roles
+        // existingRole.permissions = roleData.permissions;
+        // await existingRole.save();
+        // console.log(`Role '${roleData.name}' already exists. Permissions updated (if logic included).`);
+        console.log(`Role '${roleData.name}' already exists. Skipping creation.`);
+
+      }
+    }
+    console.log('Database seeded with roles and permissions!');
+  } catch (err) {
+    console.error('Error seeding database:', err);
+  } finally {
+    mongoose.disconnect();
+  }
+};
+
+seedDB();*/
+
 
 // Start server
 const PORT = process.env.PORT || 3000;

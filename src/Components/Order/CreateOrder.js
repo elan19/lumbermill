@@ -10,10 +10,10 @@ const CreateOrder = () => {
   const [speditor, setSpeditor] = useState('');
   // Start with one template item in each list
   const [prilistas, setPrilistas] = useState([
-    { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '' },
+    { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
   ]);
   const [kantlistas, setKantlistas] = useState([
-    { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false } },
+    { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
   ]);
   const [klupplistas, setKlupplistas] = useState([]);
   const [error, setError] = useState(null);
@@ -34,7 +34,7 @@ const CreateOrder = () => {
   const addPrilista = () => {
     setPrilistas([
       ...prilistas,
-      { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '' },
+      { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
     ]);
   };
 
@@ -66,7 +66,7 @@ const CreateOrder = () => {
   const addKantlista = () => {
     setKantlistas([
       ...kantlistas,
-      { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false } },
+      { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
     ]);
   };
 
@@ -152,8 +152,8 @@ const CreateOrder = () => {
       setNotes('');
       setSpeditor('');
       // Reset lists
-      setPrilistas([{ quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '' }]);
-      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false } }]);
+      setPrilistas([{ quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: ''}]);
+      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' }]);
       setKlupplistas([]); // <-- RESET KLUPPLISTAS TO EMPTY
 
     } catch (err) {
@@ -205,6 +205,10 @@ const CreateOrder = () => {
                 <div className={styles.inputGroup}>
                     <label htmlFor={`p-type-${index}`}>Träslag *</label>
                     <input id={`p-type-${index}`} type="text" placeholder="Ex. Furu" name="type" value={prilista.type} onChange={(e) => handlePrilistaChange(index, e)} required/>
+                </div>
+                <div className={styles.inputGroup}>
+                    <label htmlFor={`p-type-${index}`}>Paketnummer</label>
+                    <input id={`p-type-${index}`} type="number" placeholder="Ex. 20" name="pktNr" value={prilista.pktNr} onChange={(e) => handlePrilistaChange(index, e)}/>
                 </div>
                 <div className={styles.inputGroup}>
                     <label htmlFor={`p-loc-${index}`}>Lagrad Plats</label>
@@ -264,6 +268,10 @@ const CreateOrder = () => {
                     <div className={styles.inputGroup}>
                         <label htmlFor={`k-maxl-${index}`}>Max Längd *</label>
                         <input id={`k-maxl-${index}`} type="text" placeholder="Ex. 4.8M" name="max_langd" value={kantlista.max_langd} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label htmlFor={`k-pktNr-${index}`}>Paketnummer</label>
+                      <input id={`k-pktNr-${index}`} type="number" placeholder="Ex. 20" name="pktNr" value={kantlista.pktNr} onChange={(e) => handleKantlistaChange(index, e)}/>
                     </div>
                     <div className={styles.inputGroup}>
                         <label htmlFor={`k-stampel-${index}`}>Stämpel</label>

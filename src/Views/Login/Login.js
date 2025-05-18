@@ -25,6 +25,7 @@ function Login() {
       if (response.ok) {
         // Store JWT token in localStorage or state
         localStorage.setItem('token', data.token);
+        localStorage.removeItem('selectedRoleName')
         // Redirect to dashboard
         window.location.href = '/dashboard';
       } else {

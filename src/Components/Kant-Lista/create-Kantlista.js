@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./CreateKantLista.module.css"; // Assuming your styles are in this file
+import { useAuth } from '../../contexts/AuthContext';
 
 const CreateKantlista = () => {
   const [orderNumber, setOrderNumber] = useState("");
@@ -16,9 +17,19 @@ const CreateKantlista = () => {
   const [statusKapad, setStatusKapad] = useState(false);
   const [statusKlar, setStatusKlar] = useState(false);
   const [isLager, setIsLager] = useState(false); // New state for "Lager" toggle
+  const [pktNr, setPktNr] = useState("");
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
   const token = localStorage.getItem('token');
+  const { user, hasPermission, isLoadingAuth } = useAuth();
+
+  const shouldForceLager = !hasPermission('orders', 'create');
+
+  useEffect(() => {
+    if (shouldForceLager) {
+        setIsLager(true);
+    }
+  }, [shouldForceLager]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -43,10 +54,14 @@ const CreateKantlista = () => {
     e.preventDefault();
     setError(null);
 
+    const finalCustomer = isLager || shouldForceLager ? "Lager" : customer;
+      const finalOrderNumber = isLager || shouldForceLager ? null : parseInt(orderNumber, 10);
+      const finalAntal = isLager || shouldForceLager ? null : antal;
+
     const newKantlista = {
-      orderNumber: isLager ? null : parseInt(orderNumber, 10), // Set orderNumber to null if it's for "Lager"
-      customer: isLager ? "Lager" : customer, // Set customer to "Lager" if it's for "Lager"
-      antal: isLager ? null : antal,
+      orderNumber: finalOrderNumber, // Set orderNumber to null if it's for "Lager"
+      customer: finalCustomer, // Set customer to "Lager" if it's for "Lager"
+      antal: finalAntal,
       bredd: width,
       tjocklek: thickness,
       varv,
@@ -54,6 +69,7 @@ const CreateKantlista = () => {
       stampel,
       lagerplats: location,
       information,
+      pktNr: pktNr ? parseInt(pktNr, 10) : null,
       status: {
         kapad: statusKapad,
         klar: statusKlar,
@@ -80,6 +96,7 @@ const CreateKantlista = () => {
       setStampel("");
       setLocation("");
       setInformation("");
+      setPktNr("");
       setStatusKapad(false);
       setStatusKlar(false);
       setIsLager(false); // Reset "Lager" toggle
@@ -100,6 +117,7 @@ const CreateKantlista = () => {
     setStampel("");
     setLocation("");
     setInformation("");
+    setPktNr("");
   };
 
   return (
@@ -110,71 +128,79 @@ const CreateKantlista = () => {
         {/* Toggle for "Lager" */}
         <label>
           <input
-            type="checkbox"
-            checked={isLager}
-            onChange={(e) => setIsLager(e.target.checked)}
+              type="checkbox"
+              checked={isLager || shouldForceLager} // Always checked if shouldForceLager
+              onChange={(e) => {
+                  // Only allow the user to change the setting if they have permission
+                  if (!shouldForceLager) {
+                      setIsLager(e.target.checked);
+                  }
+              }}
+              disabled={shouldForceLager} // Disable if shouldForceLager
           />
           Lager
-        </label>
+      </label>
 
         {/* Conditionally render order selection if not for "Lager" */}
-        {!isLager && (
+        {!(isLager || shouldForceLager) && (
           <>
-            <label>Välj Order: <span className={styles.optional}>(Frivillig)</span></label>
-            <select
-              className={styles.selectOrder}
-              onChange={(e) => {
-                const selectedOrderNumber = e.target.value;
-                if (selectedOrderNumber) {
-                  // Only try to find the order if the value is not empty
-                  handleOrderSelect(orders.find(order => order.orderNumber === parseInt(selectedOrderNumber)));
-                } else {
-                  // Reset the fields when no order is selected
-                  setOrderNumber("");
-                  setCustomer("");
-                  setAntal("");
-                  setWidth("");
-                  setThickness("");
-                  setVarv("");
-                  setMaxLength("");
-                  setStampel("");
-                  setLocation("");
-                  setInformation("");
-                }
-              }}
-              value={orderNumber}
-            >
-              <option value="">-- Välj Order --</option>
-              {orders.map((order) => (
-                <option key={order._id} value={order.orderNumber}>
-                  {order.orderNumber} - {order.customer}
-                </option>
-              ))}
-            </select>
+              <label>Välj Order: <span className={styles.optional}>(Frivillig)</span></label>
+              <select
+                  className={styles.selectOrder}
+                  onChange={(e) => {
+                      const selectedOrderNumber = e.target.value;
+                      if (selectedOrderNumber) {
+                          // Only try to find the order if the value is not empty
+                          handleOrderSelect(orders.find(order => order.orderNumber === parseInt(selectedOrderNumber)));
+                      } else {
+                          // Reset the fields when no order is selected
+                          setOrderNumber("");
+                          setCustomer("");
+                          setAntal("");
+                          setWidth("");
+                          setThickness("");
+                          setVarv("");
+                          setMaxLength("");
+                          setStampel("");
+                          setLocation("");
+                          setInformation("");
+                          setPktNr("");
+                      }
+                  }}
+                  value={orderNumber}
+              >
+                  <option value="">-- Välj Order --</option>
+                  {orders.map((order) => (
+                      <option key={order._id} value={order.orderNumber}>
+                          {order.orderNumber} - {order.customer}
+                      </option>
+                  ))}
+              </select>
 
-            <label>Order nr:</label>
-            <input
-              type="number"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              required={!isLager} // Only required if not for "Lager"
-            />
+              <label>Order nr:</label>
+              <input
+                  type="number"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                  required={!isLager} // Only required if not for "Lager"
+              />
 
-            <label>Kund:</label>
-            <input
-              type="text"
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              required={!isLager} // Only required if not for "Lager"
-            />
+              <label>Kund:</label>
+              <input
+                  type="text"
+                  value={customer}
+                  onChange={(e) => setCustomer(e.target.value)}
+                  required={!isLager} // Only required if not for "Lager"
+              />
 
-            <label>Antal:</label>
-            <input
-              type="text"
-              value={antal}
-              onChange={(e) => setAntal(e.target.value)}
-              required
-            />
+                <label>Antal:</label>
+              <input
+                  type="text"
+                  value={antal}
+                  onChange={(e) => setAntal(e.target.value)}
+                  required
+              />
+
           </>
         )}
 
@@ -213,6 +239,14 @@ const CreateKantlista = () => {
           value={maxLength}
           placeholder="4.3"
           onChange={(e) => setMaxLength(e.target.value)}
+        />
+
+        <label>Paketnummer: <span className={styles.optional}>(Frivillig)</span></label>
+        <input
+          type="number"
+          value={pktNr}
+          placeholder="Paketnummer"
+          onChange={(e) => setPktNr(e.target.value)}
         />
 
         <label>Stämpel: <span className={styles.optional}>(Frivillig)</span></label>

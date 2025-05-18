@@ -5,8 +5,11 @@ const KantLista = require('../models/Kantlista');
 const KluppLista = require('../models/Klupplista');
 const router = express.Router();
 
+const authenticateToken = require('./authMiddleware'); // Or where it is
+const checkPermission = require('../middleware/authorizationMiddleware'); // Or where it is
+
 // Get all orders
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, checkPermission('orders', 'read'), async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('updatedBy', 'name') // Populate user details
@@ -18,7 +21,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:orderNumber', async (req, res) => {
+router.get('/:orderNumber', authenticateToken, checkPermission('orders', 'read'), async (req, res) => {
   try {
     const { orderNumber } = req.params; // Extract orderNumber from the URL
 
@@ -43,11 +46,9 @@ router.get('/:orderNumber', async (req, res) => {
 
 
 // Add a new order
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateToken, checkPermission('orders', 'create'), async (req, res) => {
   // Destructure all expected fields, including klupplager from the list items
   const { orderNumber, customer, delivery, notes, speditor, prilistas, kantlistas, klupplistas } = req.body;
-
-  console.log(req.body); // Log the request body for debugging
 
   // Basic validation
   if (!orderNumber || !customer) {
@@ -159,7 +160,7 @@ router.post('/create', async (req, res) => {
 
 
 
-router.put('/:orderNumber/complete', async (req, res) => {
+router.put('/:orderNumber/complete', authenticateToken, checkPermission('orders', 'markDelivered'), async (req, res) => {
   const { orderNumber } = req.params;
 
   try {
@@ -197,7 +198,7 @@ router.put('/:orderNumber/complete', async (req, res) => {
 });
 
 
-router.put('/:orderNumber/delivered', async (req, res) => {
+router.put('/:orderNumber/delivered', authenticateToken, checkPermission('orders', 'markDelivered'), async (req, res) => {
   const { orderNumber } = req.params;
 
   // Validate if orderNumber is provided and perhaps is a number
@@ -231,12 +232,6 @@ router.put('/:orderNumber/delivered', async (req, res) => {
       console.log(`Updated ${updateResult.modifiedCount} KluppLista items to klar:true for delivered order ${updatedOrder.orderNumber}`);
     }
 
-    // Optionally, if you want to return the order with populated (and now updated) klupplistor:
-    // const finalOrderWithPopulatedKlupplistor = await Order.findById(updatedOrder._id).populate('klupplista');
-    // res.json(finalOrderWithPopulatedKlupplistor);
-    // For now, just return the updatedOrder object.
-    // The frontend would typically refetch details if it needs to see the updated klupplista statuses immediately.
-
     res.json(updatedOrder);
 
   } catch (err) {
@@ -246,7 +241,7 @@ router.put('/:orderNumber/delivered', async (req, res) => {
 });
 
 // Endpoint to add a new PRILISTA to an order
-router.put('/:orderNumber/add-prilista', async (req, res) => {
+router.put('/:orderNumber/add-prilista', authenticateToken, checkPermission('prilista', 'create'), async (req, res) => {
   const { orderNumber } = req.params;
   const { prilistaId } = req.body;
 
@@ -267,7 +262,7 @@ router.put('/:orderNumber/add-prilista', async (req, res) => {
 
 
 // Update an order
-router.put('/:orderNumber', async (req, res) => {
+router.put('/:orderNumber', authenticateToken, checkPermission('orders', 'update'), async (req, res) => {
   const { orderNumber } = req.params;
   const updatedOrderData = req.body;
 
@@ -306,7 +301,7 @@ router.put('/:orderNumber', async (req, res) => {
 });
 
 
-router.delete('/:orderNumber', async (req, res) => {
+router.delete('/:orderNumber', checkPermission('orders', 'delete'), async (req, res) => {
   const { orderNumber } = req.params;
 
   // Validate if orderNumber is provided and perhaps is a number

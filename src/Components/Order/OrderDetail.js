@@ -4,6 +4,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './order.css';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const OrderDetailComp = () => {
   const { orderNumber } = useParams();
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const OrderDetailComp = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem('token');
+
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     if (!token) {
@@ -393,7 +397,7 @@ const OrderDetailComp = () => {
 
       const updatedOrder = await response.json();
       setOrderDetails(updatedOrder);
-      alert('Order marked as Levererad!');
+      navigate('/dashboard/delivered');
     } catch (err) {
       console.error('Failed to mark order as delivered:', err);
       setError(err.message);
@@ -442,10 +446,14 @@ const OrderDetailComp = () => {
           <p>Skapad: {formattedDate}</p>
         </div>
         <div className="markAsDelivered">
-          <button className="exclude-from-pdf" onClick={() => handleMarkAsDelivered()}>
-            Markera som Levererad
-          </button>
-          <button className="editBtn exclude-from-pdf" onClick={handleEdit}>Redigera Order</button>
+          {hasPermission('orders', 'markDelivered') && (
+            <button className="exclude-from-pdf" onClick={() => handleMarkAsDelivered()}>
+              Markera som Levererad
+            </button>
+          )}
+          {hasPermission('orders', 'update') && (
+            <button className="editBtn exclude-from-pdf" onClick={handleEdit}>Redigera Order</button>
+          )}
         </div>
       </div>
       <div id="vehicleBorder" className="vehicleDetails">

@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import './order.css';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 function OrderList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +15,8 @@ function OrderList() {
   const [kantlistorData, setKantlistorData] = useState({});
   const [klupplistorData, setKlupplistorData] = useState({});
   const token = localStorage.getItem('token');
+
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     if (!token) {
@@ -28,7 +32,6 @@ function OrderList() {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
         });
-        //console.log('Fetched orders:', response.data);
         setOrders(response.data);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch orders');
@@ -58,7 +61,6 @@ function OrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        //console.log('Fetched prilistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch prilistor data:', err);
         setError('Failed to load prilistor data');
@@ -76,7 +78,6 @@ function OrderList() {
           ...prevData,
           [orderId]: response.data,
         }));
-        //console.log('Fetched kantlistor data:', response.data);
       } catch (err) {
         console.error('Failed to fetch kantlistor data:', err);
         setError('Failed to load kantlistor data');
@@ -114,7 +115,9 @@ function OrderList() {
   return (
     <div className="orderList">
       <div className="linkDiv">
+        {hasPermission('orders', 'create') && (
         <Link to="/dashboard/new-order" className="newOrderLink">Skapa ny order</Link>
+        )}
       </div>
       <h2>Ordrar</h2>
       {orders.length === 0 ? (
@@ -199,7 +202,9 @@ function OrderList() {
                   </ul>
                   <div className="orderActions">
                     <button className="orderDetailButtons" onClick={() => navigate(`/dashboard/order-detail/${order.orderNumber}`)}>Detaljer</button>
+                    {hasPermission('orders', 'update') && (
                     <button className="orderDetailButtons" onClick={() => navigate(`/dashboard/edit-order/${order.orderNumber}`)}>Redigera</button>
+                    )}
                   </div>
                 </div>
               )}

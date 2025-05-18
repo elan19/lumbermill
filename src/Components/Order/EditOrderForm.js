@@ -7,6 +7,8 @@ import styles from './EditFormOrder.module.css';
 import EditOrderFormNewLayout from './EditOrderFormNewLayout';
 import EditOrderFormOldLayout from './EditOrderFormOldLayout';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const EditOrderForm = () => {
     const { orderNumber } = useParams();
     const navigate = useNavigate();
@@ -26,8 +28,15 @@ const EditOrderForm = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for modal visibility
     const [modalMessage, setModalMessage] = useState(''); // Message for the modal
     const [isDeleting, setIsDeleting] = useState(false); 
-    const [isDeleteError, setIsDeleteError] = useState(false);
     const [modalMode, setModalMode] = useState('confirm');
+
+    const { user, hasPermission, isLoadingAuth } = useAuth();
+
+    useEffect(() => {
+        if (!isLoadingAuth && !hasPermission('orders', 'update')) {
+            navigate('/dashboard'); // Redirect to dashboard or appropriate route
+        }
+    }, [user, hasPermission, isLoadingAuth, navigate]);
 
     // Fetch BOTH order details and user settings
     const fetchData = useCallback(async () => {

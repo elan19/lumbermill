@@ -4,9 +4,12 @@ const Klupplista = require('../models/Klupplista');
 const Order = require('../models/Order'); // Adjust path to your Klupplista model
 // const authMiddleware = require('../middleware/authMiddleware'); // UNCOMMENT if authentication is needed
 
+const authenticateToken = require('./authMiddleware');
+const checkPermission = require('../middleware/authorizationMiddleware');
+
 // --- CREATE a new Klupplista Entry ---
 // Consider adding authMiddleware here: router.post('/create', authMiddleware, async (req, res) => {
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateToken, checkPermission('klupplista', 'create'), async (req, res) => {
   try {
     // Destructure all expected fields from the request body
     const {
@@ -70,7 +73,7 @@ router.post('/create', async (req, res) => {
   }
 });
 
-router.put('/edit/:id', async (req, res) => {
+router.put('/edit/:id', authenticateToken, checkPermission('klupplista', 'update'), async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
 
@@ -150,7 +153,7 @@ router.put('/edit/:id', async (req, res) => {
 
 // --- GET all Klupplistor ---
 // Consider adding authMiddleware
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, checkPermission('klupplista', 'read'), async (req, res) => {
     try {
         const allKlupplistor = await Klupplista.find().sort({ position: 1 });
 
@@ -183,7 +186,7 @@ router.get('/', async (req, res) => {
 
 // --- GET a specific Klupplista by ID ---
 // Consider adding authMiddleware
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, checkPermission('klupplista', 'read'), async (req, res) => {
   try {
       const klupplista = await Klupplista.findById(req.params.id);
       if (!klupplista) {
@@ -199,7 +202,7 @@ router.get('/:id', async (req, res) => {
 
 // --- GET Klupplistor by orderNumber ---
 // Consider adding authMiddleware
-router.get('/order/:orderNumber', async (req, res) => {
+router.get('/order/:orderNumber', authenticateToken, checkPermission('klupplista', 'read'), async (req, res) => {
   const { orderNumber } = req.params;
   try {
     // Add sort by position
@@ -211,7 +214,7 @@ router.get('/order/:orderNumber', async (req, res) => {
   }
 });
 
-router.put('/reorder', async (req, res) => {
+router.put('/reorder', authenticateToken, checkPermission('klupplista', 'reorder'), async (req, res) => {
   // const io = req.app.get('io');
   const { updatedItems } = req.body; // Expect { updatedItems: [...] }
 
@@ -259,7 +262,7 @@ router.put('/reorder', async (req, res) => {
 });
 
 // Example: PUT a specific Klupplista by ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, checkPermission('klupplista', 'update'), async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body; // Contains all fields sent from frontend
   
@@ -295,7 +298,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkPermission('klupplista', 'delete'), async (req, res) => {
     const { id } = req.params;
     try {
         const deletedItem = await Klupplista.findByIdAndDelete(id);
@@ -319,7 +322,7 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-router.get('/order/:orderNumber', async (req, res) => {
+router.get('/order/:orderNumber', authenticateToken, checkPermission('klupplista', 'read'), async (req, res) => {
   const { orderNumber } = req.params;
   
   try {

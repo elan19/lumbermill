@@ -15,7 +15,8 @@ mongoose.connect(mongoURI)
 const createUser = async (name, password, role) => {
   try {
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create a new user
     const user = new User({
@@ -35,4 +36,4 @@ const createUser = async (name, password, role) => {
 };
 
 // Example: Create a user
-createUser('admin', 'admin', 'admin');
+createUser('test', 'test', 'employee');

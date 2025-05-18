@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './Lagerplats.module.css';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const LagerPlatsComp = () => {
   const [lagerplatser, setLagerplatser] = useState([]);
   const [formData, setFormData] = useState({
@@ -10,8 +12,8 @@ const LagerPlatsComp = () => {
     dim: "",
     location: "",
     sawData: { tum: "", typ: "", nt: "" },
-    kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
-    okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
+    kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "", pktNr: "" },
+    okantatData: { varv: "", kvalite: "", typ: "", nt: "", pktNr: "", pktNamn: "" },
   });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const token = localStorage.getItem('token');
@@ -24,6 +26,10 @@ const LagerPlatsComp = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     fetchLagerplatser();
@@ -123,8 +129,8 @@ const LagerPlatsComp = () => {
         type: value,
         // Reset only type-specific data, not common fields
         sawData: { tum: "", typ: "", nt: "" },
-        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
-        okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
+        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "", pktNr: "" },
+        okantatData: { varv: "", kvalite: "", typ: "", nt: "", pktNr: "", pktNamn: "" },
       }));
       return;
     }
@@ -148,8 +154,8 @@ const LagerPlatsComp = () => {
         type: formData.type, // Retain current type for next entry
         tree: '', dim: '', location: '', 
         sawData: { tum: "", typ: "", nt: "" },
-        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "" },
-        okantatData: { varv: "", kvalite: "", typ: "", nt: "" },
+        kantatData: { bredd: "", varv: "", max_langd: "", kvalite: "", pktNr: "" },
+        okantatData: { varv: "", kvalite: "", typ: "", nt: "", pktNr: "", pktNamn: "" },
       });
     } catch (err) {
       console.error('Failed to add lagerplats:', err);
@@ -190,6 +196,15 @@ const LagerPlatsComp = () => {
             if (obj.type === "Okantat") return obj.okantatData?.nt;
             return null;
         }
+        if (path === "sharedPktNr") {
+            if (obj.type === "Kantat") return obj.kantatData?.pktNr;
+            if (obj.type === "Okantat") return obj.okantatData?.pktNr;
+            return null;
+        }
+        if (path === "pktNamn") {  // Add pktNamn handling
+          if (obj.type === "Okantat") return obj.okantatData?.pktNamn;
+          return null;
+        }
         // Fallback for non-shared keys or direct properties
         return path.split(".").reduce((o, p) => (o && o[p] !== undefined && o[p] !== null ? o[p] : null), obj);
       };
@@ -200,7 +215,7 @@ const LagerPlatsComp = () => {
       // Numeric sort for specific keys (adjust as per your schema's data types)
       const numericKeys = ["dim", "sawData.tum", "kantatData.bredd", "kantatData.max_langd"]; 
       // For shared keys that might be numeric:
-      if ( (key === "sharedVarv" || key === "sawData.tum") ) { 
+      if ( (key === "sharedVarv" || key === "sawData.tum" || key === "sharedPktNr") ) { 
           aValue = aValue !== null ? Number(aValue) : -Infinity;
           bValue = bValue !== null ? Number(bValue) : -Infinity;
       } else if (numericKeys.includes(key)){
@@ -231,6 +246,9 @@ const LagerPlatsComp = () => {
     }
     return '⬍';
   };
+
+  const openHelpModal = () => setIsHelpModalOpen(true);
+  const closeHelpModal = () => setIsHelpModalOpen(false);
 
   const deleteLagerPlats = async (lagerPlatsId) => {
     if (window.confirm("Är du säker på att du vill ta bort denna lagerplats?")) {
@@ -282,6 +300,15 @@ const LagerPlatsComp = () => {
     <div className={styles.lagerplatsContainer}>
       <h1>Lagerplats</h1>
 
+      {/* --- HELP BUTTON (can be placed near the form or table filters) --- */}
+      <div className={styles.headerActions}> {/* Optional wrapper for actions */}
+        <button onClick={openHelpModal} className={styles.helpButtonLager}>
+            Hjälp / Info
+        </button>
+        {/* You can add other header actions here if needed */}
+      </div>
+      {/* --- END HELP BUTTON --- */}
+
       <form onSubmit={handleSubmit} className={styles.formLayout}>
         {/* ... form inputs ... (no changes needed here from previous version) */}
         <select name="type" value={formData.type} onChange={handleInputChange}>
@@ -290,14 +317,14 @@ const LagerPlatsComp = () => {
           <option value="Okantat">Okantat</option>
         </select>
 
-        <label>Trädslag:</label>
+        <label>Träslag: *</label>
         <input name="tree" value={formData.tree} onChange={handleInputChange} placeholder="Ex. f, gr" required />
 
-        <label>Tjocklek:</label>
+        <label>Tjocklek: *</label>
         <input type="number" name="dim" value={formData.dim} onChange={handleInputChange} placeholder="Ex. 26, 63" required />
 
         <label>Lagerplats:</label>
-        <input name="location" value={formData.location} onChange={handleInputChange} placeholder="Ex. jb 3h" required />
+        <input name="location" value={formData.location} onChange={handleInputChange} placeholder="Ex. jb 3h" />
 
         {formData.type === "Sågat" && (
           <>
@@ -311,26 +338,34 @@ const LagerPlatsComp = () => {
         )}
         {formData.type === "Kantat" && (
           <>
-            <label>Bredd:</label>
-            <input name="kantatData.bredd" value={formData.kantatData.bredd} placeholder="Ex. 75, 125" onChange={handleInputChange} />
+            <label>Bredd: *</label>
+            <input type="number" name="kantatData.bredd" value={formData.kantatData.bredd} placeholder="Ex. 75, 125" onChange={handleInputChange} />
             <label>Varv:</label>
             <input name="kantatData.varv" value={formData.kantatData.varv} placeholder="Ex. 15" onChange={handleInputChange} />
             <label>Max Längd:</label>
             <input name="kantatData.max_langd" value={formData.kantatData.max_langd} placeholder="Ex. 4.3" onChange={handleInputChange} />
-            <label>Kvalite:</label>
+            <label>Kvalite: *</label>
             <input name="kantatData.kvalite" value={formData.kantatData.kvalite} placeholder="Ex. A, B" onChange={handleInputChange} />
+            {/* --- ADD PKTNR FOR KANTAT --- */}
+            <label>Pkt Nr:</label>
+            <input type="number" name="kantatData.pktNr" value={formData.kantatData.pktNr} placeholder="Paketnummer" onChange={handleInputChange} />
+            {/* ---------------------------- */}
           </>
         )}
         {formData.type === "Okantat" && (
           <>
             <label>Varv:</label>
             <input name="okantatData.varv" value={formData.okantatData.varv} placeholder="Ex. 15" onChange={handleInputChange} />
-            <label>Kvalite:</label>
-            <input name="okantatData.kvalite" value={formData.okantatData.kvalite} placeholder="Ex. A/Ulägg/Modell/Blå" onChange={handleInputChange} />
+            <label>Kvalite: *</label>
+            <input name="okantatData.kvalite" value={formData.okantatData.kvalite} placeholder="Ex. A/UL/Modell/Blå" onChange={handleInputChange} />
             <label>Typ:</label>
             <input name="okantatData.typ" value={formData.okantatData.typ} placeholder="Sid/2X" onChange={handleInputChange} />
             <label>Nertork:</label>
             <input name="okantatData.nt" value={formData.okantatData.nt} placeholder="Ex. 16%" onChange={handleInputChange} />
+            <label>Pkt Nr:</label>
+            <input type="number" name="okantatData.pktNr" value={formData.okantatData.pktNr} placeholder="Paketnummer" onChange={handleInputChange} />
+            <label>Pkt Namn:</label>
+            <input name="okantatData.pktNamn" value={formData.okantatData.pktNamn} placeholder="Paketnamn" onChange={handleInputChange} />
           </>
         )}
         <button type="submit">Lägg till</button>
@@ -388,17 +423,28 @@ const LagerPlatsComp = () => {
 
               {/* Shared: Sid/X (Sågat, Okantat) */}
               {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
-                <th onClick={() => handleSort("sharedTyp")} title="Sid/X"><span>Sid/X</span> {getSortIndicator("sharedTyp")}</th>
+                <th onClick={() => handleSort("sharedTyp")} title="Sid/X"><span>Typ</span> {getSortIndicator("sharedTyp")}</th>
               )}
 
               {/* Shared: Nertork (Sågat, Okantat) */}
               {(selectedCategory === "Sågat" || selectedCategory === "Okantat" || selectedCategory === null) && (
-                <th onClick={() => handleSort("sharedNt")} title="Nertork"><span>Nertork</span> {getSortIndicator("sharedNt")}</th>
+                <th onClick={() => handleSort("sharedNt")} title="Nertork"><span>NT</span> {getSortIndicator("sharedNt")}</th>
+              )}
+
+              {/* --- ADD PKTNR HEADER (SHARED IF APPLICABLE) --- */}
+              {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("sharedPktNr")} title="Pkt Nr"><span>Pkt Nr</span> {getSortIndicator("sharedPktNr")}</th>
+              )}
+
+              {(selectedCategory === "Okantat" || selectedCategory === null) && (
+                <th onClick={() => handleSort("okantatData.paketNamn")} title="Pkt Namn"><span>Pkt Namn</span> {getSortIndicator("okantatData.pktNamn")}</th>
               )}
 
               {/* Always Visible */}
               <th onClick={() => handleSort("location")} title="Plats"><span>Plats</span> {getSortIndicator("location")}</th>
+              {hasPermission('lagerplats', 'delete') && (
               <th>Ta bort</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -492,11 +538,34 @@ const LagerPlatsComp = () => {
                     })}
                   </td>
                 )}
+
+                {/* --- ADD PKTNR CELL --- */}
+                {(selectedCategory === "Kantat" || selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Pkt Nr">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Kantat") return { value: lp.kantatData?.pktNr, columnKeyForEdit: "kantatData.pktNr", isNumeric: true };
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.pktNr, columnKeyForEdit: "okantatData.pktNr", isNumeric: true };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
+                {/* ------------------------ */}
+
+                {(selectedCategory === "Okantat" || selectedCategory === null) && (
+                  <td data-label="Pkt Namn">
+                    {renderSharedCell(lagerplats, rowIndex, (lp) => {
+                      if (lp.type === "Okantat") return { value: lp.okantatData?.pktNamn, columnKeyForEdit: "okantatData.pktNamn" };
+                      return { value: (selectedCategory === null ? "-" : ""), columnKeyForEdit: "" };
+                    })}
+                  </td>
+                )}
                 
                 {/* Plats */}
                 <td data-label="Plats">{renderSharedCell(lagerplats, rowIndex, (lp) => ({ value: lp.location, columnKeyForEdit: "location" }))}</td>
                 {/* Ta bort */}
+                {hasPermission('lagerplats', 'delete') && (
                 <td><button onClick={() => deleteLagerPlats(lagerplats._id)} className={styles.deleteButton}>X</button></td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -508,7 +577,74 @@ const LagerPlatsComp = () => {
         <span> Sida {currentPage} av {Math.max(1, Math.ceil(filteredLagerplatser.length / itemsPerPage))} </span>
         <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage >= Math.ceil(filteredLagerplatser.length / itemsPerPage)}>Nästa</button>
       </div>
+
+
+      {/* --- HELP MODAL --- */}
+      {isHelpModalOpen && (
+        <div className={styles.modalOverlayLager} onClick={closeHelpModal}> {/* Use specific class */}
+            <div className={styles.modalContentLager} onClick={(e) => e.stopPropagation()}>
+                <h2 className={styles.modalTitleLager}>Information</h2>
+                <p className={styles.requiredNote}>Fält markerade med * är obligatoriska.</p>
+                <div className={styles.helpSectionLager}>
+                    <h3>Träslag: *</h3>
+                    <ul>
+                        <li>Fura = <strong>F</strong></li>
+                        <li>Gran = <strong>Gr</strong></li>
+                        {/* Add other common tree types */}
+                    </ul>
+                </div>
+                <div className={styles.helpSectionLager}>
+                    <h3>Lagerplats:</h3>
+                    <ul>
+                        <li><strong>jb 3h</strong> (JB, Fack 3, Höger)</li>
+                        <li><strong>Kin c2</strong> (Kinda, Sektion C, Plats 2)</li>
+                        {/* Add more examples relevant to your system */}
+                    </ul>
+                </div>
+                <div className={styles.helpSectionLager}>
+                    <h3>Sågat - Typ (Sid/X):</h3>
+                    <ul>
+                        <li>Sidobrädor = <strong>Sid</strong></li>
+                        <li>Mittenstyck = <strong>2x</strong></li>
+                        <li>Mittenstyck = <strong>4x</strong></li>
+                        {/* Add other "Typ" codes */}
+                    </ul>
+                </div>
+                <div className={styles.helpSectionLager}>
+                    <h3>Sågat/Okantat - Nertork (NT):</h3>
+                    <ul>
+                        <li>Nertorkat i procent, t.ex. <strong>12%</strong>, <strong>16%</strong></li>
+                        <li>Kan lämnas tomt om ej relevant.</li>
+                    </ul>
+                </div>
+                 <div className={styles.helpSectionLager}>
+                    <h3>Kantat/Okantat - Kvalité: *</h3>
+                    <ul>
+                        <li>Standardkvalitéer:</li>
+                        <li>A-kvalité = <strong>A / Prima</strong></li>
+                        <li>B-kvalité / Ulägg = <strong>B / UL</strong></li>
+                        <li>Modell / Skrot = <strong>Mod / Skrot</strong></li>
+                        <li>Blånat = <strong>Blå</strong></li>
+                    </ul>
+                </div>
+                <div className={styles.helpSectionLager}>
+                        <h3>Extra:</h3>
+                        <ul>
+                            <li>Dubbelklicka på text inuti rad för att ändra<strong></strong></li>
+                            <li>Klicka på valfri översta rad i tabellen för att sortera efter den sorten</li>
+                            {/* Add others if applicable */}
+                        </ul>
+                    </div>
+                {/* Add more sections for Kantat: Bredd, Varv, Max Längd if they have specific codes/formats */}
+                <button onClick={closeHelpModal} className={styles.modalCloseButtonLager}>
+                    Stäng
+                </button>
+            </div>
+        </div>
+      )}
+      {/* --- END HELP MODAL --- */}
     </div>
+    
   );
 };
 

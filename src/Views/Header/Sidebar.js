@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, NavLink } from 'react-router-dom'; // Import NavLink
 import './sidebar.css'; // Make sure this CSS file exists and is styled
+import { useAuth } from '../../contexts/AuthContext';
 
 // Helper function to apply active class - adjust if needed
 const getNavLinkClass = ({ isActive }) => {
@@ -9,6 +10,7 @@ const getNavLinkClass = ({ isActive }) => {
 
 function Sidebar({ isOpen, toggleSidebar }) {
   const navigate = useNavigate();
+  const { user, hasPermission } = useAuth();
 
   // Check if user is logged in by checking token in localStorage
   // Note: This is a basic check. Consider context or other state management for robustness.
@@ -17,6 +19,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
   // Logout function
   const handleLogout = () => {
     localStorage.removeItem('token'); // Remove token from storage
+    localStorage.removeItem('selectedRoleName')
     toggleSidebar(); // Close sidebar after action
     navigate('/login'); // Redirect to login page
   };
@@ -101,6 +104,14 @@ function Sidebar({ isOpen, toggleSidebar }) {
                  Klupplista
                </NavLink>
              </li>
+             {/* --- Admin Link (Conditional Rendering) --- */}
+             {user && hasPermission('admin', 'access') && (  // Check permissions
+                <li>
+                  <NavLink to="/dashboard/admin" onClick={handleLinkClick} className={getNavLinkClass}>
+                    Admin
+                  </NavLink>
+                </li>
+             )}
              <li>
               <NavLink to="/dashboard/settings" onClick={handleLinkClick} className={getNavLinkClass}>
                 Settings

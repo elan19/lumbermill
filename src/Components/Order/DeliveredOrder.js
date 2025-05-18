@@ -22,7 +22,6 @@ function DeliveredOrderList() {
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
         });
-        //console.log('Fetched orders:', response.data);
         
         // Filter orders with status = "Delivered"
         const deliveredOrders = response.data.filter(order => order.status === 'Delivered');

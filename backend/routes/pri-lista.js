@@ -5,15 +5,16 @@ const KantLista = require('../models/Kantlista');
 const Order = require('../models/Order'); // Import the Order model
 const Log = require('../models/Log'); // Import the Order model
 
-router.post('/create', async (req, res) => {
-  // Destructure klupplager from the body
-  const { orderNumber, customer, quantity, size, type, dimension, location, description, measureLocation } = req.body;
+const authenticateToken = require('./authMiddleware');
+const checkPermission = require('../middleware/authorizationMiddleware');
 
-  // Validate input (adjust if klupplager changes requirements)
-  // Example: Maybe location isn't required for klupplager?
-  if (!orderNumber || !customer || !quantity || !size || !dimension /*|| !location*/) { // Temporarily commented out location validation for example
-    return res.status(400).json({ message: 'Ordernummer, Kund, Antal, Storlek, och Dimension är obligatoriska.' });
-  }
+router.post('/create', authenticateToken, checkPermission('prilista', 'create'), async (req, res) => {
+  // Destructure klupplager from the body
+  const { orderNumber, customer, quantity, size, type, dimension, location, description, measureLocation, pktNr, isLager } = req.body;
+
+  if (!isLager && (!orderNumber || !customer )) {
+      return res.status(400).json({ message: 'Ordernummer och kund är obligatoriska för vanliga ordrar.' });
+    }
 
   try {
     // Find the highest position in the collection
@@ -22,8 +23,8 @@ router.post('/create', async (req, res) => {
 
     // Create the new PriLista instance
     const newPriLista = new PriLista({
-      orderNumber,
-      customer,
+      orderNumber: isLager ? null : orderNumber,
+      customer: isLager ? 'Lager' : customer,
       quantity,
       size,
       type,
@@ -32,6 +33,7 @@ router.post('/create', async (req, res) => {
       description,
       measureLocation,
       position: newPosition,
+      pktNr
     });
 
     // Save the new document to the database
@@ -49,7 +51,7 @@ router.post('/create', async (req, res) => {
 });
 
 // Delete a lagerplats entry
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkPermission('prilista', 'delete'), async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -63,7 +65,7 @@ router.delete('/:id', async (req, res) => {
 
 
 // Route to get all PriLista documents for a specific orderNumber
-router.get('/order/:orderNumber', async (req, res) => {
+router.get('/order/:orderNumber', authenticateToken, checkPermission('prilista', 'read'), async (req, res) => {
   const { orderNumber } = req.params;
 
   try {
@@ -76,7 +78,7 @@ router.get('/order/:orderNumber', async (req, res) => {
 });
 
 // Route to get all PriLista documents (existing route, could be removed or adjusted)
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, checkPermission('prilista', 'read'), async (req, res) => {
   try {
     const prilistas = await PriLista.find();
     res.status(200).json(prilistas);
@@ -87,7 +89,7 @@ router.get('/', async (req, res) => {
 });
 
 // Route to mark a prilista as completed
-router.put('/complete/:id', async (req, res) => {
+router.put('/complete/:id', authenticateToken, checkPermission('prilista', 'markComplete'), async (req, res) => {
   try {
     const io = req.app.get('io');
     const { id } = req.params;
@@ -107,8 +109,6 @@ router.put('/complete/:id', async (req, res) => {
     const kantListaItems = await KantLista.find({ orderNumber: item.orderNumber });
 
     let allKantListaDone = true;
-    console.log(kantListaItems);
-    console.log(kantListaItems.length);
     if (kantListaItems.length > 0) {
       // If there are KantLista items, ensure all are marked as completed
       allKantListaDone = kantListaItems.every((kantListaItem) => kantListaItem.status.kapad && kantListaItem.status.klar);
@@ -132,7 +132,7 @@ router.put('/complete/:id', async (req, res) => {
   }
 });
 
-router.put('/reorder', async (req, res) => {
+router.put('/reorder', authenticateToken, checkPermission('prilista', 'reorder'), async (req, res) => {
   const io = req.app.get('io');
   const { updatedOrders } = req.body;
 
@@ -157,7 +157,7 @@ router.put('/reorder', async (req, res) => {
   }
 });
 
-router.put('/reorder/up', async (req, res) => {
+router.put('/reorder/up', authenticateToken, checkPermission('prilista', 'reorder'), async (req, res) => {
   const io = req.app.get('io');
   const { updates } = req.body; // Match the payload from the frontend
 
@@ -185,7 +185,7 @@ router.put('/reorder/up', async (req, res) => {
 
 
 // Route to update a prilista item by its ID
-router.put('/edit/:id', async (req, res) => {
+router.put('/edit/:id', authenticateToken, checkPermission('prilista', 'update'), async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
 
@@ -257,14 +257,11 @@ router.put('/edit/:id', async (req, res) => {
   }
 });
 
-router.put('/update-lagerplats', async (req, res) => {
+router.put('/update-lagerplats', authenticateToken, checkPermission('lagerplats', 'update'), async (req, res) => {
   const io = req.app.get('io');
 
   try {
     const { prilistaId, location } = req.body;
-
-    console.log(prilistaId);
-    console.log(location);
 
     // Update the order's Lagerplats in the database
     await PriLista.findByIdAndUpdate(prilistaId, { location });

@@ -3,8 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import Modal from 'react-modal';
 import styles from './KluppLista.module.css'; // Ensure this CSS file exists
+
+import { useAuth } from '../../contexts/AuthContext';
 
 // Define Draggable Item Type
 const ItemType = {
@@ -52,6 +53,8 @@ const DraggableRow = ({
 
   const isFirst = index === 0;
   const isLast = index === listLength - 1;
+
+  const { hasPermission } = useAuth();
 
   // --- Helper function to render cell content (span or input) ---
   const renderCellContent = (columnKey, displayValue) => {
@@ -124,6 +127,7 @@ const DraggableRow = ({
       <td data-label="Lev. Datum">{renderCellContent('leveransDatum', item.leveransDatum)}</td>
 
       {/* Status Cell (Not editable inline with this setup) */}
+      {hasPermission('klupplista', 'changeStatus') && (
       <td data-label="Status" className={styles.statusCell}>
         <div className={styles.statusControlWrapper}> {/* Wrapper for all status controls */}
             <div className={styles.statusGroup}> {/* Group for "Klar" checkbox */}
@@ -161,6 +165,7 @@ const DraggableRow = ({
             )}
         </div>
       </td>
+      )}
     </tr>
   );
 };
@@ -179,7 +184,9 @@ const KlupplistaManager = () => {
   const [editedValue, setEditedValue] = useState('');
   const [lastInteractionTime, setLastInteractionTime] = useState(0);
 
-    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  const { hasPermission } = useAuth();
 
   // Fetch data on mount
   const fetchKlupplistor = useCallback(async () => {
@@ -275,7 +282,6 @@ const KlupplistaManager = () => {
     // Use optional chaining for safer access
     const currentValue = itemToUpdate?.[columnKey];
     if (String(currentValue || '') === String(editedValue)) {
-        console.log("No change detected.");
         setEditingCell(null);
         setEditedValue('');
         return;
@@ -358,7 +364,6 @@ const KlupplistaManager = () => {
         // const updatedListBackend = [...klupplistor];
         // updatedListBackend[rowIndex] = response.data;
         // setKlupplistor(updatedListBackend);
-        console.log("Klupplista status updated:", response.data);
     } catch (err) {
         console.error('Failed to update klupplista status:', err);
         setError(err.response?.data?.message || 'Failed to update status.');
@@ -465,7 +470,9 @@ const KlupplistaManager = () => {
                 <th>Lagerplats</th>
                 <th>Info</th>
                 <th>Lev. Datum</th>
+                {hasPermission('klupplista', 'changeStatus') && (
                 <th>Status</th>
+                )}
               </tr>
             </thead>
             <tbody>

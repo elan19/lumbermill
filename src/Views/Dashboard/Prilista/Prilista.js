@@ -10,6 +10,8 @@ import styles from './Prilista.module.css';
 
 import io from 'socket.io-client';
 
+import { useAuth } from '../../../contexts/AuthContext';
+
 
 const ItemType = {
   ORDER: 'order',
@@ -38,6 +40,9 @@ const Prilista = () => {
   const [editablePdfText, setEditablePdfText] = useState('');
   const [isTextEditModalOpen, setIsTextEditModalOpen] = useState(false);
   const [error, setError] = useState(false);
+
+  const { hasPermission, isLoadingAuth } = useAuth();
+  console.log("OrderList - useAuth() result:", { hasPermission, isLoadingAuth });
 
   useEffect(() => {
     // Connect to the WebSocket server
@@ -324,25 +329,119 @@ const Prilista = () => {
   };
   
 
-  const handleComplete = async (id) => {
+  const handleComplete = async (id) => { // Removed 'field' parameter as Prilista only has 'completed'
     try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/prilista/complete/${id}`, {
-        
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Add token to Authorization header
-        },
-      });
+      if (!token) {
+        alert("Authorization token is missing.");
+        return;
+      }
+
+      // Find the current Prilista item to check its properties
+      const currentPrilistaItem = orders.find(order => order._id === id);
+      // If using combined allOrders, search there:
+      // const currentPrilistaItem = allOrders.find(order => order._id === id);
+
+
+      if (!currentPrilistaItem) {
+        alert("Prilista item not found.");
+        return;
+      }
+
+      // --- LOGIC FOR "LAGER" ITEMS ---
+      if (currentPrilistaItem.customer === "Lager") { // Check if it's a "Lager" item
+        // 1. Create a new Lagerplats entry
+        //    Map Prilista fields to Lagerplats schema fields as needed.
+        //    This assumes 'Okantat' is the correct type for Prilista items moved to lager.
+        const newLagerplats = {
+          type: "Okantat", // Or "Sågat" if appropriate and you have the data
+          tree: currentPrilistaItem.type || "Okänt", // Prilista 'type' maps to Lagerplats 'tree'
+          dim: currentPrilistaItem.dimension ? parseInt(currentPrilistaItem.dimension, 10) : 0, // Prilista 'dimension' maps to Lagerplats 'dim'
+          location: currentPrilistaItem.location || "-", // Use existing location or default
+          // Okantat specific data (or sawData if Prilista maps to Sågat)
+          okantatData: {
+            // Prilista 'size' might map to 'typ' or be part of a description
+            // For this example, let's assume 'size' could be 'typ' and 'description' is general info
+            typ: currentPrilistaItem.size || "-",
+            kvalite: "A", // Or a default/derived quality
+            // varv and nt might not directly map from your current Prilista schema
+            varv: "-", // Placeholder or derive if possible
+            nt: "-",   // Placeholder or derive if possible
+            pktNr: currentPrilistaItem.pktNr // If Prilista has pktNr, map it here
+          },
+          // If it was a 'Sågat' type from Prilista, you'd populate sawData:
+          // sawData: {
+          //   tum: ..., // derive from Prilista if possible
+          //   typ: currentPrilistaItem.size,
+          //   nt: ... // derive from Prilista if possible
+          // }
+        };
+
+        try {
+            const addResponse = await axios.post(
+                `${process.env.REACT_APP_API_URL}/api/lagerplats`,
+                newLagerplats,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (addResponse.status === 201) {
+                console.log("Prilista item successfully added to Lagerplats:", addResponse.data);
+                // Now delete the original Prilista item
+                const deleteResponse = await axios.delete(
+                    `${process.env.REACT_APP_API_URL}/api/prilista/${id}`, // Use the correct Prilista delete endpoint
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                if (deleteResponse.status === 200 || deleteResponse.status === 204) { // 204 for no content on delete
+                    // Optimistically remove from local state and re-fetch
+                    setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
+                    fetchOrders(); // Re-fetch to ensure consistency
+                    // alert("Prilista ('Lager') flyttad till Lagerplats!"); // Optional user feedback
+                } else {
+                     throw new Error(`Failed to delete Prilista item after adding to lager: ${deleteResponse.status}`);
+                }
+            } else {
+                throw new Error(`Failed to add Prilista item to lager: ${addResponse.status}`);
+            }
+        } catch (lagerError) {
+            console.error("Error processing 'Lager' Prilista item:", lagerError);
+            alert("Misslyckades att flytta 'Lager' Prilista till Lagerplats.");
+            // Optionally re-fetch orders to reset UI if part of the operation failed
+            fetchOrders();
+        }
+        return; // Exit function after handling "Lager" item
+      }
+      // --- END OF "LAGER" ITEM LOGIC ---
+
+
+      // --- LOGIC FOR REGULAR (NON-LAGER) PRILISTA ITEMS ---
+      // Mark the Prilista item as completed
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/prilista/complete/${id}`,
+        {}, // Empty body as per your original function
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       if (response.status === 200) {
-        setOrders(orders.map(order => (order._id === id ? { ...order, completed: true } : order)).filter(order => !order.completed));
+        // Optimistically update the local state
+        // The filter also removes it from the 'orders' (incomplete) list
+        setOrders(prevOrders =>
+          prevOrders
+            .map(order => (order._id === id ? { ...order, completed: true } : order))
+            .filter(order => !order.completed) // Keep this filter if 'orders' state is for incomplete items
+        );
 
-        socket.current.emit('itemCompleted', );
+        // Emit socket event if you still want to for regular completions
+        if (socket.current) {
+            socket.current.emit('itemCompleted', { id, completed: true }); // Send relevant data
+        }
 
-        fetchOrders();
+        fetchOrders(); // Re-fetch to ensure data consistency, especially for dependent order status
+      } else {
+         throw new Error(`Failed to mark Prilista as completed: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error completing order:', error);
-      alert('Failed to mark item as completed');
+      console.error('Error completing Prilista item:', error);
+      alert('Failed to mark item as completed. ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -368,6 +467,7 @@ const Prilista = () => {
         typ: item.sawData.typ || "-",
         location: item.location || "-",
         nt: item.sawData.nt || "-",
+        pktNr: item.sawData.pktNr || "-",
       }));
       setFilteredLocations(transformedData);
       setFilterCriteria({ dimension, size });
@@ -416,27 +516,36 @@ const Prilista = () => {
             color: #333;
             width: 210mm;
             box-sizing: border-box;
-            border: none;
+            border: none !important;
+            outline: none !important;
         }
-        .pdf-prilista-container h1 {
+        .pdf-prilista-container h2 {
             font-size: 26px;
             text-align: center;
             color: #000;
-            border: none;
+            border: none !important;
+            outline: none !important;
+            margin: none;
+            padding: none;
         }
-        .pdf-prilista-container h2 {
+        h1 {
+          border-bottom: none;
+          outline: none;
+        }
+        .pdf-prilista-container h3 {
             font-size: 16px; /* Slightly smaller */
             text-align: center;
-            margin-bottom: 15px;
             color: #555;
             border: none;
         }
         .pdf-prilista-item {
-            margin-bottom: 8px;
-            padding-bottom: 6px;
+            margin-bottom: 3px;
+            padding-bottom: 3px;
             font-size: 18px;
             line-height: 1.4;
             border: none;
+            display: flex;
+            flew-wrap: wrap;
         }
         .pdf-prilista-item:last-child {
             border: none;
@@ -446,6 +555,7 @@ const Prilista = () => {
             color: #444;
             font-size: 18px;
             border: none;
+            white-space: nowrap;
         }
         .pdf-prilista-item .info-text {
             display: block;
@@ -458,21 +568,15 @@ const Prilista = () => {
         }
       </style>
       <div class="pdf-prilista-container">
-        <h1>Mätlista</h1>
-        <h2>Genererad: ${dateStr}</h2>
+        <h2>Mätlista</h2>
+        <h3>Genererad: ${dateStr}</h3>
     `;
 
     dataToExport.forEach(item => {
         contentHTML += `
             <div class="pdf-prilista-item">
                 <div class="details-line">
-                  ${item.orderNumber || '-'}
-                    ${item.customer || '-'}
-                    ${item.quantity ? ` ${item.quantity}PKT` : ''}
-                    ${item.dimension ? ` ${item.dimension}MM` : ''}
-                    ${item.size ? ` ${item.size}` : ''}
-                    ${item.type ? ` ${item.type}` : ''}
-                    ${item.description}
+                    ${item.orderNumber || ''}${item.orderNumber ? ' ' : ''}${item.customer || ''} ${item.quantity ? `${item.quantity}PKT` : ''} ${item.dimension ? `${item.dimension}MM` : ''} ${item.size || ''} ${item.type || ''} ${item.description || ''}
                 </div>
             </div>
         `;
@@ -557,7 +661,7 @@ const Prilista = () => {
     let textContent = ``;
 
     dataToExport.forEach(item => {
-        textContent += `${item.orderNumber || '-'} ${item.customer || '-'} ${item.quantity ? `${item.quantity}PKT` : '-'} ${item.dimension ? `${item.dimension}MM` : '-'} ${item.size || '-'} ${item.type || '-'} ${item.description}\n`;
+      textContent += `${item.orderNumber || ''}${item.orderNumber ? ' ' : ''}${item.customer || ''} ${item.quantity ? `${item.quantity}PKT` : ''} ${item.dimension ? `${item.dimension}MM` : ''} ${item.size || ''} ${item.type || ''} ${item.description || ''}\n`;
     });
     // --- END OF TEXT CONSTRUCTION ---
 
@@ -770,6 +874,7 @@ const handleSaveEditedTextAsPDF = async () => {
         </td>
         <td data-label="Storlek:">{order.size}</td>
         <td data-label="Träslag:">{order.type || '-'}</td>
+        <td data-label="pktNr:">{order.pktNr || '-'}</td>
         {showMeasureLocation && <td data-label="Mätplats:">{order.measureLocation || '-'}</td>}
         <td data-label="Information:">{order.description || '-'}</td>
         <td data-label="Lagerplats:">{order.location || '-'}</td>
@@ -836,12 +941,14 @@ const handleSaveEditedTextAsPDF = async () => {
         </div>
       )}
       <div className={styles.header}>
+        {hasPermission('prilista', 'create') && (
         <button
           className={styles.createButton}
           onClick={() => navigate('/dashboard/new-prilista')}
         >
-          SKAPA NY OKANTAD
+          Skapa ny okantad
         </button>
+        )}
         {/* --- ADD PDF DOWNLOAD BUTTON --- */}
         <button onClick={handleDownloadPrilistaPDF} className={styles.downloadPdfButton} disabled={isGeneratingPdf}>
           {isGeneratingPdf ? 'Genererar PDF...' : 'Ladda Ner PDF'}
@@ -903,6 +1010,7 @@ const handleSaveEditedTextAsPDF = async () => {
                 <th>Dimension</th>
                 <th>Storlek</th>
                 <th>Träslag</th>
+                <th>Pkt Nr</th>
                 <th>Information</th>
                 <th>Lagerplats</th>
                 <th>Avklarad</th>
@@ -937,6 +1045,7 @@ const handleSaveEditedTextAsPDF = async () => {
                 <th>Dimension</th>
                 <th>Storlek</th>
                 <th>Träslag</th>
+                <th>Pkt Nr</th>
                 <th>Information</th>
                 <th>Lagerplats</th>
                 <th>Avklarad</th>
@@ -971,6 +1080,7 @@ const handleSaveEditedTextAsPDF = async () => {
                 <th>Dimension</th>
                 <th>Storlek</th>
                 <th>Träslag</th>
+                <th>Pkt Nr</th>
                 <th>Information</th>
                 <th>Lagerplats</th>
                 <th>Avklarad</th>
@@ -1005,6 +1115,7 @@ const handleSaveEditedTextAsPDF = async () => {
                 <th>Dimension</th>
                 <th>Storlek</th>
                 <th>Träslag</th>
+                <th>Pkt Nr</th>
                 <th>Information</th>
                 <th>Lagerplats</th>
                 <th>Avklarad</th>
@@ -1039,6 +1150,7 @@ const handleSaveEditedTextAsPDF = async () => {
                 <th>Dimension</th>
                 <th>Storlek</th>
                 <th>Träslag</th>
+                <th>Pkt Nr</th>
                 <th>Mätplats</th>
                 <th>Information</th>
                 <th>Lagerplats</th>

@@ -10,7 +10,7 @@ const orderSchema = new mongoose.Schema({
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   prilista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PriLista' }], // Array of PriLista references
   kantlista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'KantLista' }],
-  kantlista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'KluppLista' }],
+  klupplista: [{ type: mongoose.Schema.Types.ObjectId, ref: 'KluppLista' }],
   createdAt: { type: Date, default: Date.now },
 });
 
