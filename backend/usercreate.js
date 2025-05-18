@@ -36,4 +36,4 @@ const createUser = async (name, password, role) => {
 };
 
 // Example: Create a user
-createUser('test', 'test', 'employee');
+createUser('saghytt', 'saghytt', 'admin');
