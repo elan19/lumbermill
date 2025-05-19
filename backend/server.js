@@ -21,7 +21,7 @@ const adminRoutes = require('./routes/adminRoutes');
 dotenv.config();
 connectDB();
 
-const devOrigins = ['http://localhost:3000', 'http://localhost:5000'];
+const devOrigins = ['http://localhost:3000', 'http://localhost:5000', 'https://ansvabsagverk.pages.dev', 'https://ansvabsagverk.pages.dev/'];
 const productionRegex = /^https:\/\/[a-zA-Z0-9-]+\.ansvabsagverk\.pages\.dev$/;
 const frontendUrlFromEnv = process.env.FRONTEND_URL;
 
