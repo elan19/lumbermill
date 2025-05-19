@@ -15,7 +15,7 @@ const AdminRolePermissions = () => {
     const [isSaving, setIsSaving] = useState(false);
     const token = localStorage.getItem('token');
 
-    const { user, hasPermission, isLoadingAuth } = useAuth();
+    const { user, hasPermission, isLoadingAuth, fetchUserData: fetchAuthUserData } = useAuth(); // Renamed to avoid conflict
     const navigate = useNavigate();
 
     // Permission Check and Redirection
@@ -55,40 +55,47 @@ const AdminRolePermissions = () => {
         fetchData();
     }, [fetchData]);
 
-      // Load selected role from localStorage on component mount
+    // When a role is selected from the dropdown OR roles data changes (for initial load from localStorage)
     useEffect(() => {
-        const savedRole = localStorage.getItem('selectedRoleName');
-        if (savedRole) {
-            setSelectedRoleName(savedRole);
-            // Optionally, load the permissions for the saved role immediately
-            const role = roles.find(r => r.name === savedRole);
-            setCurrentRolePermissions(role ? role.permissions || [] : []);
-        }
-    }, [roles]); // Re-run when roles change, to update if a new role is added.
+        let roleToSetPermissionsFor = selectedRoleName;
 
-    // When a role is selected from the dropdown
+        // If selectedRoleName is not yet set but we have a saved one and roles are loaded
+        if (!selectedRoleName && roles.length > 0) {
+            const savedRoleNameFromStorage = localStorage.getItem('selectedRoleName');
+            if (savedRoleNameFromStorage && roles.some(r => r.name === savedRoleNameFromStorage)) {
+                setSelectedRoleName(savedRoleNameFromStorage); // Set it, which will trigger this effect again
+                roleToSetPermissionsFor = savedRoleNameFromStorage; // Use it for this run
+            } else if (savedRoleNameFromStorage) {
+                // Saved role no longer valid, clear it
+                localStorage.removeItem('selectedRoleName');
+            }
+        }
+        
+        if (roleToSetPermissionsFor && roles.length > 0) {
+            const role = roles.find(r => r.name === roleToSetPermissionsFor);
+            setCurrentRolePermissions(role ? role.permissions || [] : []);
+        } else if (!roleToSetPermissionsFor) { // If no role is selected (e.g. "-- Välj en roll --")
+            setCurrentRolePermissions([]);
+        }
+    }, [selectedRoleName, roles]); // Reacts to changes in selected role or when roles data arrives
+
+
     const handleRoleSelectChange = (e) => {
         const roleName = e.target.value;
-        setSelectedRoleName(roleName);
-        localStorage.setItem('selectedRoleName', roleName); // <-- Save to localStorage
-        setSuccessMessage(''); // Clear messages on role change
+        setSelectedRoleName(roleName); // This will trigger the useEffect above to update permissions
+        localStorage.setItem('selectedRoleName', roleName);
+        setSuccessMessage('');
         setError(null);
-
-        if (roleName) {
-            const role = roles.find(r => r.name === roleName);
-        } else {
-            setCurrentRolePermissions([]); // Clear permissions if no role selected
-        }
     };
 
     // When a permission checkbox is toggled
     const handlePermissionToggle = (permissionString) => {
         setCurrentRolePermissions(prevPermissions =>
             prevPermissions.includes(permissionString)
-                ? prevPermissions.filter(p => p !== permissionString) // Remove permission
-                : [...prevPermissions, permissionString] // Add permission
+                ? prevPermissions.filter(p => p !== permissionString)
+                : [...prevPermissions, permissionString]
         );
-        setSuccessMessage(''); // Clear message on change
+        setSuccessMessage('');
     };
 
     // Save changes for the selected role
@@ -104,35 +111,35 @@ const AdminRolePermissions = () => {
         try {
             await axios.put(
                 `${process.env.REACT_APP_API_URL}/api/admin/roles/${selectedRoleName}/permissions`,
-                { permissions: currentRolePermissions }, // Send the array of permission strings
+                { permissions: currentRolePermissions },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            // Re-fetch roles to update the main roles list with new permissions
-            await fetchData();  // Refetch the roles list
-            // Reselect the role to refresh displayed permissions if fetchData doesn't do it
-            const updatedRole = roles.find(r => r.name === selectedRoleName);
-            if(updatedRole) setCurrentRolePermissions(updatedRole.permissions || []);
-
+            
             setSuccessMessage(`Behörigheter för rollen '${selectedRoleName}' uppdaterades framgångsrikt!`);
-
-            // *** Call fetchUserData here to update the user data and permissions ***
-            // After saving permissions, refresh the data.
-             //  fetchData();
+            
+            // Re-fetch all roles and permissions data to ensure UI consistency
+            await fetchData(); 
+            
+            // Also re-fetch the current user's data in case their own permissions changed
+            // and they are editing a role that affects them.
+            if (fetchAuthUserData) { // Check if the function from useAuth is available
+                await fetchAuthUserData();
+            }
 
         } catch (err) {
             console.error("Fel vid sparande av behörigheter:", err.response?.data?.message || err.message);
             setError(err.response?.data?.message || "Misslyckades med att spara behörigheter.");
         } finally {
             setIsSaving(false);
-            // The user should stay on the current page if the permissions are updated.
         }
     };
 
-    if (isLoading) {
+
+    if (isLoadingAuth || isLoading) { // Consider both loading states
         return <div className={styles.loading}>Laddar administratörsdata...</div>;
     }
-
-    // Group permissions by resource for better display
+    
+    // Group permissions by resource (moved after loading check)
     const groupedPermissions = allSystemPermissions.reduce((acc, perm) => {
         const [resource, action] = perm.split(':');
         if (!acc[resource]) {
@@ -142,9 +149,15 @@ const AdminRolePermissions = () => {
         return acc;
     }, {});
 
-    if (!user) {
-        return null;
+    // User check should ideally happen after isLoadingAuth is false
+    if (!isLoadingAuth && !user) { // If auth is done loading and still no user
+        // This might indicate an issue, or the user is simply not logged in.
+        // Depending on your app's flow, you might redirect to login or show a message.
+        // For an admin page, a redirect is common if not authenticated.
+        // navigate('/login'); // Example
+        return <p>Åtkomst nekad eller sessionen har gått ut.</p>; // Or a more specific message
     }
+
 
     return (
         <div className={styles.adminPermissionsContainer}>

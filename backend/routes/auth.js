@@ -122,7 +122,7 @@ router.post('/login', async (req, res) => {
             // --- Send the permissions back for the roles ---
             const permissions = userRoleDoc.permissions;
 
-            console.log(`Login success for ${user.name}, Role: ${user.role}, Permissions: ${permissions}`);
+            console.log(`Login success for ${user.name}, Role: ${user.role}`);
             res.json({
                 token,
                 user: { id: user._id, name: user.name, role: user.role, permissions: permissions },

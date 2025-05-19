@@ -13,7 +13,6 @@ const getAllDefinedPermissions = () => {
     "kantlista:create", "kantlista:read", "kantlista:update", "kantlista:delete", "kantlista:markComplete", "kantlista:reorder", "kantlista:toggleActive",
     "klupplista:create", "klupplista:read", "klupplista:update", "klupplista:delete", "klupplista:reorder", "klupplista:changeStatus",
     "lagerplats:create", "lagerplats:read", "lagerplats:update", "lagerplats:delete",
-    "users:create", "users:read", "users:update", "users:delete", "users:manageRoles",
     "settings:read", "settings:update",
     "admin:access", "admin:managePermissions"
   ];
