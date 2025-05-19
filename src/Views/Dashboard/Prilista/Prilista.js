@@ -41,8 +41,7 @@ const Prilista = () => {
   const [isTextEditModalOpen, setIsTextEditModalOpen] = useState(false);
   const [error, setError] = useState(false);
 
-  const { hasPermission, isLoadingAuth } = useAuth();
-  console.log("OrderList - useAuth() result:", { hasPermission, isLoadingAuth });
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     // Connect to the WebSocket server

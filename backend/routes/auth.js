@@ -30,7 +30,7 @@ const verifyToken = (token) => {
   }
 };
 
-router.get('/me', async (req, res) => { // Apply the authentication middleware
+router.get('/me', authenticateToken, async (req, res) => { // Apply the authentication middleware
     try {
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: 'Authentication failed or user ID missing.' });
