@@ -515,7 +515,7 @@ const OrderDetailComp = () => {
                     {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort}
                   </p>
                   {/* Add other fields like special, magasin, leveransDatum if needed */}
-                  {item.information && <p>Info: {item.information}</p>}
+                  {item.information && <p>{item.information}</p>}
                   {/* Optionally display status if needed */}
                   {/* <p>Status: {item.status?.klar ? 'Klar' : (item.status?.ej_Klar ? 'Ej Klar' : 'Okänd')}</p> */}
                    {/* Add complete/action buttons if required for Klupplista later */}

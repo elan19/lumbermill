@@ -142,7 +142,6 @@ const CreateOrder = () => {
         },
       });
 
-      console.log(finalKlupplistas);
 
       setSuccess(true);
       // Reset form fields

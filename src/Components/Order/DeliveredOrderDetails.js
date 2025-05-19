@@ -58,7 +58,6 @@ const DeliveredOrderDetails = () => {
         // Handle 404 gracefully for klupplistor if they might not exist.
         if (!klupplistaResponse.ok) {
             if (klupplistaResponse.status === 404) {
-                console.log(`No klupplista found for delivered order ${orderNumber}`);
                 setKlupplistaDetails([]); // Set to empty array if not found
             } else {
                 throw new Error(`Klupplista: ${klupplistaResponse.status} - ${klupplistaResponse.statusText}`);

@@ -114,7 +114,6 @@ function OrderList() {
   }
 
   const ordersToDisplay = orders.filter(order => order.status !== "Delivered");
-  console.log(ordersToDisplay);
 
   return (
     <div className="orderList">

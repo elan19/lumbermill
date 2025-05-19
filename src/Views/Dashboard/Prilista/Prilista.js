@@ -370,7 +370,6 @@ const Prilista = () => {
             );
 
             if (addResponse.status === 201) {
-                console.log("Prilista item successfully added to Lagerplats:", addResponse.data);
                 // Now delete the original Prilista item
                 const deleteResponse = await axios.delete(
                     `${process.env.REACT_APP_API_URL}/api/prilista/${id}`, // Use the correct Prilista delete endpoint
