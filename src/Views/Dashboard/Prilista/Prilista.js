@@ -347,32 +347,19 @@ const Prilista = () => {
       }
 
       // --- LOGIC FOR "LAGER" ITEMS ---
-      if (currentPrilistaItem.customer === "Lager") { // Check if it's a "Lager" item
-        // 1. Create a new Lagerplats entry
-        //    Map Prilista fields to Lagerplats schema fields as needed.
-        //    This assumes 'Okantat' is the correct type for Prilista items moved to lager.
+      if (currentPrilistaItem.customer === "Lager") {
         const newLagerplats = {
-          type: "Okantat", // Or "Sågat" if appropriate and you have the data
-          tree: currentPrilistaItem.type || "Okänt", // Prilista 'type' maps to Lagerplats 'tree'
-          dim: currentPrilistaItem.dimension ? parseInt(currentPrilistaItem.dimension, 10) : 0, // Prilista 'dimension' maps to Lagerplats 'dim'
-          location: currentPrilistaItem.location || "-", // Use existing location or default
-          // Okantat specific data (or sawData if Prilista maps to Sågat)
+          type: "Okantat",
+          tree: currentPrilistaItem.type || "Okänt",
+          dim: currentPrilistaItem.dimension ? parseInt(currentPrilistaItem.dimension, 10) : 0,
+          location: currentPrilistaItem.location || "-",
           okantatData: {
-            // Prilista 'size' might map to 'typ' or be part of a description
-            // For this example, let's assume 'size' could be 'typ' and 'description' is general info
             typ: currentPrilistaItem.size || "-",
-            kvalite: "A", // Or a default/derived quality
-            // varv and nt might not directly map from your current Prilista schema
-            varv: "-", // Placeholder or derive if possible
-            nt: "-",   // Placeholder or derive if possible
-            pktNr: currentPrilistaItem.pktNr // If Prilista has pktNr, map it here
+            kvalite: "A",
+            varv: "-",
+            nt: "-",
+            pktNr: currentPrilistaItem.pktNr
           },
-          // If it was a 'Sågat' type from Prilista, you'd populate sawData:
-          // sawData: {
-          //   tum: ..., // derive from Prilista if possible
-          //   typ: currentPrilistaItem.size,
-          //   nt: ... // derive from Prilista if possible
-          // }
         };
 
         try {
@@ -484,7 +471,7 @@ const Prilista = () => {
 
     const today = new Date();
     const dateStr = today.toLocaleDateString('sv-SE');
-    const pdfFilename = `Prilista_Mätlistor_${dateStr}.pdf`;
+    const pdfFilename = `Prilista_Mätlista_${dateStr}.pdf`;
 
     if (!pdfContentRef.current) {
         console.error("PDF content container ref not found.");
@@ -679,7 +666,7 @@ const handleSaveEditedTextAsPDF = async () => {
 
     const today = new Date();
     const dateStr = today.toLocaleDateString('sv-SE');
-    const pdfFilename = `Prilista_Redigerad_${dateStr}.pdf`;
+    const pdfFilename = `Prilista_Mätlista_${dateStr}.pdf`;
 
     if (!pdfContentRef.current) {
         console.error("PDF content container ref not found.");
@@ -705,11 +692,12 @@ const handleSaveEditedTextAsPDF = async () => {
         /* Reset everything for PDF capture area */
         .pdf-edited-content-container,
         .pdf-edited-content-container * {
-            margin: 0 !important;
-            padding: 0 !important;
+            margin: 0;
+            padding: 0;
             border: none !important;
             box-sizing: border-box !important;
             line-height: 1.4;
+            top: 60px;
         }
         .pdf-edited-content-container {
             font-family: Arial, sans-serif;
@@ -721,10 +709,9 @@ const handleSaveEditedTextAsPDF = async () => {
             font-weight: bold;
             text-align: center;
             color: #000;
-            padding-bottom: 5px; /* Space below title, within its own block */
         }
         .pdf-subtitle {
-            font-size: 14px;
+            font-size: 16px;
             text-align: center;
             color: #555;
             padding-bottom: 15px; /* Space below subtitle, within its own block */
@@ -734,7 +721,7 @@ const handleSaveEditedTextAsPDF = async () => {
         }
         .pdf-edited-content-container pre {
             font-family: Arial, sans-serif;
-            font-size: 16px;
+            font-size: 18px;
             white-space: pre-wrap;
             word-wrap: break-word;
             background-color: white;
@@ -754,7 +741,7 @@ const handleSaveEditedTextAsPDF = async () => {
     pdfContentRef.current.style.position = 'absolute';
     pdfContentRef.current.style.left = '-9999px';
     pdfContentRef.current.style.top = '-9999px';
-    pdfContentRef.current.style.width = '180mm';
+    pdfContentRef.current.style.width = '210mm';
     pdfContentRef.current.style.backgroundColor = 'white';
     pdfContentRef.current.style.padding = '0';
     pdfContentRef.current.style.margin = '0';
@@ -770,7 +757,7 @@ const handleSaveEditedTextAsPDF = async () => {
             windowHeight: pdfContentRef.current.scrollHeight,
             removeContainer: true,
             x: 0, // Capture from the very left of the element
-            y: -65, // Capture from the very top of the element
+            y: -60, // Capture from the very top of the element
         });
 
         const imgData = canvas.toDataURL('image/png');

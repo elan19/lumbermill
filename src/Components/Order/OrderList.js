@@ -39,6 +39,7 @@ function OrderList() {
         setLoading(false);
       }
     };
+    
 
     fetchOrders();
   }, []);
@@ -112,6 +113,9 @@ function OrderList() {
     return <div className="orderList error">Error: {error}</div>;
   }
 
+  const ordersToDisplay = orders.filter(order => order.status !== "Delivered");
+  console.log(ordersToDisplay);
+
   return (
     <div className="orderList">
       <div className="linkDiv">
@@ -120,8 +124,8 @@ function OrderList() {
         )}
       </div>
       <h2>Ordrar</h2>
-      {orders.length === 0 ? (
-        <p>Inga ordrar hittades.</p>
+      {ordersToDisplay.length === 0 ? (
+        <p className="noItems">Inga ordrar att visa.</p>
       ) : (
         orders
           .filter((order) => order.status !== 'Delivered') // Filter out Delivered orders

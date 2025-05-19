@@ -3,8 +3,6 @@ import axios from 'axios';
 import OrderList from '../../../Components/Order/OrderList';
 import OrderDetail from '../../../Components/Order/OrderDetail';
 
-import styles from './Orders.module.css';
-
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
