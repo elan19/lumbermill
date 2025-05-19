@@ -127,7 +127,7 @@ function DeliveredOrderList() {
     <div className="orderList">
       <h2>Levererade Ordrar</h2>
       {orders.length === 0 ? (
-        <p>Inga levererade ordrar hittades.</p>
+        <p className="noItems">Inga ordrar att visa.</p>
       ) : (
         orders.map((order) => (
           <div key={order.orderNumber} className="orderItem">
