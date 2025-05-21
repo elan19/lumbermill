@@ -329,7 +329,7 @@ const LagerPlatsComp = () => {
         {formData.type === "Sågat" && (
           <>
             <label>Tum:</label>
-            <input type="number" name="sawData.tum" value={formData.sawData.tum} placeholder="Ex. 11, 15" onChange={handleInputChange} />
+            <input name="sawData.tum" value={formData.sawData.tum} placeholder="Ex. 11, 15" onChange={handleInputChange} />
             <label>Typ:</label>
             <input name="sawData.typ" value={formData.sawData.typ} placeholder="Ex: Sid/2x" onChange={handleInputChange} />
             <label>Nertork:</label>
@@ -363,7 +363,7 @@ const LagerPlatsComp = () => {
             <label>Nertork:</label>
             <input name="okantatData.nt" value={formData.okantatData.nt} placeholder="Ex. 16%" onChange={handleInputChange} />
             <label>Pkt Nr:</label>
-            <input type="number" name="okantatData.pktNr" value={formData.okantatData.pktNr} placeholder="Paketnummer" onChange={handleInputChange} />
+            <input name="okantatData.pktNr" value={formData.okantatData.pktNr} placeholder="Paketnummer" onChange={handleInputChange} />
             <label>Pkt Namn:</label>
             <input name="okantatData.pktNamn" value={formData.okantatData.pktNamn} placeholder="Paketnamn" onChange={handleInputChange} />
           </>
@@ -489,7 +489,6 @@ const LagerPlatsComp = () => {
                       renderSharedCell(lagerplats, rowIndex, (lp) => ({ 
                         value: lp.type === "Sågat" ? lp.sawData?.tum : (selectedCategory === null ? "-" : ""), 
                         columnKeyForEdit: lp.type === "Sågat" ? "sawData.tum" : "",
-                        isNumeric: true 
                       })) : (selectedCategory !== null && <span>-</span>)
                     }
                   </td>

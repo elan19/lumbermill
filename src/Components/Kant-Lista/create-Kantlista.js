@@ -12,6 +12,7 @@ const CreateKantlista = () => {
   const [varv, setVarv] = useState("");
   const [maxLength, setMaxLength] = useState("");
   const [stampel, setStampel] = useState("");
+  const [typ, setTyp] = useState("FURU");
   const [location, setLocation] = useState("");
   const [information, setInformation] = useState("");
   const [statusKapad, setStatusKapad] = useState(false);
@@ -21,7 +22,7 @@ const CreateKantlista = () => {
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
   const token = localStorage.getItem('token');
-  const { user, hasPermission, isLoadingAuth } = useAuth();
+  const { hasPermission } = useAuth();
 
   const shouldForceLager = !hasPermission('orders', 'create');
 
@@ -67,6 +68,7 @@ const CreateKantlista = () => {
       varv,
       max_langd: maxLength,
       stampel,
+      typ,
       lagerplats: location,
       information,
       pktNr: pktNr ? parseInt(pktNr, 10) : null,
@@ -97,6 +99,7 @@ const CreateKantlista = () => {
       setLocation("");
       setInformation("");
       setPktNr("");
+      setTyp("FURU");
       setStatusKapad(false);
       setStatusKlar(false);
       setIsLager(false); // Reset "Lager" toggle
@@ -162,6 +165,7 @@ const CreateKantlista = () => {
                           setVarv("");
                           setMaxLength("");
                           setStampel("");
+                          setTyp("FURU");
                           setLocation("");
                           setInformation("");
                           setPktNr("");
@@ -205,6 +209,17 @@ const CreateKantlista = () => {
         )}
 
         {/* Common fields for both "Lager" and active orders */}
+
+        <label>Träslag:</label> {/* Added htmlFor for accessibility */}
+        <select
+          value={typ}
+          className={styles.selectOrder}
+          onChange={(e) => setTyp(e.target.value)}
+          required
+        >
+          <option value="FURU">FURU</option>
+          <option value="GRAN">GRAN</option>
+        </select>
 
         <label>Dimension:</label>
         <input

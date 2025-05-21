@@ -117,7 +117,7 @@ const Prilista = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('User not authenticated');
 
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/prilista`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/prilista/active`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -300,8 +300,52 @@ const Prilista = () => {
       console.error('Error updating order:', error);
     }
   };
-  
-  
+
+   const handleDeletePrilistaItem = async (itemId) => {
+    if (!window.confirm("Är du säker på att du vill radera denna Prilista artikel permanent?")) {
+      return; // User canceled
+    }
+
+    try {
+      if (!token) {
+        alert("Autentisering krävs.");
+        return;
+      }
+
+      const response = await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/prilista/${itemId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 204) {
+        // Optimistically update the UI by removing the item from all relevant local state arrays
+        setOrders(prev => prev.filter(order => order._id !== itemId));
+        setIshallenOrders(prev => prev.filter(order => order._id !== itemId));
+        setBsidanOrders(prev => prev.filter(order => order._id !== itemId));
+        setAsidanOrders(prev => prev.filter(order => order._id !== itemId));
+        setEmptyLocationOrders(prev => prev.filter(order => order._id !== itemId));
+        
+        // alert(response.data.message || "Prilista artikel raderad!"); // Optional success feedback
+
+        // You might not need to call fetchOrders() immediately if optimistic update is good enough
+        // but it can ensure consistency if there are other side effects or views.
+        // fetchOrders(); 
+
+        // If you emit a socket event from backend for deletion, other clients will update via that.
+        // If not, and this client needs to inform others, you could consider emitting here too,
+        // though usually the backend handles authoritative state changes.
+      } else {
+        throw new Error(`Failed to delete Prilista item: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error deleting Prilista item:', error);
+      alert('Misslyckades med att radera Prilista artikel. ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   const handleUpdateLagerplats = async (prilistaId, newLocation) => {
     try {
@@ -466,7 +510,7 @@ const Prilista = () => {
   // --- PDF DOWNLOAD FUNCTION ---
   const handleDownloadPrilistaPDF = async () => {
     setIsGeneratingPdf(true);
-    setError(null); // Clear previous errors
+    setError(null);
 
     const today = new Date();
     const dateStr = today.toLocaleDateString('sv-SE');
@@ -479,9 +523,6 @@ const Prilista = () => {
         return;
     }
 
-    // Determine which data to export based on current view
-    // If filtered, allOrders combines the filtered location lists.
-    // If not filtered, 'orders' state contains all incomplete items, sorted by position.
     const dataToExport = isFiltered ? allOrders : orders.sort((a, b) => (a.position || 0) - (b.position || 0));
 
     if (dataToExport.length === 0) {
@@ -495,62 +536,56 @@ const Prilista = () => {
       <style>
         .pdf-prilista-container {
             font-family: Arial, sans-serif;
-            padding-top: 15mm;
-            padding-right: 15mm;
+            padding-top: 15mm; /* Reduced top padding a bit */
+            padding-left: 5mm; /* Add some left padding for content */
+            padding-right: 5mm;/* Add some right padding for content */
             background-color: white;
             color: #333;
-            width: 210mm;
-            box-sizing: border-box;
+            width: 210mm; /* Full A4 width */
+            box-sizing: border-box; /* Crucial for width calculation with padding */
             border: none !important;
             outline: none !important;
         }
         .pdf-prilista-container h2 {
-            font-size: 26px;
+            font-size: 22px; /* Slightly smaller */
             text-align: center;
             color: #000;
+            margin-top: 0;
+            margin-bottom: 1mm; /* Space after title */
+            padding: 0;
             border: none !important;
-            outline: none !important;
-            margin: none;
-            padding: none;
-        }
-        h1 {
-          border-bottom: none;
-          outline: none;
         }
         .pdf-prilista-container h3 {
-            font-size: 16px; /* Slightly smaller */
+            font-size: 14px; /* Slightly smaller */
             text-align: center;
             color: #555;
-            border: none;
+            margin-top: 0;
+            margin-bottom: 2mm; /* Space after subtitle */
+            padding: 0;
+            border: none !important;
         }
         .pdf-prilista-item {
-            margin-bottom: 3px;
-            padding-bottom: 3px;
-            font-size: 18px;
-            line-height: 1.4;
-            border: none;
-            display: flex;
-            flew-wrap: wrap;
+            margin-bottom: 1.5mm; /* Space between items */
+            padding-bottom: 0;   /* No extra padding at bottom of item div */
+            font-size: 13pt;      /* Reduced font size for items */
+            line-height: 1.2;     /* Adjusted line height */
+            border: none !important; /* Ensure no border on the item container */
+            /* display: flex; /* Removed flex as it can complicate wrapping with nowrap removed */
+            /* flew-wrap: wrap; */
         }
-        .pdf-prilista-item:last-child {
-            border: none;
-        }
+        /* Removed :last-child rule as border:none is on all items now */
+
         .pdf-prilista-item .details-line {
-            margin-left: 5px;
+            /* margin-left: 5px; /* You can remove if not needed or reduce */
             color: #444;
-            font-size: 18px;
-            border: none;
-            white-space: nowrap;
+            /* font-size: 14px; /* Font size now on .pdf-prilista-item */
+            border: none !important;
+            white-space: normal;   /* <<< KEY CHANGE: Allow text to wrap */
+            overflow-wrap: break-word; /* Help break long words */
+            word-wrap: break-word;     /* Older browser support */
+            display: block; /* Ensure it behaves like a block for wrapping */
         }
-        .pdf-prilista-item .info-text {
-            display: block;
-            margin-top: 3px;
-            margin-left: 5px;
-            font-style: italic;
-            color: #555;
-            font-size: 18px;
-            border: none;
-        }
+        /* Removed .info-text as it wasn't used in the item generation loop */
       </style>
       <div class="pdf-prilista-container">
         <h2>Mätlista</h2>
@@ -558,16 +593,25 @@ const Prilista = () => {
     `;
 
     dataToExport.forEach(item => {
+        // Ensure all parts are strings and handle undefined/null
+        const orderNumber = item.orderNumber || '';
+        const customer = item.customer || '';
+        const quantity = item.quantity ? `${item.quantity}PKT` : '';
+        const dimension = item.dimension ? `${item.dimension}MM` : '';
+        const size = item.size || '';
+        const type = item.type || '';
+        const description = item.description || '';
+
         contentHTML += `
             <div class="pdf-prilista-item">
                 <div class="details-line">
-                    ${item.orderNumber || ''}${item.orderNumber ? ' ' : ''}${item.customer || ''} ${item.quantity ? `${item.quantity}PKT` : ''} ${item.dimension ? `${item.dimension}MM` : ''} ${item.size || ''} ${item.type || ''} ${item.description || ''}
+                    ${orderNumber}${orderNumber && customer ? ' ' : ''}${customer}${customer && (quantity || dimension || size || type || description) ? ' ' : ''}${quantity}${quantity && (dimension || size || type || description) ? ' ' : ''}${dimension}${dimension && (size || type || description) ? ' ' : ''}${size}${size && (type || description) ? ' ' : ''}${type}${type && description ? ' ' : ''}${description}
                 </div>
             </div>
         `;
     });
 
-    contentHTML += `</div>`;
+    contentHTML += `</div>`; // Close pdf-prilista-container
     // --- END OF HTML CONSTRUCTION ---
 
     pdfContentRef.current.innerHTML = contentHTML;
@@ -575,18 +619,23 @@ const Prilista = () => {
     pdfContentRef.current.style.position = 'absolute';
     pdfContentRef.current.style.left = '-9999px';
     pdfContentRef.current.style.top = '-9999px';
-    pdfContentRef.current.style.width = '210mm';
+    pdfContentRef.current.style.width = '210mm'; // A4 width
     pdfContentRef.current.style.backgroundColor = 'white';
+    pdfContentRef.current.style.padding = '0'; // No padding on the off-screen ref itself
+    pdfContentRef.current.style.margin = '0';
 
 
     try {
         const canvas = await html2canvas(pdfContentRef.current, {
-            scale: 2.5,
+            scale: 2.5, // High scale for better quality, but can increase processing time
             useCORS: true,
-            logging: false,
-            backgroundColor: null,
-            windowWidth: pdfContentRef.current.scrollWidth,
+            logging: false, // Set to true for debugging html2canvas issues
+            backgroundColor: '#ffffff', // Explicitly set background for canvas
+            windowWidth: pdfContentRef.current.offsetWidth, // Use offsetWidth for more reliable width
             windowHeight: pdfContentRef.current.scrollHeight,
+            // x: 0, // Ensure capture starts from the left edge of the element
+            // y: 0, // Ensure capture starts from the top edge of the element
+            removeContainer: false, // Keep true if you don't need to inspect it after
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -596,24 +645,47 @@ const Prilista = () => {
             format: 'a4'
         });
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 15;
+        const pdfPageWidth = pdf.internal.pageSize.getWidth();
+        const pdfPageHeight = pdf.internal.pageSize.getHeight();
+        const pageMargin = 15; // Your desired margin on the PDF page
 
-        const imgEffectiveWidth = pdfWidth - (2 * margin);
+        // Calculate image dimensions to fit within PDF page margins
+        const imgEffectiveWidth = pdfPageWidth - (2 * pageMargin);
         const imgEffectiveHeight = (canvas.height * imgEffectiveWidth) / canvas.width;
 
-        let positionY = margin;
-        let heightLeft = imgEffectiveHeight;
+        let positionYOnPage = pageMargin;
+        let remainingImageHeight = imgEffectiveHeight;
+        let imageOffsetY = 0; // How much of the source image has been drawn
 
-        pdf.addImage(imgData, 'PNG', margin, positionY, imgEffectiveWidth, imgEffectiveHeight);
-        heightLeft -= (pdfHeight - (2 * margin));
+        while (remainingImageHeight > 0) {
+            const drawableHeightOnPage = pdfPageHeight - (2 * pageMargin);
+            const heightToDrawThisPage = Math.min(remainingImageHeight, drawableHeightOnPage);
 
-        while (heightLeft > 0) {
-            positionY = margin - heightLeft; // Negative y-offset for the image on new pages
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', margin, positionY, imgEffectiveWidth, imgEffectiveHeight);
-            heightLeft -= (pdfHeight - (2 * margin));
+            // Add the current slice of the image
+            // We need to use the addImage overload that allows specifying source coordinates (sx, sy, sw, sh)
+            // to clip the canvas image for pagination.
+            // However, jsPDF's basic addImage for a full canvas data URL doesn't directly support slicing
+            // the source image in this way for pagination. The typical approach with a single large
+            // canvas is to adjust the 'y' position of the *same full image* on subsequent pages.
+
+            if (imageOffsetY > 0) { // If it's not the first page
+                pdf.addPage();
+                positionYOnPage = pageMargin; // Reset Y position for the new page
+            }
+
+            // The y-offset for the image on subsequent pages needs to account for what's already drawn.
+            // We are adding the *entire* image but positioning its *top edge* with a negative offset.
+            pdf.addImage(imgData, 'PNG', pageMargin, positionYOnPage - imageOffsetY, imgEffectiveWidth, imgEffectiveHeight);
+
+            const heightDrawnThisLoop = pdfPageHeight - (2 * pageMargin); // Max content height on one PDF page
+            imageOffsetY += heightDrawnThisLoop;
+            remainingImageHeight -= heightDrawnThisLoop;
+
+            if (remainingImageHeight > 0 && imageOffsetY >= imgEffectiveHeight) {
+                // Safety break if calculations are off to prevent infinite loop
+                console.warn("PDF pagination safety break triggered.");
+                break;
+            }
         }
 
         pdf.save(pdfFilename);
@@ -625,10 +697,13 @@ const Prilista = () => {
         if (pdfContentRef.current) {
             pdfContentRef.current.innerHTML = '';
             pdfContentRef.current.style.display = 'none';
+            // Reset other styles as before
             pdfContentRef.current.style.position = '';
             pdfContentRef.current.style.left = '';
             pdfContentRef.current.style.top = '';
             pdfContentRef.current.style.width = '';
+            pdfContentRef.current.style.padding = '';
+            pdfContentRef.current.style.margin = '';
         }
         setIsGeneratingPdf(false);
     }
@@ -806,7 +881,7 @@ const handleSaveEditedTextAsPDF = async () => {
     fetchOrders();
   };
 
-  const DraggableRow = ({ order, index, list, moveOrderUp, moveOrderDown, moveOrder, onComplete, onFilter, showMeasureLocation }) => {
+  const DraggableRow = ({ order, index, list, moveOrderUp, moveOrderDown, moveOrder, onComplete, onFilter, showMeasureLocation, onDeleteItem }) => {
     const ref = React.useRef(null);
   
     const [, drop] = useDrop({
@@ -863,13 +938,24 @@ const handleSaveEditedTextAsPDF = async () => {
         {showMeasureLocation && <td data-label="Mätplats:">{order.measureLocation || '-'}</td>}
         <td data-label="Information:">{order.description || '-'}</td>
         <td data-label="Lagerplats:">{order.location || '-'}</td>
-        <td data-label="Avklarad:">
+        <td data-label="Åtgärder:" className={styles.actionsCell}> {/* Changed label for clarity */}
           {!order.completed && (
-            <button onClick={() => onComplete(order._id)} className={styles.completeButton}>
-              &#10003;
+            <button onClick={() => onComplete(order._id)} className={styles.completeButton} title="Markera som avklarad/bearbetad">
+              ✓ {/* Checkmark */}
+            </button>
+          )}
+          {/* Conditionally render Delete button for "Lager" items that are not completed */}
+          {order.customer === "Lager" && !order.completed && hasPermission('prilista', 'delete') && (
+            <button 
+              onClick={() => onDeleteItem(order._id)} 
+              className={styles.deleteItemButton} // Add a new style for this button
+              title="Radera denna Lager-artikel"
+            >
+              ✕ {/* Cross mark (X) */}
             </button>
           )}
         </td>
+        
         
       </tr>
     );
@@ -1013,6 +1099,7 @@ const handleSaveEditedTextAsPDF = async () => {
                   moveOrderDown={moveOrderDown}
                   onComplete={handleComplete}
                   onFilter={handleFilterClick}
+                  onDeleteItem={handleDeletePrilistaItem}
                   showMeasureLocation={false}
                 />
               ))}
@@ -1083,6 +1170,7 @@ const handleSaveEditedTextAsPDF = async () => {
                   moveOrderDown={moveOrderDown}
                   onComplete={handleComplete}
                   onFilter={handleFilterClick}
+                  onDeleteItem={handleDeletePrilistaItem}
                   showMeasureLocation={false}
                 />
               ))}
@@ -1118,6 +1206,7 @@ const handleSaveEditedTextAsPDF = async () => {
                   moveOrderDown={moveOrderDown}
                   onComplete={handleComplete}
                   onFilter={handleFilterClick}
+                  onDeleteItem={handleDeletePrilistaItem}
                 />
               ))}
             </tbody>
@@ -1157,6 +1246,7 @@ const handleSaveEditedTextAsPDF = async () => {
                     onComplete={handleComplete}
                     onFilter={handleFilterClick}
                     showMeasureLocation={true}
+                    onDeleteItem={handleDeletePrilistaItem}
                   />
                 ))}
             </tbody>

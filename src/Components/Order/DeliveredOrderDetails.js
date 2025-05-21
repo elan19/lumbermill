@@ -90,6 +90,56 @@ const DeliveredOrderDetails = () => {
   const totalPackets = prilistaDetails.reduce((sum, item) => sum + item.quantity, 0) +
   kantlistaDetails.reduce((sum, item) => sum + item.antal, 0) + klupplistaDetails.reduce((sum, item) => sum + (item.antal || 0), 0);
 
+  const groupAndSortItems = (items, typeField = 'type' || 'typ', sortField = null, sortOrder = 'asc') => {
+    if (!items || items.length === 0) {
+        return {};
+    }
+
+    const grouped = items.reduce((acc, item) => {
+        const groupKey = item[typeField] || 'Okänt'; // Fallback for items without the type field
+        if (!acc[groupKey]) {
+            acc[groupKey] = [];
+        }
+        acc[groupKey].push(item);
+        return acc;
+    }, {});
+
+    // Optionally sort items within each group
+    if (sortField) {
+        for (const key in grouped) {
+            grouped[key].sort((a, b) => {
+                // Basic sort, extend as needed for numbers, dates, etc.
+                if (a[sortField] < b[sortField]) return sortOrder === 'asc' ? -1 : 1;
+                if (a[sortField] > b[sortField]) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+    }
+    return grouped;
+  };
+
+  const groupedPrilistaItems = groupAndSortItems(prilistaDetails, 'type');
+  const groupedKantlistaItems = groupAndSortItems(kantlistaDetails, 'typ');
+
+  const prilistaTypeOrder = ['FURU', 'GRAN']; // Add other types in desired order
+  const kantlistaTypeOrder = ['FURU', 'GRAN']; // Add other types in desired order
+
+  const getSortedGroupKeys = (groupedItems, orderArray) => {
+    const keys = Object.keys(groupedItems);
+    return keys.sort((a, b) => {
+        const indexA = orderArray.indexOf(a.toUpperCase()); // Make comparison case-insensitive if needed
+        const indexB = orderArray.indexOf(b.toUpperCase());
+
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b); // Both not in order, sort alphabetically
+        if (indexA === -1) return 1;  // a is not in order, b is, so b comes first
+        if (indexB === -1) return -1; // b is not in order, a is, so a comes first
+        return indexA - indexB;     // Both in order, sort by their index
+    });
+};
+
+const sortedPrilistaGroupKeys = getSortedGroupKeys(groupedPrilistaItems, prilistaTypeOrder);
+const sortedKantlistaGroupKeys = getSortedGroupKeys(groupedKantlistaItems, kantlistaTypeOrder);
+
   if (loading) {
     return <p>Loading order details...</p>;
   }
@@ -104,7 +154,7 @@ const DeliveredOrderDetails = () => {
 
   return (
     <div className="orderDetail">
-      <h2>UTLASTNINGSORDER - Levererad</h2>
+      <h2>UTLASTNINGSORDER #{orderDetails.orderNumber} - Levererad</h2>
       <div className="orderHeader">
         <div className="orderInfo">
           <p>Order nr: {orderDetails.orderNumber}</p>
@@ -122,18 +172,30 @@ const DeliveredOrderDetails = () => {
         <p>Speditör: BIL {totalPackets} PKT</p>
       </div>
       <div className="prilistaDetails">
-        {prilistaDetails.length > 0 ? (
-          <>
-          <h3>Okantad</h3>
+      {prilistaDetails.length > 0 ? (
+        <>
           <div className="prilistaList">
-            {prilistaDetails.map((item, index) => (
-              <div key={index} className="prilistaItem">
-                <p>{item.quantity} pkt {item.dimension} MM {item.size}</p>
-                <p>{item.description}</p>
-              </div>
+            {sortedPrilistaGroupKeys.map(typeKey => (
+              // Check if there are items for this specific typeKey
+              groupedPrilistaItems[typeKey] && groupedPrilistaItems[typeKey].length > 0 && (
+                <div key={`prilista-group-${typeKey}`} className="prilistaTypeGroup">
+                  {/* Subheading for the specific type, e.g., "FURV" or "GRAN" */}
+                  <h4 className="prilistah3">OKANTAT {typeKey.toUpperCase()}</h4> {/* THIS SHOULD RENDER "FURU" or "GRAN" ONCE PER TYPE */}
+                  
+                  <div className="prilistaList"> {/* Container for items of this specific type */}
+                    {groupedPrilistaItems[typeKey].map((item, index) => (
+                      <div key={item._id || index} className="prilistaItem">
+                        <p>
+                          {item.quantity}PKT {item.dimension}MM {item.size} {item.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
             ))}
           </div>
-          </>
+        </>
         ) : (
           <p></p>
         )}
@@ -141,13 +203,22 @@ const DeliveredOrderDetails = () => {
       <div className="kantlistaDetails">
         {kantlistaDetails.length > 0 ? (
           <>
-          <h3>Kantad</h3>
           <div className="kantlistaList">
-            {kantlistaDetails.map((item, index) => (
-              <div key={index} className="kantlistaItem">
-                <p>{item.antal} pkt {item.tjocklek} x {item.bredd}</p>
-                <p>{item.information}</p>
-              </div>
+            {sortedKantlistaGroupKeys.map(typeKey => (
+              groupedKantlistaItems[typeKey] && groupedKantlistaItems[typeKey].length > 0 && (
+                <div key={`kantlista-group-${typeKey}`} className="kantlistaTypeGroup">
+                  <h4 className="kantatH3">KANTAT {typeKey.toUpperCase()}</h4>
+                  <div className="kantlistaList">
+                    {groupedKantlistaItems[typeKey].map((item, index) => (
+                      <div key={item._id || index} className="kantlistaItem">
+                        <p>
+                          {item.antal}PKT {item.tjocklek}x{item.bredd}MM {item.max_langd}M {item.information}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
             ))}
           </div>
           </>
@@ -165,12 +236,8 @@ const DeliveredOrderDetails = () => {
                 <div key={item._id || index} className="klupplistItem"> {/* Use _id and class */}
                   {/* Display relevant Klupplista fields for a delivered order */}
                   <p>
-                    {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort}
+                    {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort} {item.information}
                   </p>
-                  {/* Add other fields like special, magasin, leveransDatum if needed */}
-                  {item.information && <p>Info: {item.information}</p>}
-                  {/* For delivered orders, klupplista status should be 'klar: true' */}
-                  {/* <p>Status: {item.status?.klar ? 'Klar' : 'Information saknas'}</p> */}
                 </div>
               ))}
             </div>

@@ -161,7 +161,7 @@ const AdminRolePermissions = () => {
 
     return (
         <div className={styles.adminPermissionsContainer}>
-            <h2>Hantera Rollbehörigheter</h2>
+            <h2>Hantera behörigheter</h2>
             {error && <p className={styles.errorMessage}>{error}</p>}
             {successMessage && <p className={styles.successMessage}>{successMessage}</p>}
             <div className={styles.roleSelector}>

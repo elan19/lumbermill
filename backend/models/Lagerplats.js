@@ -9,7 +9,7 @@ const LagerplatsSchema = new mongoose.Schema({
 
   // Specifikt för Sågat virke
   sawData: {
-    tum: { type: Number }, // Inches
+    tum: { type: String }, // Inches
     typ: { type: String }, // Side/X
     nt: { type: String }, // Nertork, additional info
   },
@@ -24,13 +24,13 @@ const LagerplatsSchema = new mongoose.Schema({
   },
 
   okantatData: {
-        varv: { type: String },
-        kvalite: { type: String }, // Include the bad qualities
-        typ: { type: String },
-        nt: { type: String },
-        pktNr: { type: Number },
-        pktNamn: { type: String }
-    },
+    varv: { type: String },
+    kvalite: { type: String }, // Include the bad qualities
+    typ: { type: String },
+    nt: { type: String },
+    pktNr: { type: Number },
+    pktNamn: { type: String }
+  },
 });
 
 module.exports = mongoose.model('Lagerplats', LagerplatsSchema);

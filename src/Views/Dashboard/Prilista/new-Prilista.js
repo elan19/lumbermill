@@ -11,11 +11,12 @@ const CreatePrilista = () => {
   const [customer, setCustomer] = useState("");
   const [quantity, setQuantity] = useState(""); // Keep as string for input, parse on submit
   const [size, setSize] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState("FURU");
   const [dimension, setDimension] = useState("");
   const [description, setDescription] = useState("");
   const [measureLocation, setMeasureLocation] = useState("");
   const [isLager, setIsLager] = useState(false);
+  const [isItemActive, setIsItemActive] = useState(false);
   const [pktNr, setPktNr] = useState("");
   const [error, setError] = useState(null);
   const token = localStorage.getItem('token');
@@ -61,8 +62,13 @@ const CreatePrilista = () => {
     const finalQuantity = isLager || shouldForceLager ? 1 : (quantity ? parseInt(quantity, 10) : 0);
 
     // Validation
-    if (!isLager && (!finalCustomer)) {
-        setError("Ordernummer och Kund är obligatoriska när 'Lager' inte är valt.");
+    if (!isLager && !shouldForceLager && !finalCustomer) { // Corrected condition for customer
+        setError("Kund är obligatoriskt när 'Lager' inte är valt.");
+        return;
+    }
+    // Order number validation (only if not lager/forceLager)
+    if (!isLager && !shouldForceLager && (!orderNumber || isNaN(parseInt(orderNumber, 10)))) {
+        setError("Ordernummer är obligatoriskt och måste vara ett nummer när 'Lager' inte är valt.");
         return;
     }
     if (!finalQuantity || !size || !dimension || !type) {
@@ -81,42 +87,34 @@ const CreatePrilista = () => {
       description,
       measureLocation,
       isLager: isLager || shouldForceLager,
-      pktNr,
+      pktNr, // Ensure pktNr is a number or null
+      // --- CORRECTED ACTIVE LOGIC ---
+      active: isLager || shouldForceLager ? true : isItemActive
     };
 
+    console.log("Submitting new Prilista:", newPrilista); // For debugging
+
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/prilista/create`, newPrilista, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!isLager && response.data.prilistaId) {
-        const createdPrilistaId = response.data.prilistaId;
-        await axios.put(`${process.env.REACT_APP_API_URL}/api/orders/${orderNumber}/add-prilista`, {
-          prilistaId: createdPrilistaId,
-        }, {
-          headers: { Authorization: `Bearer ${token}` },
+        // --- Your API call to submit newPrilista ---
+        const token = localStorage.getItem('token');
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/prilista/create`, newPrilista, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
-      }
 
-      navigate("/dashboard/prilista");
+        console.log("Prilista item created:", response.data);
+        // Optionally: clear form, show success message, navigate, or refresh list
+        // Example:
+        // clearForm(); // You'd need to create this function
+        // alert("Prilista artikel skapad!");
+        navigate('/dashboard/prilista'); // If you want to navigate away
 
-      // Reset form
-      setOrderNumber("");
-      setCustomer("");
-      setQuantity("");
-      setSize("");
-      setType("");
-      setDimension("");
-      setDescription("");
-      setMeasureLocation("");
-      setPktNr("");
-      setIsLager(false);
-      setError(null);
-    } catch (err) {
-      console.error("Error creating PRILISTA:", err.response?.data || err.message);
-      setError(err.response?.data?.message || "Misslyckades att skapa en ny PRILISTA.");
+    } catch (apiError) {
+        console.error("Error submitting Prilista:", apiError.response?.data || apiError.message);
+        setError(apiError.response?.data?.message || "Kunde inte skapa Prilista artikel.");
     }
-  };
+};
 
   const handleOrderSelect = (selectedOrderValue) => {
     if (isLager) return;
@@ -137,7 +135,8 @@ const CreatePrilista = () => {
     // Reset item-specific fields
     setQuantity("");
     setSize("");
-    setType("");
+    setType("FURU");
+    setIsItemActive(false);
     setDimension("");
     setDescription("");
     setMeasureLocation("");
@@ -234,17 +233,6 @@ const CreatePrilista = () => {
           placeholder="T.ex. 50"
         />
 
-        <label htmlFor="pktNrPrilista">Paketnummer: </label>
-        <input
-          type="number"
-          id="pktNrPrilista"
-          value={pktNr}
-          onChange={(e) => setPktNr(e.target.value)}
-          required
-          className={styles.inputField}
-          placeholder="T.ex. 30"
-        />
-
         <label htmlFor="sizePrilista">Storlek (Bredd/Info): *</label>
         <input
           type="text"
@@ -257,14 +245,44 @@ const CreatePrilista = () => {
         />
 
         <label htmlFor="typePrilista">Träslag: *</label>
-        <input
-          type="text"
+        <select
           id="typePrilista"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
+          value={type} // The current selected value, managed by your 'type' state
+          onChange={(e) => setType(e.target.value)} // Update the 'type' state when an option is selected
           required
+          className={styles.selectOrder} // You can reuse your existing inputField style or create a new one for selects
+        >
+          <option value="FURU">FURU</option> {/* Optional: Default placeholder option */}
+          <option value="GRAN">GRAN</option>
+          {/* You can add more options here if needed in the future */}
+          {/* <option value="LÄRK">LÄRK</option> */}
+          {/* <option value="ANNAT">ANNAT (Specify below)</option> */}
+        </select>
+
+        {!(isLager || shouldForceLager) && (
+          <div className={styles.inputGroup}> {/* Or your preferred styling class */}
+            <label htmlFor="itemActiveSelect">Aktiv i Mätlista:</label>
+            <select
+            className={styles.selectOrder}
+              id="itemActiveSelect"
+              value={isItemActive ? 'true' : 'false'} // Reflect the boolean state as string values
+              onChange={(e) => setIsItemActive(e.target.value === 'true')} // Convert back to boolean on change
+              // className={styles.selectField} // Your class for select elements
+            >
+              <option value="false">Nej</option> {/* Default to Nej */}
+              <option value="true">Ja</option>
+            </select>
+          </div>
+        )}
+
+        <label htmlFor="pktNrPrilista">Paketnummer: </label>
+        <input
+          type="number"
+          id="pktNrPrilista"
+          value={pktNr}
+          onChange={(e) => setPktNr(e.target.value)}
           className={styles.inputField}
-          placeholder="T.ex. F, Gr"
+          placeholder="T.ex. 30"
         />
 
         <label htmlFor="measureLocationPrilista">Mätplats: <span className={styles.optional}>(Frivillig)</span></label>

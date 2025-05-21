@@ -36,115 +36,150 @@ const OrderDetailComp = () => {
         return;
     }
 
-    // Store the original styles to restore them later
     const originalStyles = {
         buttons: [],
         prilistaItems: [],
         kantlistaItems: [],
         klupplistaItems: [],
-        // Specific styles we will change for PDF
         prilistaH3_marginTop: '',
-        // ** Store original styles for vehicleBorder **
-        vehicleBorder_borderBottom: '', // ADDED: To store original border
+        prilistaH3_marginBottom: '', // Store original marginBottom for H3
+        kantlistaH3_marginTop: '',   // For Kantlista H3
+        kantlistaH3_marginBottom: '',// For Kantlista H3
+        klupplistaH3_marginTop: '', // For Klupplista H3
+        klupplistaH3_marginBottom: '',// For Klupplista H3
+        prilistaTypeSubheading_styles: [], // To store multiple subheading styles
+        kantlistaTypeSubheading_styles: [], // To store multiple subheading styles
+        vehicleBorder_borderBottom: '',
         vehicleBorder_marginBottom: '',
         notesSection_marginTop: '',
-        // Container styles
+        notesSection_padding: '', // Store original padding for notes
         elementBorder: element.style.border,
         elementBoxShadow: element.style.boxShadow,
         elementBgColor: element.style.backgroundColor,
-        elementPadding: element.style.padding
+        elementPadding: element.style.padding,
+        // To store styles for paragraph tags within items
+        itemParagraphs_prilista: [],
+        itemParagraphs_kantlista: [],
+        itemParagraphs_klupplista: []
     };
 
     // --- Prepare HTML for Canvas ---
-
-    // 1. Add main title (centered)
     const tempH2 = document.createElement('h2');
     tempH2.innerText = 'UTLASTNINGSORDER';
     tempH2.style.textAlign = 'center';
-    tempH2.style.marginBottom = '0px'; // Adjusted for tighter layout
-    tempH2.style.marginTop = '10px';  // Added some top margin
-    tempH2.style.fontSize = '24px';
+    tempH2.style.marginBottom = '0px'; // Further reduced for tighter layout
+    tempH2.style.fontSize = '22px';   // Slightly smaller title
     tempH2.id = 'tempH2PDF';
     element.prepend(tempH2);
 
-    // 2. Hide buttons/elements
     const buttons = document.querySelectorAll('.exclude-from-pdf');
     buttons.forEach((button) => {
         originalStyles.buttons.push(button.style.display);
         button.style.display = 'none';
     });
 
-    // 3. Simplify list item styling
-    const prilistor = document.querySelectorAll('.prilistaItem');
-    prilistor.forEach((prilistor) => {
-        originalStyles.prilistaItems.push({
-            border: prilistor.style.border,
-            padding: prilistor.style.padding,
-            marginBottom: prilistor.style.marginBottom,
-            marginTop: prilistor.style.marginTop // Store original marginTop too
+    // --- Adjust List Item Styling (Prilista, Kantlista, Klupplista) ---
+    const processListItems = (listSelector, originalStylesArray, itemParagraphsArray) => {
+        const items = document.querySelectorAll(listSelector);
+        items.forEach((item) => {
+            originalStylesArray.push({
+                border: item.style.border,
+                padding: item.style.padding,
+                marginBottom: item.style.marginBottom,
+                marginTop: item.style.marginTop,
+                // Optionally store font size if you change it
+                // fontSize: item.style.fontSize 
+            });
+            item.style.border = 'none';
+            item.style.padding = "0px";  // Minimal padding for the item container
+            item.style.marginBottom = "2px"; // Reduce space between items
+            item.style.marginTop = "0px";
+            // item.style.fontSize = "10pt"; // OPTIONAL: Reduce font size of item text
+
+            // Adjust paragraphs within the item
+            const paragraphs = item.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                itemParagraphsArray.push({
+                    element: p, // Store reference to the element
+                    marginBottom: p.style.marginBottom,
+                    marginTop: p.style.marginTop,
+                    lineHeight: p.style.lineHeight,
+                    fontSize: p.style.fontSize // Store original font size
+                });
+                p.style.marginBottom = "0px"; // Remove bottom margin from paragraph
+                p.style.marginTop = "0px";   // Remove top margin from paragraph
+                p.style.lineHeight = "0.6";  // Reduce line height for tighter text
+                // p.style.fontSize = "9pt"; // OPTIONAL: Make paragraph font even smaller
+            });
         });
-        prilistor.style.border = 'none';
-        prilistor.style.padding = "0px";
-        prilistor.style.marginBottom = "5px";
-        prilistor.style.marginTop = "0px";
-    });
+    };
 
-    const kantlistor = document.querySelectorAll('.kantlistaItem');
-    kantlistor.forEach((kantlistor) => {
-        originalStyles.kantlistaItems.push({
-            border: kantlistor.style.border,
-            padding: kantlistor.style.padding,
-            marginBottom: kantlistor.style.marginBottom
+    processListItems('.prilistaItem', originalStyles.prilistaItems, originalStyles.itemParagraphs_prilista);
+    processListItems('.kantlistaItem', originalStyles.kantlistaItems, originalStyles.itemParagraphs_kantlista);
+    processListItems('.klupplistItem', originalStyles.klupplistaItems, originalStyles.itemParagraphs_klupplista);
+
+
+    // --- Adjust Heading Styling ---
+    const processHeadingStyles = (selector, originalMarginTopKey, originalMarginBottomKey) => {
+        const heading = document.getElementById(selector);
+        if (heading) {
+            originalStyles[originalMarginTopKey] = heading.style.marginTop;
+            originalStyles[originalMarginBottomKey] = heading.style.marginBottom;
+            heading.style.marginTop = "0px"; // Space above main category heading
+            heading.style.marginBottom = "0px"; // Space below main category heading, before first sub-group
+            // heading.style.fontSize = "14pt"; // Optional: Adjust heading font size
+        }
+    };
+    processHeadingStyles('prilistaH3', 'prilistaH3_marginTop', 'prilistaH3_marginBottom');
+    processHeadingStyles('kantlistaH3', 'kantlistaH3_marginTop', 'kantlistaH3_marginBottom');
+    processHeadingStyles('klupplistaH3', 'klupplistaH3_marginTop', 'klupplistaH3_marginBottom');
+
+    // Adjust Type Subheadings (e.g., OKANTAD FURU)
+    const processTypeSubheadings = (listSelector, originalStylesArray) => {
+        const subheadings = document.querySelectorAll(listSelector);
+        subheadings.forEach(sh => {
+            originalStylesArray.push({
+                element: sh,
+                marginTop: sh.style.marginTop,
+                marginBottom: sh.style.marginBottom,
+                fontSize: sh.style.fontSize
+            });
+            sh.style.marginTop = "0px"; // Tighter space above type subheading
+            sh.style.marginBottom = "0px"; // Tighter space below type subheading, before items
+            // sh.style.fontSize = "11pt"; // Optional: Adjust subheading font size
         });
-        kantlistor.style.border = 'none';
-        kantlistor.style.padding = "0px";
-        kantlistor.style.marginBottom = "5px";
-    });
+    };
+    processTypeSubheadings('.prilistaTypeSubheading', originalStyles.prilistaTypeSubheading_styles);
+    processTypeSubheadings('.kantlistaTypeSubheading', originalStyles.kantlistaTypeSubheading_styles);
 
-    const klupplistor = document.querySelectorAll('.klupplistItem'); // Select klupplist items
-    klupplistor.forEach((kluppItem) => {
-        originalStyles.klupplistaItems.push({ // Store original styles
-            border: kluppItem.style.border,
-            padding: kluppItem.style.padding,
-            marginBottom: kluppItem.style.marginBottom, // Store margins if needed
-            marginTop: kluppItem.style.marginTop
-        });
-        kluppItem.style.border = 'none'; // Remove border for PDF
-        kluppItem.style.padding = "0px"; // Remove padding for PDF
-        kluppItem.style.marginBottom = "5px"; // Add consistent spacing
-        kluppItem.style.marginTop = "0px";
-    });
 
-    // 4. Adjust overall container and specific element styles
-
-    // Container styles
     element.style.backgroundColor = '#fff';
     element.style.border = "none";
     element.style.boxShadow = "none";
-    element.style.padding = "5px";
+    element.style.padding = "0px 0px"; // Add a little horizontal padding if needed
 
-    // ** Vehicle details div - EXPLICITLY REMOVE border-bottom for PDF **
     const vehicleBorder = document.getElementById('vehicleBorder');
     if (vehicleBorder) {
-        originalStyles.vehicleBorder_borderBottom = vehicleBorder.style.borderBottom; // Store original CSS border
+        originalStyles.vehicleBorder_borderBottom = vehicleBorder.style.borderBottom;
         originalStyles.vehicleBorder_marginBottom = vehicleBorder.style.marginBottom;
-
-        vehicleBorder.style.borderBottom = "none"; // <-- REMOVE BORDER FOR PDF
-        vehicleBorder.style.marginBottom = "20px"; // Ensure adequate space below (adjust as needed)
+        vehicleBorder.style.borderBottom = "none";
+        vehicleBorder.style.marginBottom = "0px"; // Reduce space after vehicle details
     }
 
-    // Prilista heading - Adjust top margin if needed
-    const prilistaH3 = document.getElementById('prilistaH3');
-    if (prilistaH3) {
-        originalStyles.prilistaH3_marginTop = prilistaH3.style.marginTop;
-        prilistaH3.style.marginTop = "40px"; // Start right after the vehicle section's margin
-    }
-
-    // Notes section margin
     const notesSection = element.querySelector('.orderNotesSection');
     if (notesSection) {
         originalStyles.notesSection_marginTop = notesSection.style.marginTop;
-        notesSection.style.marginTop = '30px';
+        originalStyles.notesSection_padding = notesSection.style.padding; // Store original padding
+        notesSection.style.marginTop = '0px';
+        notesSection.style.padding = '0px';      // Remove padding for notes section itself
+        // Adjust paragraphs within notes if needed, similar to list items
+        const notesParagraphs = notesSection.querySelectorAll('p');
+        notesParagraphs.forEach(p => {
+            // You might want to store and restore these too if you modify them
+            p.style.marginTop = '0px';
+            p.style.marginBottom = '0px'; // Small space after notes paragraph
+            p.style.lineHeight = '1.2';
+        });
     }
 
     // --- Generate PDF ---
@@ -180,7 +215,7 @@ const OrderDetailComp = () => {
         pdf.setTextColor(0, 0, 0);
         const orderNumberText = `Nr. ${orderNumber}`;
         const textX = pdfWidth - margin;
-        const textY = margin + 5;
+        const textY = margin;
         pdf.text(orderNumberText, textX, textY, { align: 'right' });
 
         // Add subsequent pages if needed
@@ -206,56 +241,105 @@ const OrderDetailComp = () => {
             button.style.display = originalStyles.buttons[index] || '';
         });
 
-        prilistor.forEach((prilistor, index) => {
-            const styles = originalStyles.prilistaItems[index];
-            if (styles) {
-                prilistor.style.border = styles.border;
-                prilistor.style.padding = styles.padding;
-                prilistor.style.marginBottom = styles.marginBottom || '';
-                prilistor.style.marginTop = styles.marginTop || ''; // Restore marginTop
+        const restoreListItems = (listSelector, originalStylesArray, itemParagraphsArray) => {
+            const items = document.querySelectorAll(listSelector);
+            items.forEach((item, index) => {
+                const styles = originalStylesArray[index];
+                if (styles) {
+                    item.style.border = styles.border;
+                    item.style.padding = styles.padding;
+                    item.style.marginBottom = styles.marginBottom || '';
+                    item.style.marginTop = styles.marginTop || '';
+                    // item.style.fontSize = styles.fontSize || ''; // Restore font size
+                }
+            });
+            itemParagraphsArray.forEach(pStyle => {
+                pStyle.element.style.marginBottom = pStyle.marginBottom || '';
+                pStyle.element.style.marginTop = pStyle.marginTop || '';
+                pStyle.element.style.lineHeight = pStyle.lineHeight || '';
+                pStyle.element.style.fontSize = pStyle.fontSize || ''; // Restore font size
+            });
+        };
+
+        restoreListItems('.prilistaItem', originalStyles.prilistaItems, originalStyles.itemParagraphs_prilista);
+        restoreListItems('.kantlistaItem', originalStyles.kantlistaItems, originalStyles.itemParagraphs_kantlista);
+        restoreListItems('.klupplistItem', originalStyles.klupplistaItems, originalStyles.itemParagraphs_klupplista);
+
+        const restoreHeadingStyles = (selector, originalMarginTopKey, originalMarginBottomKey) => {
+            const heading = document.getElementById(selector);
+            if (heading) {
+                heading.style.marginTop = originalStyles[originalMarginTopKey] || '';
+                heading.style.marginBottom = originalStyles[originalMarginBottomKey] || '';
+                // heading.style.fontSize = originalStyles[...]; // Restore font size
             }
-        });
+        };
+        restoreHeadingStyles('prilistaH3', 'prilistaH3_marginTop', 'prilistaH3_marginBottom');
+        restoreHeadingStyles('kantlistaH3', 'kantlistaH3_marginTop', 'kantlistaH3_marginBottom');
+        restoreHeadingStyles('klupplistaH3', 'klupplistaH3_marginTop', 'klupplistaH3_marginBottom');
 
-        kantlistor.forEach((kantlistor, index) => {
-            const styles = originalStyles.kantlistaItems[index];
-            if (styles) {
-                kantlistor.style.border = styles.border;
-                kantlistor.style.padding = styles.padding;
-                kantlistor.style.marginBottom = styles.marginBottom || '';
-            }
-        });
+        const restoreTypeSubheadings = (originalStylesArray) => {
+            originalStylesArray.forEach(shStyle => {
+                shStyle.element.style.marginTop = shStyle.marginTop || '';
+                shStyle.element.style.marginBottom = shStyle.marginBottom || '';
+                shStyle.element.style.fontSize = shStyle.fontSize || '';
+            });
+        };
+        restoreTypeSubheadings(originalStyles.prilistaTypeSubheading_styles);
+        restoreTypeSubheadings(originalStyles.kantlistaTypeSubheading_styles);
 
-         // --- RESTORE KLUPPLISTA STYLES ---
-        klupplistor.forEach((kluppItem, index) => {
-          const styles = originalStyles.klupplistaItems[index];
-          if (styles) {
-              kluppItem.style.border = styles.border;
-              kluppItem.style.padding = styles.padding;
-              kluppItem.style.marginBottom = styles.marginBottom || '';
-              kluppItem.style.marginTop = styles.marginTop || '';
-          }
-      });
 
-        // Restore specific elements
-         if (prilistaH3) {
-             prilistaH3.style.marginTop = originalStyles.prilistaH3_marginTop || '';
-         }
-         // ** Restore vehicleBorder **
-         if (vehicleBorder) {
-             vehicleBorder.style.borderBottom = originalStyles.vehicleBorder_borderBottom || ''; // Restore original border
-             vehicleBorder.style.marginBottom = originalStyles.vehicleBorder_marginBottom || '';
-         }
+        if (vehicleBorder) {
+            vehicleBorder.style.borderBottom = originalStyles.vehicleBorder_borderBottom || '';
+            vehicleBorder.style.marginBottom = originalStyles.vehicleBorder_marginBottom || '';
+        }
         if (notesSection) {
             notesSection.style.marginTop = originalStyles.notesSection_marginTop || '';
+            notesSection.style.padding = originalStyles.notesSection_padding || ''; // Restore padding
+            // Restore paragraphs within notes if you modified them
+            const notesParagraphs = notesSection.querySelectorAll('p');
+            notesParagraphs.forEach(p => {
+                // Assuming you stored original styles for these if you changed them
+                p.style.marginTop = ''; // Or restore to specific original value
+                p.style.marginBottom = '';
+                p.style.lineHeight = '';
+            });
         }
 
-        // Restore container styles
         element.style.border = originalStyles.elementBorder || '';
         element.style.boxShadow = originalStyles.elementBoxShadow || '';
         element.style.backgroundColor = originalStyles.elementBgColor || '';
         element.style.padding = originalStyles.elementPadding || '';
     });
 };
+
+// Helper function to group and sort items by type (or any other field)
+const groupAndSortItems = (items, typeField = 'type' || 'typ', sortField = null, sortOrder = 'asc') => {
+    if (!items || items.length === 0) {
+        return {};
+    }
+
+    const grouped = items.reduce((acc, item) => {
+        const groupKey = item[typeField] || 'Okänt'; // Fallback for items without the type field
+        if (!acc[groupKey]) {
+            acc[groupKey] = [];
+        }
+        acc[groupKey].push(item);
+        return acc;
+    }, {});
+
+    // Optionally sort items within each group
+    if (sortField) {
+        for (const key in grouped) {
+            grouped[key].sort((a, b) => {
+                // Basic sort, extend as needed for numbers, dates, etc.
+                if (a[sortField] < b[sortField]) return sortOrder === 'asc' ? -1 : 1;
+                if (a[sortField] > b[sortField]) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+    }
+    return grouped;
+  };
 
   const fetchOrderDetails = async () => {
     try {
@@ -313,6 +397,45 @@ const OrderDetailComp = () => {
       setLoading(false);
     }
   };
+
+  const handleActivateSingleOkantadItem = async (itemId) => {
+    if (!token) {
+        setError("Autentisering krävs för att aktivera.");
+        return;
+    }
+    setError(null); // Clear previous errors
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/prilista/${itemId}/activate`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json', // Not strictly necessary for this PUT if no body, but good practice
+                Authorization: `Bearer ${token}`,
+            },
+            // No body needed if the backend just uses the itemId from the URL
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(`Fel ${response.status}: ${errorData.message || response.statusText}`);
+        }
+
+        const updatedItem = await response.json();
+
+        // Update the local state to reflect the change immediately
+        setPrilistaDetails(prevDetails =>
+            prevDetails.map(item =>
+                item._id === itemId ? { ...item, active: true, activatedAt: updatedItem.activatedAt } : item
+            )
+        );
+        // Optionally, display a success message
+        // setSuccessMessage(`Artikel ${updatedItem.description || itemId} aktiverad!`);
+
+    } catch (err) {
+        console.error('Failed to activate PriLista item:', err);
+        setError(err.message || "Misslyckades med att aktivera artikeln.");
+    }
+};
   
 
   const handleComplete = async (id, type) => {
@@ -430,9 +553,31 @@ const OrderDetailComp = () => {
     day: 'numeric',
   });
 
+  const groupedPrilistaItems = groupAndSortItems(prilistaDetails, 'type');
+  const groupedKantlistaItems = groupAndSortItems(kantlistaDetails, 'typ');
+
+  const prilistaTypeOrder = ['FURU', 'GRAN']; // Add other types in desired order
+  const kantlistaTypeOrder = ['FURU', 'GRAN']; // Add other types in desired order
+
+  const getSortedGroupKeys = (groupedItems, orderArray) => {
+    const keys = Object.keys(groupedItems);
+    return keys.sort((a, b) => {
+        const indexA = orderArray.indexOf(a.toUpperCase()); // Make comparison case-insensitive if needed
+        const indexB = orderArray.indexOf(b.toUpperCase());
+
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b); // Both not in order, sort alphabetically
+        if (indexA === -1) return 1;  // a is not in order, b is, so b comes first
+        if (indexB === -1) return -1; // b is not in order, a is, so a comes first
+        return indexA - indexB;     // Both in order, sort by their index
+    });
+};
+
+const sortedPrilistaGroupKeys = getSortedGroupKeys(groupedPrilistaItems, prilistaTypeOrder);
+const sortedKantlistaGroupKeys = getSortedGroupKeys(groupedKantlistaItems, kantlistaTypeOrder);
+
   return (
     <div id="orderDetailPDF" className="orderDetail">
-      <h3 id="orderDetailH2PDF" className="h2ToPdf">UTLASTNINGSORDER
+      <h3 id="orderDetailH2PDF" className="h2ToPdf">UTLASTNINGSORDER #{orderDetails.orderNumber}
         <button className="downloadBtn exclude-from-pdf" onClick={() => handleDownloadPDF()}>
         Ladda ner som PDF
         </button>
@@ -443,7 +588,6 @@ const OrderDetailComp = () => {
           <p>Köpare: {orderDetails.customer}</p>
           <p>Avsänds med bil</p>
           <p>Avrop: {orderDetails.delivery}</p>
-          <p>Skapad: {formattedDate}</p>
         </div>
         <div className="markAsDelivered">
           {hasPermission('orders', 'markDelivered') && (
@@ -462,16 +606,43 @@ const OrderDetailComp = () => {
       <div className="prilistaDetails">
       {prilistaDetails.length > 0 ? (
         <>
-        <h3 id="prilistaH3">Okantad</h3>
           <div className="prilistaList">
-            {prilistaDetails.map((item, index) => (
-              <div key={index} className="prilistaItem">
-                <p>{item.quantity}PKT {item.dimension}MM {item.size} {item.type}</p>
-                <p>{item.description}</p>
-                {!item.completed && (
-                  <button className="finishedBtn exclude-from-pdf" onClick={() => handleComplete(item._id, 'prilista')}>Markera som avklarad</button>
-                )}
-              </div>
+            {sortedPrilistaGroupKeys.map(typeKey => (
+              // Check if there are items for this specific typeKey
+              groupedPrilistaItems[typeKey] && groupedPrilistaItems[typeKey].length > 0 && (
+                <div key={`prilista-group-${typeKey}`} className="prilistaTypeGroup">
+                  {/* Subheading for the specific type, e.g., "FURV" or "GRAN" */}
+                  <h4 className="prilistah3">OKANTAT {typeKey.toUpperCase()}</h4> {/* THIS SHOULD RENDER "FURU" or "GRAN" ONCE PER TYPE */}
+                  
+                  <div className="prilistaList"> {/* Container for items of this specific type */}
+                    {groupedPrilistaItems[typeKey].map((item, index) => ( // THIS LISTS ALL ITEMS FOR THE CURRENT typeKey
+                      <div key={item._id || index} className="prilistaItem">
+                        <p>
+                          {item.quantity}PKT {item.dimension}MM {item.size} {item.description} {item.completed && <span className="completedBadge exclude-from-pdf">✓</span>} {item.active && !item.completed && (
+                          <span className="itemActiveBadge exclude-from-pdf">Aktiv</span>
+                        )}
+                        {!item.active && !item.completed && ( // Show button only if item is not active
+                            <button 
+                                onClick={() => handleActivateSingleOkantadItem(item._id)}
+                                className="activateSingleOkantadBtn exclude-from-pdf"
+                            >
+                                Aktivera
+                            </button>
+                        )}
+                        </p>
+                        {!item.completed && (
+                          <button 
+                            className="finishedBtn exclude-from-pdf" 
+                            onClick={() => handleComplete(item._id, 'prilista')}
+                          >
+                            Markera som avklarad
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
             ))}
           </div>
         </>
@@ -482,19 +653,30 @@ const OrderDetailComp = () => {
       <div className="kantlistaDetails">
         {kantlistaDetails.length > 0 ? (
           <>
-          <h3 id="kantlistaH3">Kantad</h3>
           <div className="kantlistaList">
-            {kantlistaDetails.map((item, index) => (
-              <div key={index} className="kantlistaItem">
-                <p>{item.antal}PKT {item.tjocklek}x{item.bredd}MM {item.max_langd}M</p>
-                <p>{item.information}</p>
-                {!item.status.klar && (
-                  <button className="finishedBtn exclude-from-pdf" onClick={() => handleComplete(item._id, 'kantlista')}>Markera som mätt</button>
-                )}
-                {!item.status.kapad && (
-                  <button className="finishedBtn exclude-from-pdf" onClick={() => handleCut(item._id, 'kantlista')}>Markera som kapad</button>
-                )}
-              </div>
+            {sortedKantlistaGroupKeys.map(typeKey => (
+              groupedKantlistaItems[typeKey] && groupedKantlistaItems[typeKey].length > 0 && (
+                <div key={`kantlista-group-${typeKey}`} className="kantlistaTypeGroup">
+                  <h4 className="kantatH3">KANTAT {typeKey.toUpperCase()}</h4>
+                  <div className="kantlistaList">
+                    {groupedKantlistaItems[typeKey].map((item, index) => (
+                      <div key={item._id || index} className="kantlistaItem">
+                        <p>
+                          {item.antal}PKT {item.tjocklek}x{item.bredd}MM {item.max_langd}M {item.information} {item.status.klar && item.status.kapad && <span className="completedBadge exclude-from-pdf">✓</span>} {item.active && !item.status.klar && !item.status.kapad && (
+                          <span className="itemActiveBadge exclude-from-pdf">Aktiv</span>
+                        )}
+                        </p>
+                        {!item.status.klar && (
+                          <button className="finishedBtn exclude-from-pdf" onClick={() => handleComplete(item._id, 'kantlista')}>Markera som mätt</button>
+                        )}
+                        {!item.status.kapad && (
+                          <button className="finishedBtn exclude-from-pdf" onClick={() => handleCut(item._id, 'kantlista')}>Markera som kapad</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
             ))}
           </div>
           </>
@@ -512,10 +694,8 @@ const OrderDetailComp = () => {
                 <div key={item._id || index} className="klupplistItem">
                   {/* Display relevant Klupplista fields */}
                   <p>
-                    {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort}
+                    {item.antal}PKT {item.dimension}MM {item.sagverk} {item.pktNumber} {item.max_langd} {item.sort} {item.information}
                   </p>
-                  {/* Add other fields like special, magasin, leveransDatum if needed */}
-                  {item.information && <p>{item.information}</p>}
                   {/* Optionally display status if needed */}
                   {/* <p>Status: {item.status?.klar ? 'Klar' : (item.status?.ej_Klar ? 'Ej Klar' : 'Okänd')}</p> */}
                    {/* Add complete/action buttons if required for Klupplista later */}
@@ -527,15 +707,15 @@ const OrderDetailComp = () => {
         {/* Optional: Message if klupplista is empty but was expected */}
         {/* {klupplistaDetails.length === 0 && <p>Inga klupplistor funna för denna order.</p>} */}
       </div>
-      {orderDetails && orderDetails.notes.length > 0 && (
+      {orderDetails && orderDetails.notes && orderDetails.notes.length > 0 && (
         <div className="orderNotesSection">
             <h4>Anteckningar</h4> {/* Heading for the notes */}
             <p>{orderDetails.notes}</p> {/* Display the notes */}
         </div>
       )}
       <div className="rightOrderText">
-        <p>Södra Vi den {formattedDate}</p>
-        <p>Ansgarius Svensson AB</p>
+        <p>Södra Vi den {formattedDate} <br/> Ansgarius Svensson AB</p>
+        <p></p>
       </div>
     </div>
   );  

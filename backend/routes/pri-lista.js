@@ -10,7 +10,7 @@ const checkPermission = require('../middleware/authorizationMiddleware');
 
 router.post('/create', authenticateToken, checkPermission('prilista', 'create'), async (req, res) => {
   // Destructure klupplager from the body
-  const { orderNumber, customer, quantity, size, type, dimension, location, description, measureLocation, pktNr, isLager } = req.body;
+  const { orderNumber, customer, quantity, size, type, dimension, location, description, measureLocation, pktNr, isLager, active } = req.body;
 
   if (!isLager && (!orderNumber || !customer )) {
       return res.status(400).json({ message: 'Ordernummer och kund är obligatoriska för vanliga ordrar.' });
@@ -33,7 +33,8 @@ router.post('/create', authenticateToken, checkPermission('prilista', 'create'),
       description,
       measureLocation,
       position: newPosition,
-      pktNr
+      pktNr,
+      active,
     });
 
     // Save the new document to the database
@@ -55,10 +56,16 @@ router.delete('/:id', authenticateToken, checkPermission('prilista', 'delete'), 
   const { id } = req.params;
 
   try {
-    await PriLista.findByIdAndDelete(id);
-    res.json({ message: 'Storage location deleted.' });
+    const deletedItem = await PriLista.findByIdAndDelete(id); // Use findByIdAndDelete
+    if (!deletedItem) {
+      return res.status(404).json({ message: 'Prilista item not found.' });
+    }
+    // Optionally, you can emit a socket event here if other clients need to know about the deletion
+    // req.io.emit('prilistaItemDeleted', { id }); // Assuming io is attached to req
+    res.status(200).json({ message: 'Prilista item deleted successfully.' }); // Send 200 OK or 204 No Content
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete storage location.' });
+    console.error("Error deleting Prilista item:", err);
+    res.status(500).json({ error: 'Failed to delete Prilista item.' });
   }
 });
 
@@ -85,6 +92,48 @@ router.get('/', authenticateToken, checkPermission('prilista', 'read'), async (r
   } catch (error) {
     console.error("Error fetching from DB:", error);
     res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.get('/active', authenticateToken, checkPermission('prilista', 'addFromOrder'), async (req, res) => {
+  try {
+    let query = {}; // Start with an empty query object
+
+    // Check for an 'active' query parameter to filter
+    // e.g., GET /api/prilista?active=true  or GET /api/prilista (to get all if no filter)
+    // For your specific request to *only* get active ones, we'll hardcode it for this route
+    // but a more flexible approach is shown below.
+
+    // --- OPTION 1: This route *always* returns only active items ---
+    query.active = true;
+    // You could also add other default filters here, e.g., !completed
+    // query.completed = { $ne: true };
+
+    // --- OPTION 2: Flexible filtering via query parameters (more common) ---
+    /*
+    if (req.query.active === 'true') {
+      query.active = true;
+    } else if (req.query.active === 'false') { // If you ever need to get inactive ones
+      query.active = false;
+    }
+    // If req.query.active is not provided, query.active remains undefined,
+    // and find(query) would fetch all items (both active and inactive).
+
+    // Example for completed status
+    if (req.query.completed === 'true') {
+        query.completed = true;
+    } else if (req.query.completed === 'false') {
+        query.completed = { $ne: true }; // or query.completed = false;
+    }
+    */
+
+    // Add sorting, e.g., by position or creation date
+    const prilistas = await PriLista.find(query).sort({ position: 1 }); // Example: sort by position
+
+    res.status(200).json(prilistas);
+  } catch (error) {
+    console.error("Error fetching PriLista items from DB:", error);
+    res.status(500).json({ message: 'Internal Server Error while fetching PriLista items' });
   }
 });
 
@@ -276,6 +325,24 @@ router.put('/update-lagerplats', authenticateToken, checkPermission('lagerplats'
     console.error('Error updating Lagerplats:', error);
     res.status(500).send({ error: 'Failed to update Lagerplats' });
   }
+});
+
+
+// In your prilista routes
+router.put('/:itemId/activate', authenticateToken, checkPermission('prilista', 'addFromOrder'), async (req, res) => {
+    try {
+        const updatedItem = await PriLista.findByIdAndUpdate(
+            req.params.itemId,
+            { $set: { active: true }},
+            { new: true } // Returns the updated document
+        );
+        if (!updatedItem) {
+            return res.status(404).json({ message: 'Artikeln hittades inte.' });
+        }
+        res.json(updatedItem);
+    } catch (error) {
+        // ... error handling ...
+    }
 });
 
 

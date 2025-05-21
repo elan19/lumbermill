@@ -195,7 +195,7 @@
 }
 
 
-.orderHeader, .vehicleDetails, .items, .location {
+.items, .location {
   margin-bottom: 20px;
 }
 
@@ -203,15 +203,23 @@
   border-bottom: 1px solid #666;
 }
 
+.vehicleDetails p {
+  margin: 0px;
+}
+
 .orderHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .orderHeader .orderInfo {
   flex-grow: 1;
+}
+
+.orderInfo p {
+  margin-bottom: 10px;
+  margin-top: 10px
 }
 
 .orderHeader .markAsDelivered {
@@ -239,6 +247,11 @@
 
 .items .item p {
   margin: 5px 0;
+}
+
+h4 {
+  margin-bottom: 5px;
+  margin-top: 10px
 }
 
 .noItems { color: #777; font-style: italic; text-align: center; }
@@ -277,6 +290,10 @@
   margin-bottom: 10px;
 }
 
+.prilistaH3 {
+  margin-bottom: 0px;
+}
+
 
 .completedItem {
   text-decoration: line-through;
@@ -286,6 +303,26 @@
 .prilistaItem.completed .prilistaText {
   text-decoration: line-through;
   color: #808080; /* Optional: Change color to indicate completion */
+}
+
+.completedBadge {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.itemActiveBadge {
+  background-color: #aaa;
+  color: #fff;
+  padding: 0.2em 0.5em;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.activateSingleOkantadBtn {
+  padding: 0.2em 0.5em;
 }
 
 
@@ -307,7 +344,8 @@
 .kantlistaItem button {
   margin-top: 10px;
   padding: 8px 12px;
-  background-color: #007bff;
+  /*background-color: #007bff;*/
+  background-color: #4CAF50;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -316,7 +354,8 @@
 }
 
 .kantlistaItem button:hover {
-  background-color: #0056b3;
+  /*background-color: #0056b3;*/
+  background-color: #45a049;
 }
 
 
@@ -384,7 +423,7 @@
 .downloadBtn {
   position: absolute;
   top: 0;
-  right: 0;
+  right: 25px;
   background-color: #007bff; /* Adjust as needed */
   color: white;
   border: none;
@@ -458,7 +497,7 @@
 
 @media (max-width: 1000px) {
   .downloadBtn {
-    top: 50px;
+    top: 35px;
   }
 }
 
@@ -481,6 +520,10 @@
 
   .markAsDelivered .editBtn {
     margin-top: 10px;
+  }
+
+  .downloadBtn {
+    right: 0px;
   }
 }
 

@@ -9,7 +9,7 @@ const checkPermission = require('../middleware/authorizationMiddleware'); // You
 const getAllDefinedPermissions = () => {
   return [ /* Copy your 'definedPermissions' array from the seed script here or load from a config */
     "orders:create", "orders:read", "orders:readOwn", "orders:update", "orders:delete", "orders:markDelivered",
-    "prilista:create", "prilista:read", "prilista:update", "prilista:delete", "prilista:markComplete", "prilista:reorder",
+    "prilista:create", "prilista:read", "prilista:update", "prilista:delete", "prilista:markComplete", "prilista:reorder", "prilista:addFromOrder",
     "kantlista:create", "kantlista:read", "kantlista:update", "kantlista:delete", "kantlista:markComplete", "kantlista:reorder", "kantlista:toggleActive",
     "klupplista:create", "klupplista:read", "klupplista:update", "klupplista:delete", "klupplista:reorder", "klupplista:changeStatus",
     "lagerplats:create", "lagerplats:read", "lagerplats:update", "lagerplats:delete",

@@ -118,15 +118,45 @@ const EditOrderForm = () => {
         setOrderDetails((prevDetails) => ({ ...prevDetails, [name]: value, }));
     };
     const handlePrilistaChange = (index, e) => {
-        const { name, value, type, checked } = e.target;
-        setPrilistaDetails((prev) => {
-             const updatedPrilista = [...prev];
-             const currentItem = updatedPrilista[index];
-             let newValue = type === 'checkbox' ? checked : (name === 'completed' && (value === 'true' || value === 'false')) ? value === 'true' : value;
-             updatedPrilista[index] = { ...currentItem, [name]: newValue };
-             return updatedPrilista;
-        });
-    };
+    const { name, value, type, checked } = e.target; // 'type' here refers to the input element's type attribute
+    console.log('handlePrilistaChange triggered for:', { name, value, inputType: type, isChecked: checked });
+
+    setPrilistaDetails((prevDetails) => { // Changed 'prev' to 'prevDetails' for clarity
+        const updatedPrilista = [...prevDetails];
+        const currentItem = { ...updatedPrilista[index] }; // Create a shallow copy of the item to modify
+
+        let newValue;
+
+        if (type === 'checkbox') { // Handles actual HTML checkbox elements
+            newValue = checked;
+        } else if (name === 'active' || name === 'completed') { // Handle both 'active' and 'completed' selects
+            // These fields come from a select with string values "true" or "false"
+            // and need to be converted to booleans
+            newValue = value === 'true';
+        } else { // For all other input types (text, number, etc.)
+            newValue = value;
+        }
+
+        // If the field name contains a dot (like 'status.klar'), handle nested update
+        if (name.includes('.')) {
+            const parts = name.split('.');
+            let tempItem = currentItem;
+            for (let i = 0; i < parts.length - 1; i++) {
+                if (!tempItem[parts[i]] || typeof tempItem[parts[i]] !== 'object') {
+                    tempItem[parts[i]] = {}; // Create nested object if it doesn't exist
+                }
+                tempItem = tempItem[parts[i]];
+            }
+            tempItem[parts[parts.length - 1]] = newValue;
+        } else {
+            currentItem[name] = newValue;
+        }
+        
+        updatedPrilista[index] = currentItem;
+        console.log('Updated Prilista Item:', updatedPrilista[index]);
+        return updatedPrilista;
+    });
+};
     const handleKantListaChange = (index, e) => {
         const { name, value, type, checked } = e.target;
          setKantListaDetails((prev) => {

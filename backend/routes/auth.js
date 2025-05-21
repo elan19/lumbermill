@@ -12,14 +12,14 @@ const checkPermission = require('../middleware/authorizationMiddleware');
 const generateToken = (id, role) => {
   //return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
   return jwt.sign({
-    id: id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' 
+    id: id, role: role }, process.env.JWT_SECRET, { expiresIn: '7d' 
   });
 };
 
 // Generate Refresh Token
 const generateRefreshToken = (id, role) => {
   //return jwt.sign({ id, role }, process.env.JWT_REFRESH_TOKEN_SECRET, { expiresIn: '6d' });
-  return jwt.sign({ id: id, role: role }, process.env.JWT_REFRESH_TOKEN_SECRET, { expiresIn: '6d' });
+  return jwt.sign({ id: id, role: role }, process.env.JWT_REFRESH_TOKEN_SECRET, { expiresIn: '8d' });
 };
 
 const verifyToken = (token) => {

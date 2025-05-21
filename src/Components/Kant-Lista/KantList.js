@@ -5,6 +5,8 @@ import axios from 'axios';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import styles from './KantLista.module.css';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import io from 'socket.io-client';
 
@@ -24,7 +26,12 @@ const KantListaManager = () => {
   const socket = useRef(null);
   const token = localStorage.getItem('token');
 
-  const { user, hasPermission, isLoadingAuth } = useAuth();
+  const [isGeneratingKantlistaPdf, setIsGeneratingKantlistaPdf] = useState(false);
+  const kantlistaPdfContentRef = useRef(null);
+  const [editableKantlistaText, setEditableKantlistaText] = useState('');
+  const [isKantlistaTextEditModalOpen, setIsKantlistaTextEditModalOpen] = useState(false);
+
+  const { hasPermission } = useAuth();
 
   useEffect(() => {
     // Connect to the WebSocket server
@@ -95,6 +102,202 @@ const KantListaManager = () => {
       console.error('Error toggling active state:', error);
     }
   };
+
+  const handleGenerateEditableKantlistaText = () => {
+    if (activeKantlistor.length === 0) {
+        alert("Inga aktiva kantlistor att generera text från.");
+        return;
+    }
+    const text = generateEditableTextForKantlista();
+    setEditableKantlistaText(text);
+    setIsKantlistaTextEditModalOpen(true);
+};
+
+  const generateEditableTextForKantlista = () => {
+    if (activeKantlistor.length === 0) {
+        return "Inga aktiva kantlistor att visa.";
+    }
+    // Sort before generating text for consistency
+    const sortedActiveKantlistor = [...activeKantlistor].sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    let textContent = '';
+    sortedActiveKantlistor.forEach(item => {
+        const orderNumber = item.orderNumber || '';
+        const customer = item.customer || '';
+        const antal = item.antal ? `${item.antal}PKT` : '';
+        const tjocklek = item.tjocklek || '';
+        const bredd = item.bredd || '';
+        const varv = item.varv ? `${item.varv}v` : '';
+        const maxLangd = item.max_langd ? `${item.max_langd}M` : '';
+        const pktNr = item.pktNr ? `Pkt:${item.pktNr}` : '';
+        const information = item.information || '';
+
+        let lineParts = [];
+        if (orderNumber) lineParts.push(orderNumber);
+        if (customer) lineParts.push(customer);
+        if (antal) lineParts.push(antal);
+        if (tjocklek && bredd) lineParts.push(`${tjocklek}x${bredd}MM`);
+        else if (tjocklek) lineParts.push(`${tjocklek}MM`);
+        else if (bredd) lineParts.push(`x${bredd}MM`);
+        if (varv) lineParts.push(varv);
+        if (maxLangd) lineParts.push(maxLangd);
+        if (pktNr) lineParts.push(pktNr);
+        if (information) lineParts.push(information);
+
+        textContent += lineParts.join(' ') + '\n'; // Add newline after each item
+    });
+    return textContent.trim(); // Trim trailing newline
+  };
+
+  const handleSaveEditedKantlistaTextAsPDF = async () => {
+    setIsGeneratingKantlistaPdf(true); // Reuse existing loading state or create a new one
+    // setError(null); // Clear error state
+
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('sv-SE');
+    const pdfFilename = `Kantlistor_Redigerad_${dateStr}.pdf`;
+
+    if (!kantlistaPdfContentRef.current) { // Use the specific ref for kantlista
+        console.error("Kantlista PDF content container ref not found.");
+        setIsGeneratingKantlistaPdf(false);
+        // setError("Kunde inte hitta PDF-innehållsbehållaren för kantlista.");
+        return;
+    }
+
+    if (!editableKantlistaText.trim()) {
+        alert("Inget textinnehåll att generera PDF från.");
+        setIsGeneratingKantlistaPdf(false);
+        return;
+    }
+
+    const titleText = "Kantlista"; // Or a more suitable title
+    const generatedDateText = `Genererad: ${dateStr}`;
+    const trimmedEditableText = editableKantlistaText.trimEnd();
+
+    // --- CONSTRUCT HTML FROM EDITED TEXT ---
+    // You can reuse the same CSS structure as your Prilista's editable text PDF
+    // or create slightly different class names if needed.
+    let contentHTML = `
+      <style>
+        .pdf-edited-content-container { /* Generic class, can be reused */
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: #333;
+            padding: 15mm; /* Add some padding for the content itself */
+            padding-left: 5mm; /* Adjusted */
+            padding-right: 5mm; /* Adjusted */
+            box-sizing: border-box;
+        }
+        .pdf-edited-content-container * { /* Basic reset for content within */
+            margin: 0;
+            padding: 0;
+            border: none !important;
+            box-sizing: border-box !important;
+            line-height: 1.4;
+        }
+        .pdf-title {
+            font-size: 22px; /* Adjusted */
+            font-weight: bold;
+            text-align: center;
+            color: #000;
+            margin-bottom: 3mm;
+        }
+        .pdf-subtitle {
+            font-size: 14px; /* Adjusted */
+            text-align: center;
+            color: #555;
+            margin-bottom: 8mm;
+        }
+        .pdf-main-text pre {
+            font-family: Arial, sans-serif;
+            font-size: 14pt; /* Or your preferred size */
+            white-space: pre-wrap;    /* Allows wrapping */
+            word-wrap: break-word;    /* Breaks long words */
+            background-color: white;
+            color: #333;
+        }
+      </style>
+      <div class="pdf-edited-content-container">
+        <div class="pdf-title">${titleText}</div>
+        <div class="pdf-subtitle">${generatedDateText}</div>
+        <div class="pdf-main-text">
+          <pre>${trimmedEditableText}</pre>
+        </div>
+      </div>
+    `;
+
+    kantlistaPdfContentRef.current.innerHTML = contentHTML;
+    kantlistaPdfContentRef.current.style.display = 'block';
+    kantlistaPdfContentRef.current.style.position = 'absolute';
+    kantlistaPdfContentRef.current.style.left = '-9999px';
+    kantlistaPdfContentRef.current.style.top = '-9999px';
+    kantlistaPdfContentRef.current.style.width = '210mm'; // A4 width
+    kantlistaPdfContentRef.current.style.backgroundColor = 'white';
+    // No padding/margin on the ref itself, padding is in the container class
+
+    try {
+        const canvas = await html2canvas(kantlistaPdfContentRef.current, {
+            scale: 2.5,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowWidth: kantlistaPdfContentRef.current.offsetWidth, // Use offsetWidth
+            windowHeight: kantlistaPdfContentRef.current.scrollHeight,
+            removeContainer: false, 
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pdfPageWidth = pdf.internal.pageSize.getWidth();
+        const pdfPageHeight = pdf.internal.pageSize.getHeight();
+        // pageMargin here is for the PDF document itself, not the HTML content padding
+        const pageMargin = 15; 
+
+        const imgEffectiveWidth = pdfPageWidth - (2 * pageMargin);
+        const imgEffectiveHeight = (canvas.height * imgEffectiveWidth) / canvas.width;
+
+        let positionYOnPage = pageMargin;
+        let remainingImageHeight = imgEffectiveHeight;
+        let imageOffsetY = 0;
+
+        while (remainingImageHeight > 0) {
+            if (imageOffsetY > 0) {
+                pdf.addPage();
+                positionYOnPage = pageMargin;
+            }
+            pdf.addImage(imgData, 'PNG', pageMargin, positionYOnPage - imageOffsetY, imgEffectiveWidth, imgEffectiveHeight);
+
+            const heightDrawnThisLoop = pdfPageHeight - (2 * pageMargin);
+            imageOffsetY += heightDrawnThisLoop;
+            remainingImageHeight -= heightDrawnThisLoop;
+
+            if (remainingImageHeight > 0 && imageOffsetY >= imgEffectiveHeight) {
+                console.warn("Kantlista Editable PDF pagination safety break.");
+                break;
+            }
+        }
+
+        pdf.save(pdfFilename);
+        setIsKantlistaTextEditModalOpen(false); // Close this specific modal
+
+    } catch (pdfError) {
+        console.error("Error generating editable Kantlista PDF:", pdfError);
+        // setError("Kunde inte generera redigerad PDF för Kantlista.");
+        alert("Kunde inte generera redigerad PDF för Kantlista.");
+    } finally {
+        if (kantlistaPdfContentRef.current) {
+            kantlistaPdfContentRef.current.innerHTML = '';
+            kantlistaPdfContentRef.current.style.display = 'none';
+            // Reset other styles as needed
+            kantlistaPdfContentRef.current.style.position = '';
+            kantlistaPdfContentRef.current.style.left = '';
+            kantlistaPdfContentRef.current.style.top = '';
+            kantlistaPdfContentRef.current.style.width = '';
+        }
+        setIsGeneratingKantlistaPdf(false);
+    }
+};
 
   const moveOrder = async (dragIndex, hoverIndex) => {
   
@@ -350,7 +553,49 @@ const KantListaManager = () => {
             Skapa ny kantad
           </button>
           )}
+
+          <button 
+            onClick={handleGenerateEditableKantlistaText} 
+            className={styles.editTextButton} // Reuse or create new style
+            disabled={isGeneratingKantlistaPdf || activeKantlistor.length === 0}
+          >
+            Redigera Text & Skapa PDF
+          </button>
         </div>
+
+        {/* Use kantlistaPdfContentRef for the hidden div */}
+        <div ref={kantlistaPdfContentRef} style={{ display: 'none', width: '210mm' }}></div>
+        
+        {/* --- MODAL FOR EDITING KANTLISTA TEXT --- */}
+        {isKantlistaTextEditModalOpen && (
+          <div className={styles.modalOverlay} onClick={() => setIsKantlistaTextEditModalOpen(false)}>
+              <div className={styles.modalContentTextEdit} onClick={(e) => e.stopPropagation()}> {/* Reuse existing modal styles */}
+                  <h2 className={styles.modalTitle}>Redigera Kantlistor Text</h2>
+                  <textarea
+                      className={styles.editableTextArea} // Reuse existing textarea style
+                      value={editableKantlistaText}
+                      onChange={(e) => setEditableKantlistaText(e.target.value)}
+                      rows="20"
+                  />
+                  <div className={styles.textEditModalActions}> {/* Reuse existing actions style */}
+                      <button
+                          onClick={handleSaveEditedKantlistaTextAsPDF}
+                          className={styles.saveTextPdfButton} // Reuse existing button style
+                          disabled={isGeneratingKantlistaPdf}
+                      >
+                          {isGeneratingKantlistaPdf ? 'Genererar PDF...' : 'Spara som PDF'}
+                      </button>
+                      <button
+                          onClick={() => setIsKantlistaTextEditModalOpen(false)}
+                          className={styles.cancelTextEditButton} // Reuse existing button style
+                          disabled={isGeneratingKantlistaPdf}
+                      >
+                          Avbryt
+                      </button>
+                  </div>
+              </div>
+          </div>
+        )}
 
         {/** Aktiva Kantlistor Table */}
         <div className={styles.orderList}>

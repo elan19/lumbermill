@@ -8,6 +8,7 @@ const kantListaSchema = new mongoose.Schema({
   tjocklek: { type: String, required: true },
   varv: { type: String, required: true },
   max_langd: { type: String, required: true },
+  typ: { type: String, required: true }, //Furu eller Gran
   stampel: { type: String },
   lagerplats: { type: String },
   information: { type: String },

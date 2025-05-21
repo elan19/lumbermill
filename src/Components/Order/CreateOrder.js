@@ -10,10 +10,10 @@ const CreateOrder = () => {
   const [speditor, setSpeditor] = useState('');
   // Start with one template item in each list
   const [prilistas, setPrilistas] = useState([
-    { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
+    { quantity: '', size: '', type: 'FURU', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
   ]);
   const [kantlistas, setKantlistas] = useState([
-    { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
+    { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', typ: 'FURU', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
   ]);
   const [klupplistas, setKlupplistas] = useState([]);
   const [error, setError] = useState(null);
@@ -34,7 +34,7 @@ const CreateOrder = () => {
   const addPrilista = () => {
     setPrilistas([
       ...prilistas,
-      { quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
+      { quantity: '', size: '', type: 'FURU', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
     ]);
   };
 
@@ -66,7 +66,7 @@ const CreateOrder = () => {
   const addKantlista = () => {
     setKantlistas([
       ...kantlistas,
-      { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
+      { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', typ: 'FURU', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
     ]);
   };
 
@@ -151,8 +151,8 @@ const CreateOrder = () => {
       setNotes('');
       setSpeditor('');
       // Reset lists
-      setPrilistas([{ quantity: '', size: '', type: '', dimension: '', location: '', description: '', measureLocation: '', pktNr: ''}]);
-      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' }]);
+      setPrilistas([{ quantity: '', size: '', type: 'FURU', dimension: '', location: '', description: '', measureLocation: '', pktNr: ''}]);
+      setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', typ: 'FURU', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' }]);
       setKlupplistas([]); // <-- RESET KLUPPLISTAS TO EMPTY
 
     } catch (err) {
@@ -202,8 +202,18 @@ const CreateOrder = () => {
                     <input id={`p-size-${index}`} type="text" placeholder="Sidor/Breda/tumtal" name="size" value={prilista.size} onChange={(e) => handlePrilistaChange(index, e)} required/>
                 </div>
                 <div className={styles.inputGroup}>
-                    <label htmlFor={`p-type-${index}`}>Träslag *</label>
-                    <input id={`p-type-${index}`} type="text" placeholder="Ex. Furu" name="type" value={prilista.type} onChange={(e) => handlePrilistaChange(index, e)} required/>
+                  <label htmlFor={`p-type-${index}`}>Träslag *</label>
+                  <select
+                    id={`p-type-${index}`}
+                    name="type" // Keep the name attribute if your handlePrilistaChange relies on it
+                    value={prilista.type} // The current selected value for this specific prilista item
+                    onChange={(e) => handlePrilistaChange(index, e)} // Your existing handler should work if it reads e.target.name and e.target.value
+                    required
+                    className={styles.inputField} // Or a specific style for selects if needed
+                  >
+                    <option value="FURU">FURU</option> {/* Default placeholder */}
+                    <option value="GRAN">GRAN</option>
+                  </select>
                 </div>
                 <div className={styles.inputGroup}>
                     <label htmlFor={`p-type-${index}`}>Paketnummer</label>
@@ -224,7 +234,7 @@ const CreateOrder = () => {
                 </div>
                 <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
                     <label htmlFor={`p-desc-${index}`}>Information</label>
-                    <input id={`p-desc-${index}`} type="text" placeholder="Övrig info (kvalitet etc.)" name="description" value={prilista.description} onChange={(e) => handlePrilistaChange(index, e)}/>
+                    <input id={`p-desc-${index}`} type="text" placeholder="Övrig info..." name="description" value={prilista.description} onChange={(e) => handlePrilistaChange(index, e)}/>
                 </div>
               </div>
               {prilistas.length > 0 && (
@@ -249,24 +259,38 @@ const CreateOrder = () => {
                <h4>Kantad Artikel #{index + 1}</h4>
                <div className={styles.itemInputs}>
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`k-antal-${index}`}>Antal *</label>
-                        <input id={`k-antal-${index}`} type="number" placeholder="Antal pkt" name="antal" value={kantlista.antal} onChange={(e) => handleKantlistaChange(index, e)} required min="1"/>
+                      <label htmlFor={`k-antal-${index}`}>Antal *</label>
+                      <input id={`k-antal-${index}`} type="number" placeholder="Antal pkt" name="antal" value={kantlista.antal} onChange={(e) => handleKantlistaChange(index, e)} required min="1"/>
                     </div>
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`k-tjock-${index}`}>Tjocklek *</label>
-                        <input id={`k-tjock-${index}`} type="text" placeholder="Ex. 63" name="tjocklek" value={kantlista.tjocklek} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                      <label htmlFor={`k-tjock-${index}`}>Tjocklek *</label>
+                      <input id={`k-tjock-${index}`} type="text" placeholder="Ex. 63" name="tjocklek" value={kantlista.tjocklek} onChange={(e) => handleKantlistaChange(index, e)} required/>
                     </div>
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`k-bredd-${index}`}>Bredd *</label>
-                        <input id={`k-bredd-${index}`} type="text" placeholder="Ex. 150" name="bredd" value={kantlista.bredd} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                      <label htmlFor={`k-bredd-${index}`}>Bredd *</label>
+                      <input id={`k-bredd-${index}`} type="text" placeholder="Ex. 150" name="bredd" value={kantlista.bredd} onChange={(e) => handleKantlistaChange(index, e)} required/>
                     </div>
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`k-varv-${index}`}>Varv *</label>
-                        <input id={`k-varv-${index}`} type="text" placeholder="Ex. 14" name="varv" value={kantlista.varv} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                      <label htmlFor={`k-varv-${index}`}>Varv *</label>
+                      <input id={`k-varv-${index}`} type="text" placeholder="Ex. 14" name="varv" value={kantlista.varv} onChange={(e) => handleKantlistaChange(index, e)} required/>
                     </div>
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`k-maxl-${index}`}>Max Längd *</label>
-                        <input id={`k-maxl-${index}`} type="text" placeholder="Ex. 4.8M" name="max_langd" value={kantlista.max_langd} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                      <label htmlFor={`k-maxl-${index}`}>Max Längd *</label>
+                      <input id={`k-maxl-${index}`} type="text" placeholder="Ex. 4.8M" name="max_langd" value={kantlista.max_langd} onChange={(e) => handleKantlistaChange(index, e)} required/>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label htmlFor={`p-type-${index}`}>Träslag *</label>
+                      <select
+                        id={`k-typ-${index}`}
+                        name="typ" // Keep the name attribute if your handlePrilistaChange relies on it
+                        value={kantlista.typ} // The current selected value for this specific prilista item
+                        onChange={(e) => handlePrilistaChange(index, e)} // Your existing handler should work if it reads e.target.name and e.target.value
+                        required
+                        className={styles.inputField} // Or a specific style for selects if needed
+                      >
+                        <option value="FURU">FURU</option> {/* Default placeholder */}
+                        <option value="GRAN">GRAN</option>
+                      </select>
                     </div>
                     <div className={styles.inputGroup}>
                       <label htmlFor={`k-pktNr-${index}`}>Paketnummer</label>
@@ -282,7 +306,7 @@ const CreateOrder = () => {
                     </div>
                     <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
                         <label htmlFor={`k-info-${index}`}>Information</label>
-                        <input id={`k-info-${index}`} placeholder="Övrig info..." name="information" value={kantlista.information} onChange={(e) => handleKantlistaChange(index, e)}/>
+                        <input id={`k-info-${index}`} type="text" placeholder="Övrig info..." name="information" value={kantlista.information} onChange={(e) => handleKantlistaChange(index, e)}/>
                     </div>
                     <div className={`${styles.inputGroup} ${styles.checkboxGroup}`}>
                         <label><input type="checkbox" name="status.kapad" checked={!!kantlista.status.kapad} onChange={(e) => handleKantlistaChange(index, e)}/>Kapad</label>
@@ -329,10 +353,19 @@ const CreateOrder = () => {
                      <div className={styles.inputGroup}>
                         <label htmlFor={`klupp-pkt-${index}`}>Pkt Nummer *</label>
                         <input id={`klupp-pkt-${index}`} type="text" placeholder="Ex. 345678" name="pktNumber" value={klupplista.pktNumber} onChange={(e) => handleKlupplistaChange(index, e)}/>
-                    </div>
+                    </div>   
                     <div className={styles.inputGroup}>
-                        <label htmlFor={`klupp-sort-${index}`}>Träslag</label>
-                        <input id={`klupp-sort-${index}`} type="text" placeholder="Ex. Furu/Gran" name="sort" value={klupplista.sort} onChange={(e) => handleKlupplistaChange(index, e)}/>
+                      <label htmlFor={`klupp-sort-${index}`}>Träslag</label> {/* No asterisk, so not marked as required here */}
+                      <select
+                        id={`klupp-sort-${index}`}
+                        name="sort" // Assuming 'sort' is the correct property name in your klupplista object for wood species
+                        value={klupplista.sort} // Binds to the 'sort' property of the current klupplista item
+                        onChange={(e) => handleKlupplistaChange(index, e)} // Your existing handler
+                        className={styles.inputField} // Or your preferred class for select elements
+                      >
+                        <option value="FURU">FURU</option>
+                        <option value="GRAN">GRAN</option>
+                      </select>
                     </div>
                     <div className={styles.inputGroup}>
                         <label htmlFor={`klupp-stad-${index}`}>Märkning</label>
@@ -357,7 +390,7 @@ const CreateOrder = () => {
                     </div> */}
                     <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
                         <label htmlFor={`klupp-info-${index}`}>Information</label>
-                        <input id={`klupp-info-${index}`} placeholder="Övrig info..." name="information" value={klupplista.information} onChange={(e) => handleKlupplistaChange(index, e)}/>
+                        <input id={`klupp-info-${index}`} type="text" placeholder="Övrig info..." name="information" value={klupplista.information} onChange={(e) => handleKlupplistaChange(index, e)}/>
                     </div>
                </div>
                {/* Button to remove this specific klupplista item */}

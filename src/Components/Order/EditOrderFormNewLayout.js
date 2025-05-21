@@ -75,9 +75,22 @@ const EditOrderFormNewLayout = ({
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-qty-${index}`}>Antal:</label><input type="number" id={`p-qty-${index}`} name="quantity" value={prilistaItem.quantity || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-dim-${index}`}>Dimension:</label><input type="text" id={`p-dim-${index}`} name="dimension" value={prilistaItem.dimension || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-size-${index}`}>Storlek:</label><input type="text" id={`p-size-${index}`} name="size" value={prilistaItem.size || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
-                                    <div className={styles.inputGroupFieldset}><label htmlFor={`p-type-${index}`}>Träslag:</label><input type="text" id={`p-type-${index}`} name="type" value={prilistaItem.type || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
+                                    <div className={styles.inputGroupFieldset}>
+                                    <label htmlFor={`p-type-${index}`}>Träslag:</label>
+                                    <select
+                                        id={`p-type-${index}`}
+                                        name="type"
+                                        value={prilistaItem.type || ''}
+                                        onChange={(e) => handlePrilistaChange(index, e)}
+                                        className={styles.input}
+                                    >
+                                        <option value="FURU">FURU</option>
+                                        <option value="GRAN">GRAN</option>
+                                    </select>
+                                    </div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-pktNr-${index}`}>Paketnummer:</label><input type="number" id={`p-pktNr-${index}`} name="pktNr" value={prilistaItem.pktNr || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-loc-${index}`}>Lagerplats:</label><input type="text" id={`p-loc-${index}`} name="location" value={prilistaItem.location || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
+                                    <div className={styles.inputGroupFieldset}><label htmlFor={`p-active-${index}`}>Aktiv:</label><select id={`p-active-${index}`} name="active" value={prilistaItem.active ? 'true' : 'false'} onChange={(e) => handlePrilistaChange(index, e)} className={styles.select}><option value="true">Ja</option><option value="false">Nej</option></select></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`p-comp-${index}`}>Avklarad:</label><select id={`p-comp-${index}`} name="completed" value={prilistaItem.completed ? 'true' : 'false'} onChange={(e) => handlePrilistaChange(index, e)} className={styles.select}><option value="true">Ja</option><option value="false">Nej</option></select></div>
                                     <div className={`${styles.inputGroupFieldset} ${styles.fullWidthFieldset}`}><label htmlFor={`p-desc-${index}`}>Information:</label><input type="text" id={`p-desc-${index}`} name="description" value={prilistaItem.description || ''} onChange={(e) => handlePrilistaChange(index, e)} className={styles.input}/></div>
                                 </div>
@@ -110,6 +123,19 @@ const EditOrderFormNewLayout = ({
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`k-varv-${index}`}>Varv:</label><input type="text" id={`k-varv-${index}`} name="varv" value={kantListaItem.varv || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`k-maxl-${index}`}>Max längd:</label><input type="text" id={`k-maxl-${index}`} name="max_langd" value={kantListaItem.max_langd || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`k-pktNr-${index}`}>Paketnummer:</label><input type="number" id={`k-pktNr-${index}`} name="antal" value={kantListaItem.pktNr || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
+                                    <div className={styles.inputGroupFieldset}>
+                                    <label htmlFor={`k-typ-${index}`}>Träslag:</label>
+                                    <select
+                                        id={`k-typ-${index}`}
+                                        name="typ"
+                                        value={kantListaItem.typ || ''}
+                                        onChange={(e) => handleKantListaChange(index, e)}
+                                        className={styles.input}
+                                    >
+                                        <option value="FURU">FURU</option>
+                                        <option value="GRAN">GRAN</option>
+                                    </select>
+                                    </div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`k-stampel-${index}`}>Stämpel:</label><input type="text" id={`k-stampel-${index}`} name="stampel" value={kantListaItem.stampel || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
                                     <div className={styles.inputGroupFieldset}><label htmlFor={`k-lager-${index}`}>Lagerplats:</label><input type="text" id={`k-lager-${index}`} name="lagerplats" value={kantListaItem.lagerplats || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
                                     <div className={`${styles.inputGroupFieldset} ${styles.fullWidthFieldset}`}><label htmlFor={`k-info-${index}`}>Information:</label><input type="text" id={`k-info-${index}`} name="information" value={kantListaItem.information || ''} onChange={(e) => handleKantListaChange(index, e)} className={styles.input}/></div>
@@ -158,8 +184,17 @@ const EditOrderFormNewLayout = ({
                                         <input type="text" id={`klupp-pkt-${index}`} name="pktNumber" value={kluppItem.pktNumber || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
                                     </div>
                                     <div className={styles.inputGroupFieldset}>
-                                        <label htmlFor={`klupp-sort-${index}`}>Sort:</label>
-                                        <input type="text" id={`klupp-sort-${index}`} name="sort" value={kluppItem.sort || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+                                    <label htmlFor={`klupp-sort-${index}`}>Träslag:</label>
+                                    <select
+                                        id={`klupp-sort-${index}`}
+                                        name="sort"
+                                        value={kluppItem.typ || ''}
+                                        onChange={(e) => handleKantListaChange(index, e)}
+                                        className={styles.input}
+                                    >
+                                        <option value="FURU">FURU</option>
+                                        <option value="GRAN">GRAN</option>
+                                    </select>
                                     </div>
                                     <div className={styles.inputGroupFieldset}>
                                         <label htmlFor={`klupp-stad-${index}`}>Märkning (Stad):</label>

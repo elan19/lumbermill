@@ -42,6 +42,7 @@ const EditOrderFormOldLayout = ({
             </button>
           </div>
           <h2>Redigera Order</h2>
+          {error && <p className={styles.errorFieldset}>Fel: {error}</p>}
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
               <label htmlFor="orderNumber">Ordernummer:</label>
@@ -131,7 +132,7 @@ const EditOrderFormOldLayout = ({
                 >
                   {expandedItems.prilista && expandedItems.prilista[index] ? 'Dölj detaljer' : 'Visa detaljer'}
                 </button>
-                <button onClick={() => deletePrilista(prilistaItem._id)}
+                <button type="button" onClick={() => deletePrilista(prilistaItem._id)}
                   className={styles.deleteButton}>
                   X
                 </button>
@@ -166,14 +167,16 @@ const EditOrderFormOldLayout = ({
                     className={styles.input}
                   />
                   <label htmlFor={`prilista-${index}-type`}>Träslag:</label>
-                  <input
-                    type="text"
+                  <select
                     id={`prilista-${index}-type`}
                     name="type"
                     value={prilistaItem.type || ''}
                     onChange={(e) => handlePrilistaChange(index, e)}
                     className={styles.input}
-                  />
+                  >
+                    <option value="FURU">FURU</option>
+                    <option value="GRAN">GRAN</option>
+                  </select>
                   <label htmlFor={`prilista-${index}-pktNr`}>Paketnummer:</label>
                   <input
                     type="number"
@@ -201,6 +204,23 @@ const EditOrderFormOldLayout = ({
                     onChange={(e) => handlePrilistaChange(index, e)}
                     className={styles.input}
                   />
+                  <label htmlFor={`prilista-${index}-active`}>Aktiv:</label>
+                  <select
+                    id={`prilista-${index}-active`}
+                    name="active"
+                    value={prilistaItem.active !== undefined ? prilistaItem.active : ''}
+                    onChange={(e) => handlePrilistaChange(index, e)}
+                    className={styles.select}
+                  >
+                    {[
+                      { value: true, displayText: 'Sant' },
+                      { value: false, displayText: 'Falskt' },
+                    ].map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.displayText}
+                      </option>
+                    ))}
+                  </select>
                   <label htmlFor={`prilista-${index}-completed`}>Avklarad:</label>
                   <select
                     id={`prilista-${index}-completed`}
@@ -243,7 +263,7 @@ const EditOrderFormOldLayout = ({
                 >
                   {expandedItems.kantlista && expandedItems.kantlista[index] ? 'Dölj detaljer' : 'Visa detaljer'}
                 </button>
-                <button onClick={() => deleteKantlista(kantListaItem._id)}
+                <button type="button" onClick={() => deleteKantlista(kantListaItem._id)}
                   className={styles.deleteButton}>
                   X
                 </button>
@@ -295,6 +315,17 @@ const EditOrderFormOldLayout = ({
                   onChange={(e) => handleKantListaChange(index, e)}
                   className={styles.input}
                 />
+                <label htmlFor={`kantlista-${index}-typ`}>Träslag:</label>
+                <select
+                  id={`kantlista-${index}-typ`}
+                  name="typ"
+                  value={kantListaItem.type || ''}
+                  onChange={(e) => handleKantListaChange(index, e)}
+                  className={styles.input}
+                >
+                  <option value="FURU">FURU</option>
+                  <option value="GRAN">GRAN</option>
+                </select>
                 <label htmlFor={`kantlista-${index}-pktNr`}>Paketnummer:</label>
                 <input
                   type="number"
@@ -387,8 +418,17 @@ const EditOrderFormOldLayout = ({
                                 <label htmlFor={`klupp-${index}-pktNumber`}>Pkt Nummer:</label>
                                 <input id={`klupp-${index}-pktNumber`} name="pktNumber" value={kluppItem.pktNumber || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
 
-                                <label htmlFor={`klupp-${index}-sort`}>Sort:</label>
-                                <input id={`klupp-${index}-sort`} name="sort" value={kluppItem.sort || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>
+                                <label htmlFor={`klupp-${index}-sort`}>Träslag:</label>
+                                <select
+                                  id={`klupp-${index}-sort`}
+                                  name="sort"
+                                  value={kluppItem.sort || ''}
+                                  onChange={(e) => handleKlupplistaChange(index, e)}
+                                  className={styles.input}
+                                >
+                                  <option value="FURU">FURU</option>
+                                  <option value="GRAN">GRAN</option>
+                                </select>
 
                                 <label htmlFor={`klupp-${index}-stad`}>Märkning (Stad):</label>
                                 <input id={`klupp-${index}-stad`} name="stad" value={kluppItem.stad || ''} onChange={(e) => handleKlupplistaChange(index, e)} className={styles.input}/>

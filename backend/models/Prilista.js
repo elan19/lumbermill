@@ -5,7 +5,7 @@ const priListaSchema = new mongoose.Schema({
   customer: { type: String, required: true },
   quantity: { type: Number, required: true },
   size: { type: String, required: true },
-  type: { type: String, required: true},
+  type: { type: String, required: true}, //Furu eller Gran
   dimension: { type: String, required: true },
   location: { type: String },
   description: { type: String },
@@ -14,6 +14,10 @@ const priListaSchema = new mongoose.Schema({
   position: { type: Number },
   measureLocation: { type: String },
   pktNr: { type: Number },
+  active: {
+    type: Boolean,
+    default: false
+  },
 });
 
 // No unique constraint on `orderNumber` to allow multiple PriLista with the same `orderNumber`

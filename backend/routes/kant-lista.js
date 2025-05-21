@@ -59,6 +59,7 @@ router.post('/create', authenticateToken, checkPermission('kantlista', 'create')
       tjocklek,
       varv,
       max_langd,
+      typ,
       stampel,
       lagerplats,
       information,

@@ -87,3 +87,11 @@
   margin-bottom: 20px;
   border-radius: 6px;
 }
+
+.newPrilistaContainer .inputGroup label {
+  display: block;
+}
+
+.newPrilistaContainer .inputGroup select {
+  width: 100%;
+}
