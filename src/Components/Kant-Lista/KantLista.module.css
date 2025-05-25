@@ -519,6 +519,10 @@
   .filteredTable td {
     padding: 3px;
   }
+
+  .editTextButton {
+    margin-top: 15px;
+  }
 }
 
 @media (max-width: 600px) {

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, navigate } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './CreateOrder.module.css'; // Ensure this file exists
 
@@ -19,6 +20,7 @@ const CreateOrder = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
 
   // Handler for Prilista changes (handles text, number, select, checkbox)
   const handlePrilistaChange = (index, e) => {
@@ -155,6 +157,10 @@ const CreateOrder = () => {
       setKantlistas([{ antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', typ: 'FURU', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' }]);
       setKlupplistas([]); // <-- RESET KLUPPLISTAS TO EMPTY
 
+      setTimeout(() => {
+        navigate('/dashboard/orders');
+      }, 1500);
+
     } catch (err) {
       console.error("Error creating order:", err);
       setError(err.response?.data?.message || err.message || 'Misslyckades att skapa ordern!');
@@ -279,12 +285,12 @@ const CreateOrder = () => {
                       <input id={`k-maxl-${index}`} type="text" placeholder="Ex. 4.8M" name="max_langd" value={kantlista.max_langd} onChange={(e) => handleKantlistaChange(index, e)} required/>
                     </div>
                     <div className={styles.inputGroup}>
-                      <label htmlFor={`p-type-${index}`}>Träslag *</label>
+                      <label htmlFor={`k-type-${index}`}>Träslag *</label>
                       <select
                         id={`k-typ-${index}`}
                         name="typ" // Keep the name attribute if your handlePrilistaChange relies on it
                         value={kantlista.typ} // The current selected value for this specific prilista item
-                        onChange={(e) => handlePrilistaChange(index, e)} // Your existing handler should work if it reads e.target.name and e.target.value
+                        onChange={(e) => handleKantlistaChange(index, e)} // Your existing handler should work if it reads e.target.name and e.target.value
                         required
                         className={styles.inputField} // Or a specific style for selects if needed
                       >

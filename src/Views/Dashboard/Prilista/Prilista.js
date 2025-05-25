@@ -1021,10 +1021,10 @@ const handleSaveEditedTextAsPDF = async () => {
         </button>
         )}
         {/* --- ADD PDF DOWNLOAD BUTTON --- */}
-        <button onClick={handleDownloadPrilistaPDF} className={styles.downloadPdfButton} disabled={isGeneratingPdf}>
+        <button onClick={handleDownloadPrilistaPDF} className={styles.downloadPdfButton} disabled={isGeneratingPdf || allOrders.length === 0}>
           {isGeneratingPdf ? 'Genererar PDF...' : 'Ladda Ner PDF'}
         </button>
-        <button onClick={handleGenerateEditableText} className={styles.editTextButton} disabled={isGeneratingPdf}>
+        <button onClick={handleGenerateEditableText} className={styles.editTextButton} disabled={isGeneratingPdf || allOrders.length === 0}>
           Redigera Text & Skapa PDF
         </button>
         {/* ----------------------------- */}
