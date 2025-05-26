@@ -140,44 +140,91 @@ router.get('/active', authenticateToken, checkPermission('prilista', 'addFromOrd
 // Route to mark a prilista as completed
 router.put('/complete/:id', authenticateToken, checkPermission('prilista', 'markComplete'), async (req, res) => {
   try {
-    const io = req.app.get('io');
+    const io = req.app.get('io'); // Get Socket.IO instance from app
     const { id } = req.params;
+    const { pktNr } = req.body; // Get pktNr from the request body (can be string, null, or undefined)
 
-    // Mark the specified PriLista item as completed
-    const item = await PriLista.findByIdAndUpdate(id, { completed: true }, { new: true });
+    // 1. Prepare the update data for the PriLista item
+    const updateData = {
+      completed: true,
+      // Optionally add completedAt: new Date()
+      // completedAt: new Date(),
+    };
+
+    if (pktNr !== undefined) { // Check if pktNr was part of the request body at all
+      if (pktNr === null || String(pktNr).trim() === '') {
+        updateData.pktNr = null; // Store explicit null or trimmed empty string as null
+      } else {
+        // Assuming PriLista schema for pktNr is String:
+        updateData.pktNr = String(pktNr).trim();
+
+        // If PriLista schema for pktNr is Number, you would parse and validate:
+        // const parsedPktNr = Number(String(pktNr).trim());
+        // if (isNaN(parsedPktNr)) {
+        //   return res.status(400).json({ message: "Paketnummer måste vara ett giltigt nummer." });
+        // }
+        // updateData.pktNr = parsedPktNr;
+      }
+    }
+    // If pktNr is undefined in req.body, it won't be included in updateData,
+    // so the existing pktNr on the item (if any) will not be changed.
+
+    // 2. Find and update the PriLista item
+    const item = await PriLista.findByIdAndUpdate(
+      id,
+      { $set: updateData }, // Use $set to only update specified fields
+      { new: true, runValidators: true }
+    );
 
     if (!item) {
-      return res.status(404).send({ message: 'Item not found' });
+      return res.status(404).json({ message: 'Prilista item not found' });
     }
 
-    // Check if all PriLista items for the same orderNumber are completed
-    const priListaItems = await PriLista.find({ orderNumber: item.orderNumber });
-    const allPriListaDone = priListaItems.every((prilistaItem) => prilistaItem.completed);
+    // 3. Check if all PriLista items for the same orderNumber are completed
+    // The 'item' variable here *is* the updated one due to {new: true}.
+    const priListaItemsForOrder = await PriLista.find({ orderNumber: item.orderNumber });
+    const allPriListaDone = priListaItemsForOrder.every((prilistaItem) => prilistaItem.completed);
 
-    // Check if there are any KantLista items for the same orderNumber
-    const kantListaItems = await KantLista.find({ orderNumber: item.orderNumber });
-
-    let allKantListaDone = true;
-    if (kantListaItems.length > 0) {
-      // If there are KantLista items, ensure all are marked as completed
-      allKantListaDone = kantListaItems.every((kantListaItem) => kantListaItem.status.kapad && kantListaItem.status.klar);
+    // 4. Check KantLista items for the same orderNumber
+    const kantListaItemsForOrder = await KantLista.find({ orderNumber: item.orderNumber });
+    let allKantListaDone = true; // Assume true if no kantlista items exist for this order
+    if (kantListaItemsForOrder.length > 0) {
+      allKantListaDone = kantListaItemsForOrder.every((kantListaItem) => kantListaItem.status.kapad && kantListaItem.status.klar);
     }
 
-    // Update the order status to "Completed" only if both conditions are met
-    if (allPriListaDone && allKantListaDone) {
-      await Order.findOneAndUpdate(
+    // 5. (Optional) Check KluppLista items (if they contribute to Order completion)
+    // const kluppListaItemsForOrder = await KluppLista.find({ orderNumber: item.orderNumber });
+    // let allKluppListaDone = true;
+    // if (kluppListaItemsForOrder.length > 0) {
+    //   allKluppListaDone = kluppListaItemsForOrder.every((kluppItem) => kluppItem.status.klar); // Or your specific completion criteria
+    // }
+
+    // Update the order status to "Completed" only if all relevant lists are done
+    if (allPriListaDone && allKantListaDone /* && allKluppListaDone */) {
+      const updatedOrder = await Order.findOneAndUpdate(
         { orderNumber: item.orderNumber },
-        { $set: { status: 'Completed' } }
+        { $set: { status: 'Completed' } },
+        { new: true }
       );
+      if (updatedOrder && io) {
+        io.emit('mainOrderUpdated', updatedOrder);
+      }
     }
 
-    // Emit the 'itemCompleted' event to notify all connected clients
-    io.emit('itemCompleted', { id, completed: true });
+    // Emit the 'itemCompleted' event to notify clients about the PriLista item
+    if (io) {
+      io.emit('itemCompleted', {
+        id: item._id,
+        completed: item.completed,
+        pktNr: item.pktNr, // Send the potentially updated pktNr
+        orderNumber: item.orderNumber
+      });
+    }
 
-    res.status(200).json(item);
+    res.status(200).json(item); // Send the updated PriLista item back
   } catch (err) {
     console.error('Error updating PriLista item (complete):', err);
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

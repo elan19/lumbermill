@@ -277,7 +277,7 @@ const CreatePrilista = () => {
 
         <label htmlFor="pktNrPrilista">Paketnummer: </label>
         <input
-          type="number"
+          type="text"
           id="pktNrPrilista"
           value={pktNr}
           onChange={(e) => setPktNr(e.target.value)}

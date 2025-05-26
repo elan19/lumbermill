@@ -13,7 +13,7 @@ const priListaSchema = new mongoose.Schema({
   completed: { type: Boolean, default: false }, // New field for completion status
   position: { type: Number },
   measureLocation: { type: String },
-  pktNr: { type: Number },
+  pktNr: { type: String },
   active: {
     type: Boolean,
     default: false

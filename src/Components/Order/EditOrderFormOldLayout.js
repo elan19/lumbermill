@@ -179,7 +179,7 @@ const EditOrderFormOldLayout = ({
                   </select>
                   <label htmlFor={`prilista-${index}-pktNr`}>Paketnummer:</label>
                   <input
-                    type="number"
+                    type="text"
                     id={`prilista-${index}-pktNr`}
                     name="pktNr"
                     value={prilistaItem.pktNr || ''}
@@ -328,7 +328,7 @@ const EditOrderFormOldLayout = ({
                 </select>
                 <label htmlFor={`kantlista-${index}-pktNr`}>Paketnummer:</label>
                 <input
-                  type="number"
+                  type="text"
                   id={`kantlista-${index}-pktNr`}
                   name="pktNr"
                   value={kantListaItem.pktNr || ''}

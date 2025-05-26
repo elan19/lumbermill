@@ -20,7 +20,7 @@ const LagerplatsSchema = new mongoose.Schema({
     varv: { type: String },
     max_langd: { type: String },
     kvalite: { type: String, required: function () { return this.type === "Kantat"; } },
-    pktNr: { type: Number },
+    pktNr: { type: String },
   },
 
   okantatData: {
@@ -28,7 +28,7 @@ const LagerplatsSchema = new mongoose.Schema({
     kvalite: { type: String }, // Include the bad qualities
     typ: { type: String },
     nt: { type: String },
-    pktNr: { type: Number },
+    pktNr: { type: String },
     pktNamn: { type: String }
   },
 });

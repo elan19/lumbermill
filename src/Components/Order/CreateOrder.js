@@ -10,12 +10,8 @@ const CreateOrder = () => {
   const [notes, setNotes] = useState('');
   const [speditor, setSpeditor] = useState('');
   // Start with one template item in each list
-  const [prilistas, setPrilistas] = useState([
-    { quantity: '', size: '', type: 'FURU', dimension: '', location: '', description: '', measureLocation: '', pktNr: '' },
-  ]);
-  const [kantlistas, setKantlistas] = useState([
-    { antal: '', bredd: '', tjocklek: '', varv: '', max_langd: '', stampel: '', typ: 'FURU', lagerplats: '', information: '', status: { kapad: false, klar: false }, pktNr: '' },
-  ]);
+  const [prilistas, setPrilistas] = useState([]);
+  const [kantlistas, setKantlistas] = useState([]);
   const [klupplistas, setKlupplistas] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -222,8 +218,8 @@ const CreateOrder = () => {
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
-                    <label htmlFor={`p-type-${index}`}>Paketnummer</label>
-                    <input id={`p-type-${index}`} type="number" placeholder="Ex. 20" name="pktNr" value={prilista.pktNr} onChange={(e) => handlePrilistaChange(index, e)}/>
+                    <label htmlFor={`p-pktNr-${index}`}>Paketnummer</label>
+                    <input id={`p-pktNr-${index}`} type="text" placeholder="Ex. 20" name="pktNr" value={prilista.pktNr} onChange={(e) => handlePrilistaChange(index, e)}/>
                 </div>
                 <div className={styles.inputGroup}>
                     <label htmlFor={`p-loc-${index}`}>Lagrad Plats</label>
@@ -300,7 +296,7 @@ const CreateOrder = () => {
                     </div>
                     <div className={styles.inputGroup}>
                       <label htmlFor={`k-pktNr-${index}`}>Paketnummer</label>
-                      <input id={`k-pktNr-${index}`} type="number" placeholder="Ex. 20" name="pktNr" value={kantlista.pktNr} onChange={(e) => handleKantlistaChange(index, e)}/>
+                      <input id={`k-pktNr-${index}`} type="text" placeholder="Ex. 20" name="pktNr" value={kantlista.pktNr} onChange={(e) => handleKantlistaChange(index, e)}/>
                     </div>
                     <div className={styles.inputGroup}>
                         <label htmlFor={`k-stampel-${index}`}>Stämpel</label>

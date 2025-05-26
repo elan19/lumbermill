@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./CreateKantLista.module.css"; // Assuming your styles are in this file
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const CreateKantlista = () => {
   const [orderNumber, setOrderNumber] = useState("");
@@ -22,6 +23,7 @@ const CreateKantlista = () => {
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
   const shouldForceLager = !hasPermission('orders', 'create');
@@ -71,7 +73,7 @@ const CreateKantlista = () => {
       typ,
       lagerplats: location,
       information,
-      pktNr: pktNr ? parseInt(pktNr, 10) : null,
+      pktNr: pktNr || "", // Ensure pktNr is always a string
       status: {
         kapad: statusKapad,
         klar: statusKlar,
@@ -103,6 +105,8 @@ const CreateKantlista = () => {
       setStatusKapad(false);
       setStatusKlar(false);
       setIsLager(false); // Reset "Lager" toggle
+
+      navigate('/dashboard/kantlista');
     } catch (err) {
       setError("Misslyckades att skapa en ny KANTLISTA. Försök igen eller kontakta support.");
     }
@@ -258,7 +262,7 @@ const CreateKantlista = () => {
 
         <label>Paketnummer: <span className={styles.optional}>(Frivillig)</span></label>
         <input
-          type="number"
+          type="text"
           value={pktNr}
           placeholder="Paketnummer"
           onChange={(e) => setPktNr(e.target.value)}

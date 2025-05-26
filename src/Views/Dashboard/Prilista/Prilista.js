@@ -41,6 +41,10 @@ const Prilista = () => {
   const [isTextEditModalOpen, setIsTextEditModalOpen] = useState(false);
   const [error, setError] = useState(false);
 
+  const [isPktNrModalOpen, setIsPktNrModalOpen] = useState(false);
+  const [currentCompletingItemId, setCurrentCompletingItemId] = useState(null); // To know which item we're setting PktNr for
+  const [inputPktNr, setInputPktNr] = useState('');
+
   const { hasPermission } = useAuth();
 
   useEffect(() => {
@@ -372,37 +376,29 @@ const Prilista = () => {
   };
   
 
-  const handleComplete = async (id) => { // Removed 'field' parameter as Prilista only has 'completed'
-    try {
-      if (!token) {
-        alert("Authorization token is missing.");
-        return;
-      }
+  const handleComplete = async (id) => {
+    const currentPrilistaItem = orders.find(order => order._id === id) || 
+                               allOrders.find(order => order._id === id);
 
-      // Find the current Prilista item to check its properties
-      const currentPrilistaItem = orders.find(order => order._id === id);
-      // If using combined allOrders, search there:
-      // const currentPrilistaItem = allOrders.find(order => order._id === id);
-
-
-      if (!currentPrilistaItem) {
+    if (!currentPrilistaItem) {
         alert("Prilista item not found.");
         return;
-      }
+    }
 
-      // --- LOGIC FOR "LAGER" ITEMS ---
-      if (currentPrilistaItem.customer === "Lager") {
+    if (currentPrilistaItem.customer === "Lager") {
+        // --- LOGIC FOR "LAGER" ITEMS ---
         const newLagerplats = {
           type: "Okantat",
           tree: currentPrilistaItem.type || "Okänt",
           dim: currentPrilistaItem.dimension ? parseInt(currentPrilistaItem.dimension, 10) : 0,
-          location: currentPrilistaItem.location || "-",
+          location: currentPrilistaItem.location || "-", // Or a more specific default if needed
           okantatData: {
             typ: currentPrilistaItem.size || "-",
             kvalite: "A",
             varv: "-",
             nt: "-",
-            pktNr: currentPrilistaItem.pktNr
+            // Use the pktNr from the Prilista item for the Lagerplats entry
+            pktNr: currentPrilistaItem.pktNr || null // Ensure it's null if undefined/empty
           },
         };
 
@@ -414,64 +410,129 @@ const Prilista = () => {
             );
 
             if (addResponse.status === 201) {
-                // Now delete the original Prilista item
                 const deleteResponse = await axios.delete(
-                    `${process.env.REACT_APP_API_URL}/api/prilista/${id}`, // Use the correct Prilista delete endpoint
+                    `${process.env.REACT_APP_API_URL}/api/prilista/${id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 
-                if (deleteResponse.status === 200 || deleteResponse.status === 204) { // 204 for no content on delete
-                    // Optimistically remove from local state and re-fetch
-                    setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
-                    fetchOrders(); // Re-fetch to ensure consistency
-                    // alert("Prilista ('Lager') flyttad till Lagerplats!"); // Optional user feedback
+                if (deleteResponse.status === 200 || deleteResponse.status === 204) {
+                    // --- MORE COMPREHENSIVE OPTIMISTIC UPDATE ---
+                    const filterOutItem = (prevList) => prevList.filter(order => order._id !== id);
+
+                    setOrders(filterOutItem); // Update the main 'orders' (incomplete items) list
+
+                    // Also update location-specific lists if isFiltered is true
+                    // or always, if these lists are used to derive allOrders
+                    setIshallenOrders(filterOutItem);
+                    setBsidanOrders(filterOutItem);
+                    setAsidanOrders(filterOutItem);
+                    setEmptyLocationOrders(filterOutItem);
+                    // --- END COMPREHENSIVE OPTIMISTIC UPDATE ---
+
+                    // Emitting a socket event after successful deletion might be useful
+                    // if other clients need to know this Prilista item was removed (processed as Lager).
+                    if (socket.current) {
+                        // You might want a specific event like 'lagerItemProcessed' or 'prilistaItemDeleted'
+                        socket.current.emit('prilistaItemDeleted', { id }); 
+                    }
+                    
+                    // fetchOrders(); // You can often avoid this immediate re-fetch now
+                                   // if optimistic updates cover all displayed lists.
+                                   // Keep it if there are other side-effects or complex derivations.
+
+                    // alert("Prilista ('Lager') flyttad till Lagerplats!"); // Optional
                 } else {
-                     throw new Error(`Failed to delete Prilista item after adding to lager: ${deleteResponse.status}`);
+                     throw new Error(`Failed to delete Prilista item after adding to lager: ${deleteResponse.statusText} (Status: ${deleteResponse.status})`);
                 }
             } else {
-                throw new Error(`Failed to add Prilista item to lager: ${addResponse.status}`);
+                throw new Error(`Failed to add Prilista item to lager: ${addResponse.statusText} (Status: ${addResponse.status})`);
             }
         } catch (lagerError) {
             console.error("Error processing 'Lager' Prilista item:", lagerError);
-            alert("Misslyckades att flytta 'Lager' Prilista till Lagerplats.");
-            // Optionally re-fetch orders to reset UI if part of the operation failed
+            alert("Misslyckades att flytta 'Lager' Prilista till Lagerplats. " + (lagerError.response?.data?.message || lagerError.message));
+            // Consider if fetchOrders() is needed here to revert any partial UI changes on error
             fetchOrders();
         }
-        return; // Exit function after handling "Lager" item
-      }
-      // --- END OF "LAGER" ITEM LOGIC ---
-
-
-      // --- LOGIC FOR REGULAR (NON-LAGER) PRILISTA ITEMS ---
-      // Mark the Prilista item as completed
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/prilista/complete/${id}`,
-        {}, // Empty body as per your original function
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.status === 200) {
-        // Optimistically update the local state
-        // The filter also removes it from the 'orders' (incomplete) list
-        setOrders(prevOrders =>
-          prevOrders
-            .map(order => (order._id === id ? { ...order, completed: true } : order))
-            .filter(order => !order.completed) // Keep this filter if 'orders' state is for incomplete items
-        );
-
-        // Emit socket event if you still want to for regular completions
-        if (socket.current) {
-            socket.current.emit('itemCompleted', { id, completed: true }); // Send relevant data
-        }
-
-        fetchOrders(); // Re-fetch to ensure data consistency, especially for dependent order status
-      } else {
-         throw new Error(`Failed to mark Prilista as completed: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error completing Prilista item:', error);
-      alert('Failed to mark item as completed. ' + (error.response?.data?.message || error.message));
+        return;
     }
+    // --- END OF "LAGER" ITEM LOGIC ---
+
+
+    // --- FOR REGULAR (NON-LAGER) ITEMS, OPEN THE MODAL ---
+    setCurrentCompletingItemId(id);
+    setInputPktNr(currentPrilistaItem.pktNr || '');
+    setIsPktNrModalOpen(true);
+  };
+
+  const handleSubmitPktNrAndComplete = async () => {
+      if (!currentCompletingItemId) return;
+
+      const finalPktNr = inputPktNr.trim() || null; // If empty after trim, it becomes null
+      console.log("Final PktNr to be sent:", finalPktNr);
+
+      try {
+          if (!token) {
+              alert("Authorization token is missing.");
+              setIsPktNrModalOpen(false); // Close modal on auth error
+              return;
+          }
+
+          // --- API Call to update PktNr (if provided) AND mark as completed ---
+          // Your backend needs to handle updating pktNr and completed status in one go,
+          // or you make two separate calls. One call is more efficient.
+          // Let's assume the 'complete' endpoint can now accept a pktNr in the body.
+          const response = await axios.put(
+              `${process.env.REACT_APP_API_URL}/api/prilista/complete/${currentCompletingItemId}`,
+              { pktNr: finalPktNr }, // Send pktNr (will be null if not entered)
+              { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (response.status === 200) {
+              // Optimistically update the local state
+              setOrders(prevOrders =>
+                  prevOrders
+                  .map(order => 
+                      order._id === currentCompletingItemId 
+                          ? { ...order, completed: true, pktNr: finalPktNr !== null ? finalPktNr : order.pktNr } // Update pktNr only if a new valid one was given
+                          : order
+                  )
+                  .filter(order => !order.completed) 
+              );
+              // Also update location-specific lists if isFiltered is true
+              if (isFiltered) {
+                  const updateAndFilterList = (listSetter) => {
+                      listSetter(prevList =>
+                          prevList
+                              .map(order =>
+                                  order._id === currentCompletingItemId
+                                      ? { ...order, completed: true, pktNr: finalPktNr !== null ? finalPktNr : order.pktNr }
+                                      : order
+                              )
+                              .filter(order => !order.completed)
+                      );
+                  };
+                  updateAndFilterList(setIshallenOrders);
+                  updateAndFilterList(setBsidanOrders);
+                  updateAndFilterList(setAsidanOrders);
+                  updateAndFilterList(setEmptyLocationOrders);
+              }
+
+
+              if (socket.current) {
+                  socket.current.emit('itemCompleted', { id: currentCompletingItemId, completed: true, pktNr: finalPktNr });
+              }
+              // fetchOrders(); // Re-fetch for full consistency, or rely on optimistic update
+          } else {
+              throw new Error(`Failed to mark Prilista as completed: ${response.status}`);
+          }
+      } catch (error) {
+          console.error('Error completing Prilista item with PktNr:', error);
+          alert('Misslyckades med att markera artikeln som avklarad. ' + (error.response?.data?.message || error.message));
+      } finally {
+          setIsPktNrModalOpen(false);
+          setCurrentCompletingItemId(null);
+          setInputPktNr('');
+      }
   };
 
   const handleFilterClick = async (prilistaId, dimension, size) => {
@@ -1254,6 +1315,57 @@ const handleSaveEditedTextAsPDF = async () => {
         </div>
       )}
     </div>
+
+    {/* --- MODAL FOR ENTERING Paketnummer --- */}
+    {isPktNrModalOpen && (
+      <div className={styles.modalOverlay} onClick={() => { /* Optional: Close on overlay click, but usually buttons are preferred */ }}>
+        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}> {/* Prevent closing when clicking inside modal */}
+          <h3 className={styles.modalTitle}>Ange Paketnummer (Valfritt)</h3>
+          <div className={styles.inputGroupModal}> {/* You might need a specific style for modal inputs */}
+            <label htmlFor="inputPktNr">Paketnummer:</label>
+            <input
+              type="text"
+              id="inputPktNr"
+              value={inputPktNr}
+              onChange={(e) => setInputPktNr(e.target.value)}
+              className={styles.modalInput} // Style for modal input
+              placeholder="Lämna tomt för inget pktnr"
+            />
+          </div>
+          <div className={styles.modalActions}>
+            <button
+              onClick={handleSubmitPktNrAndComplete}
+              className={styles.modalButtonConfirm} // Style for confirm
+            >
+              Spara & Markera Avklarad
+            </button>
+            <button
+              onClick={() => {
+                // Set inputPktNr to empty before proceeding if user chooses this option
+                // setInputPktNr(''); // Set to empty so null is sent if they previously typed something
+                // OR, even better, handle this in handleSubmitPktNrAndComplete by passing a flag
+                // For simplicity now, we'll just proceed, and if inputPktNr is empty, null will be sent.
+                handleSubmitPktNrAndComplete(); // Will proceed with current inputPktNr (empty if not typed)
+              }}
+              className={styles.modalButtonSecondary} // Style for secondary action
+            >
+              Fortsätt utan Paketnummer
+            </button>
+            <button
+              onClick={() => {
+                setIsPktNrModalOpen(false);
+                setCurrentCompletingItemId(null);
+                setInputPktNr('');
+              }}
+              className={styles.modalButtonCancel} // Style for cancel
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    {/* --- END Paketnummer MODAL --- */}
   </DndProvider>
   );
 };

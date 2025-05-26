@@ -31,6 +31,10 @@ const KantListaManager = () => {
   const [editableKantlistaText, setEditableKantlistaText] = useState('');
   const [isKantlistaTextEditModalOpen, setIsKantlistaTextEditModalOpen] = useState(false);
 
+  const [isKantlistaPktNrModalOpen, setIsKantlistaPktNrModalOpen] = useState(false);
+  const [currentCompletingKantlistaId, setCurrentCompletingKantlistaId] = useState(null);
+  const [inputKantlistaPktNr, setInputKantlistaPktNr] = useState('');
+
   const { hasPermission } = useAuth();
 
   useEffect(() => {
@@ -395,100 +399,158 @@ const KantListaManager = () => {
 
   const handleComplete = async (id, field) => {
     try {
-      if (!token) {
-        alert("Authorization token is missing.");
-        return;
-      }
-  
-      // Determine the endpoint for updating the status
-      const endpoint = field === "kapad" ? "cut" : "completed";
-
-      // Find the current order to check its properties
-      const currentOrder = orders.find(order => order._id === id);
-  
-      if (!currentOrder) {
-        alert("Order not found.");
-        return;
-      }
-
-  
-      // If `ordernumber` is missing and `kund` is "lager", delete the kantlista when clicking "Klar"
-      if (currentOrder.customer === "Lager" && endpoint === "completed") {
-        const deleteResponse = await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/kantlista/${id}/klar`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const newLagerplats = {
-          type: "Kantat",
-          tree: "F",
-          dim: currentOrder.tjocklek,
-          location: "-",
-          kantatData: {
-            bredd: currentOrder.bredd,
-            varv: currentOrder.varv,
-            max_langd: currentOrder.max_langd,
-            kvalite: "-",
-            pktNr: currentOrder.pktNr || null,
-          },
-           // Du kan uppdatera detta om det finns en specifik plats
-      };
-
-      const addResponse = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/lagerplats`,
-          newLagerplats,
-          {
-              headers: {
-                  Authorization: `Bearer ${token}`,
-              },
-          }
-      );
-
-      if (addResponse.status === 201) {
-          setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
-          fetchOrders();
-          //alert("Kantlistan har lagts till i Lagerplats!");
-      }
-  
-        if (deleteResponse.status === 200) {
-          setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
-          fetchOrders();
+        if (!token) {
+            alert("Authorization token is missing.");
+            return;
         }
-        return; // Exit function after deletion
-      }
-  
-      // Make the API request to update the order
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/kantlista/${endpoint}/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+
+        const currentOrder = orders.find(order => order._id === id) || 
+                             activeKantlistor.find(order => order._id === id); // Check active list too
+
+        if (!currentOrder) {
+            alert("Kantlista item not found.");
+            return;
         }
-      );
-  
-      if (response.status === 200) {
-        //alert(`Item marked as ${field}`);
-  
-        // Update the state for the orders
-        const updatedOrders = orders.map(order =>
-          order._id === id
-            ? { ...order, status: { ...order.status, [field]: true } }
-            : order
-        );
-  
-        // Filter out orders only if both `kapad` and `klar` are true
-        setOrders(updatedOrders.filter(order => !(order.status.kapad && order.status.klar)));
-      }
-  
+
+        // If the action is "Kapad", proceed directly as before
+        if (field === "kapad") {
+            const response = await axios.put(
+                `${process.env.REACT_APP_API_URL}/api/kantlista/cut/${id}`, {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (response.status === 200) {
+                const updatedOrders = orders.map(order =>
+                    order._id === id ? { ...order, status: { ...order.status, kapad: true } } : order
+                );
+                setOrders(updatedOrders.filter(order => !(order.status.kapad && order.status.klar)));
+                // Also update activeKantlistor if the item is there
+                setActiveKantlistor(prevActive => 
+                    prevActive.map(order => 
+                        order._id === id ? { ...order, status: { ...order.status, kapad: true } } : order
+                    ).filter(order => !(order.status.kapad && order.status.klar)) // Also filter active list if it becomes fully complete
+                );
+            } else {
+                throw new Error(`Failed to mark as kapad: ${response.status}`);
+            }
+            return; // Exit after handling "kapad"
+        }
+
+        // --- IF FIELD IS "klar" ---
+
+        // If it's a "Lager" item and being marked "klar", process it directly to Lagerplats
+        if (currentOrder.customer === "Lager" && field === "klar") {
+            // --- EXISTING LOGIC FOR "LAGER" ITEMS WHEN "KLAR" ---
+            const newLagerplats = {
+                type: "Kantat",
+                tree: currentOrder.typ || "Okänt", // Assuming 'typ' is Träslag for Kantlista
+                dim: currentOrder.tjocklek, // Combine tjocklek and bredd for dim
+                location: "-", // Or a default, or from currentOrder.lagerplats
+                kantatData: {
+                    bredd: currentOrder.bredd,
+                    varv: currentOrder.varv,
+                    max_langd: currentOrder.max_langd,
+                    kvalite: "-", // Default or from item
+                    pktNr: currentOrder.pktNr || null, // Pass existing pktNr
+                },
+            };
+            const addResponse = await axios.post(
+                `${process.env.REACT_APP_API_URL}/api/lagerplats`, newLagerplats,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (addResponse.status === 201) {
+                await axios.delete(
+                    `${process.env.REACT_APP_API_URL}/api/kantlista/${id}`, // General delete endpoint for Kantlista
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                // Optimistic update for all lists
+                const filterOut = (prev) => prev.filter(order => order._id !== id);
+                setOrders(filterOut);
+                setActiveKantlistor(filterOut);
+                // fetchOrders(); // Or re-fetch
+            } else {
+                 throw new Error(`Failed to add Kantlista ('Lager') to lager: ${addResponse.status}`);
+            }
+            return; // Exit after handling "Lager" item completion
+        }
+        // --- END OF "LAGER" ITEM LOGIC for "klar" ---
+
+        // --- FOR REGULAR (NON-LAGER) ITEMS BEING MARKED "klar", OPEN THE MODAL ---
+        if (field === "klar") {
+            setCurrentCompletingKantlistaId(id);
+            setInputKantlistaPktNr(currentOrder.pktNr || ''); // Pre-fill if pktNr already exists
+            setIsKantlistaPktNrModalOpen(true);
+        }
+
     } catch (error) {
-      console.error("Error completing order:", error);
-      alert("Failed to update item status");
+        console.error("Error in handleComplete for Kantlista:", error);
+        alert("Misslyckades med att uppdatera artikelstatus. " + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleSubmitKantlistaPktNrAndComplete = async () => {
+    if (!currentCompletingKantlistaId) return;
+
+    const finalPktNr = inputKantlistaPktNr.trim() || null;
+
+    // Optional: Basic validation for pktNr if it's entered and your schema is Number
+    // if (inputKantlistaPktNr.trim() && isNaN(parseInt(finalPktNr, 10)) && finalPktNr !== null) {
+    //     alert("Paketnummer måste vara ett giltigt nummer.");
+    //     return;
+    // }
+
+    try {
+        if (!token) {
+            alert("Authorization token is missing.");
+            setIsKantlistaPktNrModalOpen(false);
+            return;
+        }
+
+        // API Call to mark as "klar" and update PktNr
+        const response = await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/kantlista/completed/${currentCompletingKantlistaId}`, // Endpoint for marking 'klar'
+            { pktNr: finalPktNr }, // Send pktNr
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.status === 200) {
+            const updatedItemFromServer = response.data; // Get the full updated item
+
+            // Optimistically update the local state for both 'orders' and 'activeKantlistor'
+            const updateList = (prevList) =>
+                prevList.map(order =>
+                    order._id === currentCompletingKantlistaId
+                        ? { 
+                            ...order, 
+                            status: { ...order.status, klar: true }, 
+                            pktNr: updatedItemFromServer.pktNr // Use pktNr from server response
+                          }
+                        : order
+                ).filter(order => !(order.status.kapad && order.status.klar)); // Filter if now fully complete
+
+            setOrders(updateList);
+            setActiveKantlistor(updateList);
+
+
+            // Emit socket event if needed
+            if (socket.current) {
+                // Send enough info for other clients to update
+                socket.current.emit('kantListItemCompleted', { 
+                    id: currentCompletingKantlistaId, 
+                    status: { klar: true, kapad: updatedItemFromServer.status.kapad }, // Send full status
+                    pktNr: updatedItemFromServer.pktNr 
+                });
+            }
+            // fetchOrders(); // Or rely on optimistic update + socket
+        } else {
+            throw new Error(`Failed to mark Kantlista as klar: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error completing Kantlista item with PktNr:', error);
+        alert('Misslyckades med att markera artikeln som klar. ' + (error.response?.data?.message || error.message));
+    } finally {
+        setIsKantlistaPktNrModalOpen(false);
+        setCurrentCompletingKantlistaId(null);
+        setInputKantlistaPktNr('');
     }
   };
   
@@ -676,6 +738,55 @@ const KantListaManager = () => {
           </table>
         </div>
 
+        {/* --- MODAL FOR ENTERING Paketnummer FOR KANTLISTA --- */}
+        {isKantlistaPktNrModalOpen && (
+          <div className={styles.modalOverlay}> {/* Reuse Prilista's modalOverlay style */}
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}> {/* Reuse Prilista's modalContent style */}
+              <h3 className={styles.modalTitle}>Ange Paketnummer (Valfritt)</h3>
+              <div className={styles.inputGroupModal}> {/* Reuse or create styles */}
+                <label htmlFor="inputKantlistaPktNr">Paketnummer:</label>
+                <input
+                  type="text" // Allow text input, backend will handle parsing if schema is Number
+                  id="inputKantlistaPktNr"
+                  value={inputKantlistaPktNr}
+                  onChange={(e) => setInputKantlistaPktNr(e.target.value)}
+                  className={styles.modalInput} // Reuse or create
+                  placeholder="Lämna tomt för inget pktnr"
+                />
+              </div>
+              <div className={styles.modalActions}> {/* Reuse or create */}
+                <button
+                  onClick={handleSubmitKantlistaPktNrAndComplete}
+                  className={styles.modalButtonConfirm} // Reuse or create
+                >
+                  Spara & Markera Klar
+                </button>
+                <button
+                  onClick={() => {
+                    // If "Fortsätt utan" means truly no pktNr, ensure input is cleared before submitting
+                    // For simplicity, current handleSubmitKantlistaPktNrAndComplete treats empty input as null.
+                    handleSubmitKantlistaPktNrAndComplete(); 
+                  }}
+                  className={styles.modalButtonSecondary} // Reuse or create
+                >
+                  Fortsätt utan Paketnummer
+                </button>
+                <button
+                  onClick={() => {
+                    setIsKantlistaPktNrModalOpen(false);
+                    setCurrentCompletingKantlistaId(null);
+                    setInputKantlistaPktNr('');
+                  }}
+                  className={styles.modalButtonCancel} // Reuse or create
+                >
+                  Avbryt
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* --- END KANTLISTA Paketnummer MODAL --- */}
+
         <div className={styles.orderList}>
           <h2 className={styles.title}>Hela kantlista</h2>
           <table className={styles.orderTable}>
@@ -803,7 +914,9 @@ const DraggableRow = ({ order, index, moveOrder, onComplete, onFilter, activeKan
         </button>
       </td>
     </tr>
+    
   );
+  
 };
 
 export default KantListaManager;

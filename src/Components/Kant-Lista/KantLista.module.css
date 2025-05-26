@@ -451,6 +451,72 @@
 }
 
 
+.modalTitle {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+.inputGroupModal {
+  margin-bottom: 15px;
+}
+
+.inputGroupModal label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.modalActions {
+  margin-top: 25px;
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px; /* Space between buttons */
+}
+
+.modalActions button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modalButtonConfirm {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+.modalButtonConfirm:hover {
+  background-color: #218838;
+}
+
+.modalButtonSecondary {
+  background-color: #007bff; /* Blue */
+  color: white;
+}
+.modalButtonSecondary:hover {
+  background-color: #0056b3;
+}
+
+.modalButtonCancel {
+  background-color: #6c757d; /* Grey */
+  color: white;
+}
+.modalButtonCancel:hover {
+  background-color: #5a6268;
+}
+
+
+
 
 
 @media (max-width: 1000px) {

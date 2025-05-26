@@ -158,7 +158,7 @@ function OrderList() {
                             color: prilist.completed ? 'gray' : 'black',
                           }}
                         >
-                          {`${prilist.quantity}PKT - ${prilist.dimension}MM - ${prilist.size} - ${prilist.type} - ${prilist.description}`}
+                          {`${prilist.pktNr ? `Pktnr: ${prilist.pktNr} - ` : ''}${prilist.quantity}PKT - ${prilist.dimension}MM - ${prilist.size} - ${prilist.type} - ${prilist.description}`}
                         </li>
                       ))
                     ) : (
@@ -177,7 +177,7 @@ function OrderList() {
                             color: kantlista.status.klar && kantlista.status.kapad ? 'gray' : 'black',
                           }}
                         >
-                          {`${kantlista.antal}PKT - ${kantlista.tjocklek}X${kantlista.bredd} - ${kantlista.varv}v - ${kantlista.max_langd}m - ${kantlista.stampel} ${kantlista.information}`}
+                          {`${kantlista.pktNr ? `Pktnr: ${kantlista.pktNr} - ` : ''}${kantlista.antal}PKT - ${kantlista.tjocklek}X${kantlista.bredd} - ${kantlista.varv}v - ${kantlista.max_langd}m - ${kantlista.stampel} ${kantlista.information}`}
                         </li>
                       ))
                     ) : (

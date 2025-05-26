@@ -308,6 +308,87 @@ router.put('/completed/:id', authenticateToken, checkPermission('kantlista', 'ma
   const io = req.app.get('io');
   try {
     const { id } = req.params;
+    const { kantlistId, status, pktNr } = req.body; // Get pktNr from the request body
+
+    // 1. Prepare the update data
+    const updateFields = {
+      "status.klar": true, // Always mark 'klar' as true for this endpoint
+      // Optionally add completedAt or similar timestamp if you track it for status.klar
+      // 'status.klarAt': new Date(),
+    };
+
+    if (pktNr !== undefined) { // Check if pktNr was sent in the request body
+      if (pktNr === null || String(pktNr).trim() === '') {
+        updateFields.pktNr = null; // Store explicit null or trimmed empty string as null
+      } else {
+        // Assuming pktNr in Kantlista schema is String:
+        updateFields.pktNr = String(pktNr).trim();
+
+        // If pktNr in Kantlista schema is Number, you would parse and validate:
+        // const parsedPktNr = Number(String(pktNr).trim());
+        // if (isNaN(parsedPktNr)) {
+        //   return res.status(400).json({ message: "Paketnummer måste vara ett giltigt nummer." });
+        // }
+        // updateFields.pktNr = parsedPktNr;
+      }
+    }
+    // If pktNr is undefined in req.body, it won't be included in updateFields,
+    // so the existing pktNr on the item (if any) will not be changed.
+
+    // 2. Find and update the Kantlista item
+    const item = await Kantlista.findByIdAndUpdate(
+      id,
+      { $set: updateFields }, // Use $set to apply the updates
+      { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!item) {
+      return res.status(404).json({ message: 'Kantlista item not found' }); // Use .json
+    }
+
+    // 3. Check if all KantLista items for the same orderNumber are fully completed
+    // (both klar and kapad)
+    const kantListaItemsForOrder = await Kantlista.find({ orderNumber: item.orderNumber });
+    const allKantListaDone = kantListaItemsForOrder.every(kl => kl.status.klar && kl.status.kapad);
+
+    // 4. Check if all PriLista items for the same orderNumber are completed
+    const priListaItemsForOrder = await Prilista.find({ orderNumber: item.orderNumber });
+    let allPriListaDone = true; // Assume true if no Prilista items exist for this order
+    if (priListaItemsForOrder.length > 0) {
+      allPriListaDone = priListaItemsForOrder.every((plItem) => plItem.completed);
+    }
+
+    // 5. (Optional) Check KluppLista items if they also contribute to Order completion
+    // ...
+
+    // Update the main Order status to "Completed" only if all relevant lists are fully done
+    if (allKantListaDone && allPriListaDone /* && allKluppListaDone */) {
+      const updatedOrder = await Order.findOneAndUpdate(
+        { orderNumber: item.orderNumber },
+        { $set: { status: 'Completed' } },
+        { new: true }
+      );
+      if (updatedOrder && io) {
+        io.emit('mainOrderUpdated', updatedOrder);
+      }
+    }
+
+    // Emit an event that this Kantlista item was updated (specifically its 'klar' status and possibly pktNr)
+    if (io) {
+      io.emit('kantListUpdate', { kantlistId, status });
+    }
+
+    res.status(200).json(item);
+  } catch (err) {
+    console.error('Error updating KantLista item (klar):', err);
+    res.status(500).json({ message: 'Internal server error' }); // Use .json
+  }
+});
+
+/*router.put('/completed/:id', authenticateToken, checkPermission('kantlista', 'markComplete'), async (req, res) => {
+  const io = req.app.get('io');
+  try {
+    const { id } = req.params;
     const { kantlistId, status } = req.body;
 
     // Update the `status.klar` field to true for the specified item
@@ -351,7 +432,7 @@ router.put('/completed/:id', authenticateToken, checkPermission('kantlista', 'ma
     console.error('Error updating KantLista item (klar):', err);
     res.status(500).send({ message: 'Internal server error' });
   }
-});
+});*/
 
 
 router.put('/update-lagerplats', authenticateToken, checkPermission('lagerplats', 'update'), async (req, res) => {

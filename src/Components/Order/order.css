@@ -321,6 +321,15 @@ h4 {
   font-weight: bold;
 }
 
+.pktNrBadge {
+  background-color: #7e197e;
+  color: #fff;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
 .activateSingleOkantadBtn {
   padding: 0.2em 0.5em;
 }

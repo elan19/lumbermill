@@ -629,6 +629,11 @@ const sortedKantlistaGroupKeys = getSortedGroupKeys(groupedKantlistaItems, kantl
                                 Aktivera
                             </button>
                         )}
+                        {item.pktNr && item.pktNr.trim() && (
+                            <span className="pktNrBadge exclude-from-pdf">
+                              PktNr: {item.pktNr}
+                            </span>
+                          )}
                         </p>
                         {!item.completed && (
                           <button 
@@ -664,6 +669,11 @@ const sortedKantlistaGroupKeys = getSortedGroupKeys(groupedKantlistaItems, kantl
                         <p>
                           {item.antal}PKT {item.tjocklek}x{item.bredd}MM {item.max_langd}M {item.information} {item.status.klar && item.status.kapad && <span className="completedBadge exclude-from-pdf">✓</span>} {item.active && !item.status.klar && !item.status.kapad && (
                           <span className="itemActiveBadge exclude-from-pdf">Aktiv</span>
+                        )}
+                        {item.pktNr && item.pktNr.trim() && (
+                          <span className="pktNrBadge exclude-from-pdf">
+                            PktNr: {item.pktNr}
+                          </span>
                         )}
                         </p>
                         {!item.status.klar && (
